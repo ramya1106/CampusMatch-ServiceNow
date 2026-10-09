@@ -1,0 +1,7408 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function($window) {
+
+    var c = this;
+
+
+    /* =========================================
+       DEFAULT TAB
+    ========================================= */
+
+    c.activeTab = 'reports';
+
+
+    /* =========================================
+       DEFAULT REPORT FILTER
+    ========================================= */
+
+    c.reportFilter = 'all';
+
+
+    /* =========================================
+       WITHDRAW CLAIM STATE
+    ========================================= */
+
+    c.withdrawOpen = false;
+    c.withdrawClaim = null;
+    c.withdrawReason = '';
+
+    c.processing = false;
+
+    c.actionMessage = '';
+    c.actionError = false;
+
+
+    /* =========================================
+       CHANGE TAB
+    ========================================= */
+
+    c.changeTab = function(tab) {
+
+        c.activeTab = tab;
+
+    };
+
+
+    /* =========================================
+       REPORT FILTER
+    ========================================= */
+
+    c.setReportFilter = function(filter) {
+
+        c.reportFilter = filter;
+
+    };
+
+
+    /* =========================================
+       FILTER REPORTS
+    ========================================= */
+
+    c.filteredReports = function() {
+
+        var reports = c.data.reports || [];
+
+
+        if (c.reportFilter === 'all') {
+
+            return reports;
+
+        }
+
+
+        return reports.filter(function(report) {
+
+            return report.reportType === c.reportFilter;
+
+        });
+
+    };
+
+
+    /* =========================================
+       STATUS CLASS
+    ========================================= */
+
+    c.statusClass = function(item) {
+
+        var status =
+            (item.statusValue || '')
+            .toLowerCase();
+
+
+        if (status === 'resolved') {
+
+            return 'cm-status-resolved';
+
+        }
+
+
+        if (
+            status === 'active' ||
+            status === 'draft'
+        ) {
+
+            return 'cm-status-active';
+
+        }
+
+
+        if (
+            status === 'matched' ||
+            status === 'claimed'
+        ) {
+
+            return 'cm-status-matched';
+
+        }
+
+
+        return 'cm-status-other';
+
+    };
+
+
+    /* =========================================
+       OPEN WITHDRAW MODAL
+    ========================================= */
+
+    c.openWithdraw = function(activity) {
+
+        if (
+            !activity ||
+            !activity.claimId ||
+            !activity.canWithdraw
+        ) {
+
+            return;
+
+        }
+
+
+        c.withdrawClaim = activity;
+
+        c.withdrawReason = '';
+
+        c.actionMessage = '';
+        c.actionError = false;
+
+        c.withdrawOpen = true;
+
+    };
+
+
+    /* =========================================
+       CLOSE WITHDRAW MODAL
+    ========================================= */
+
+    c.closeWithdraw = function() {
+
+        if (c.processing) {
+
+            return;
+
+        }
+
+
+        c.withdrawOpen = false;
+
+        c.withdrawClaim = null;
+
+        c.withdrawReason = '';
+
+    };
+
+
+    /* =========================================
+       CONFIRM WITHDRAWAL
+    ========================================= */
+
+    c.confirmWithdraw = function() {
+
+        if (
+            c.processing ||
+            !c.withdrawClaim ||
+            !c.withdrawClaim.claimId
+        ) {
+
+            return;
+
+        }
+
+
+        c.processing = true;
+
+        c.actionMessage = '';
+        c.actionError = false;
+
+
+        c.server.get({
+
+            action: 'withdrawClaim',
+
+            claim_id:
+                c.withdrawClaim.claimId,
+
+            match_id:
+                c.withdrawClaim.matchId,
+
+            reason:
+                (c.withdrawReason || '')
+                .substring(
+                    0,
+                    500
+                )
+
+        }).then(
+
+            function(response) {
+
+                c.processing = false;
+
+
+                if (
+                    !response ||
+                    !response.data
+                ) {
+
+                    c.actionError = true;
+
+                    c.actionMessage =
+                        'The withdrawal could not be completed.';
+
+                    return;
+
+                }
+
+
+                if (!response.data.success) {
+
+                    c.actionError = true;
+
+                    c.actionMessage =
+                        response.data.message ||
+                        'The withdrawal could not be completed.';
+
+                    return;
+
+                }
+
+
+                c.withdrawOpen = false;
+
+                c.withdrawClaim = null;
+
+                c.withdrawReason = '';
+
+                c.actionError = false;
+
+                c.actionMessage =
+                    response.data.message ||
+                    'Your claim has been withdrawn.';
+
+
+                /*
+                 * Reload dashboard after successful
+                 * withdrawal.
+                 */
+
+                $window.setTimeout(
+                    function() {
+
+                        $window.location.reload();
+
+                    },
+                    700
+                );
+
+            },
+
+            function() {
+
+                c.processing = false;
+
+                c.actionError = true;
+
+                c.actionMessage =
+                    'The withdrawal could not be completed. Please try again.';
+
+            }
+
+        );
+
+    };
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ==========================================================&#13;
+   CAMPUSMATCH USER DASHBOARD&#13;
+   WEBSITE + NOW MOBILE APP&#13;
+   FULL-BLEED SAFE VERSION&#13;
+========================================================== */&#13;
+&#13;
+.cm-dashboard {&#13;
+  position: relative;&#13;
+  display: block;&#13;
+&#13;
+  width: 100vw !important;&#13;
+  max-width: 100vw !important;&#13;
+&#13;
+  margin-left: calc(50% - 50vw) !important;&#13;
+  margin-right: calc(50% - 50vw) !important;&#13;
+&#13;
+  margin-top: 0 !important;&#13;
+  margin-bottom: 0 !important;&#13;
+&#13;
+  min-height: 100vh;&#13;
+  min-height: 100svh;&#13;
+&#13;
+  padding: 54px 20px 90px;&#13;
+&#13;
+  background:&#13;
+    linear-gradient(&#13;
+      180deg,&#13;
+      #FBF8EF 0%,&#13;
+      #F5F7F0 100%&#13;
+    ) !important;&#13;
+&#13;
+  box-shadow:&#13;
+    0 -60px 0 #FBF8EF,&#13;
+    0 60px 0 #F5F7F0;&#13;
+&#13;
+  font-family:&#13;
+    "DM Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  box-sizing: border-box !important;&#13;
+&#13;
+  overflow-x: hidden;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard,&#13;
+.cm-dashboard *,&#13;
+.cm-dashboard *::before,&#13;
+.cm-dashboard *::after {&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard-container {&#13;
+  position: relative;&#13;
+&#13;
+  width: 100%;&#13;
+  max-width: 1240px;&#13;
+&#13;
+  margin: 0 auto;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   HEADER&#13;
+========================================================== */&#13;
+&#13;
+.cm-dashboard-header {&#13;
+  display: flex;&#13;
+  align-items: flex-end;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 30px;&#13;
+&#13;
+  margin-bottom: 36px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard-eyebrow {&#13;
+  display: inline-flex;&#13;
+&#13;
+  padding: 8px 15px;&#13;
+  margin-bottom: 14px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard-header h1 {&#13;
+  margin: 0 0 7px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 38px;&#13;
+  font-weight: 700;&#13;
+&#13;
+  letter-spacing: -1px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard-header p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #617477;&#13;
+&#13;
+  font-size: 15px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-header-actions {&#13;
+  display: flex;&#13;
+&#13;
+  gap: 10px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-action-btn {&#13;
+  padding: 12px 19px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  font-size: 13px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-action-primary {&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-action-secondary {&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #104E45 !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   DASHBOARD SHELL&#13;
+========================================================== */&#13;
+&#13;
+.cm-dashboard-shell {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    245px minmax(0,1fr);&#13;
+&#13;
+  gap: 30px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SIDEBAR&#13;
+========================================================== */&#13;
+&#13;
+.cm-dashboard-sidebar {&#13;
+  height: fit-content;&#13;
+&#13;
+  padding: 22px 17px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 23px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 6px 20px rgba(16,78,69,.06);&#13;
+}&#13;
+&#13;
+&#13;
+/* USER */&#13;
+&#13;
+.cm-user-card {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 11px;&#13;
+&#13;
+  padding:&#13;
+    4px&#13;
+    3px&#13;
+    19px;&#13;
+&#13;
+  margin-bottom: 13px;&#13;
+&#13;
+  border-bottom:&#13;
+    1px solid #EDF2EE;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-user-avatar {&#13;
+  width: 46px;&#13;
+  height: 46px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 13px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-user-info {&#13;
+  min-width: 0;&#13;
+&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-user-info strong {&#13;
+  overflow: hidden;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  text-overflow: ellipsis;&#13;
+  white-space: nowrap;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-user-info span {&#13;
+  margin-top: 2px;&#13;
+&#13;
+  color: #000000;&#13;
+&#13;
+  font-size: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+/* NAV */&#13;
+&#13;
+.cm-dashboard-nav {&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+&#13;
+  gap: 4px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard-nav button,&#13;
+.cm-dashboard-nav a {&#13;
+  width: 100%;&#13;
+&#13;
+  padding: 11px 12px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 9px;&#13;
+&#13;
+  border: 0;&#13;
+&#13;
+  border-radius: 12px;&#13;
+&#13;
+  background: transparent;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 700;&#13;
+&#13;
+  text-align: left;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  transition:&#13;
+    background .2s ease,&#13;
+    color .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard-nav button:hover,&#13;
+.cm-dashboard-nav a:hover,&#13;
+.cm-dashboard-nav button.active {&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard-nav svg {&#13;
+  width: 18px;&#13;
+  height: 18px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   STATS&#13;
+========================================================== */&#13;
+&#13;
+.cm-dashboard-stats {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    repeat(4,minmax(0,1fr));&#13;
+&#13;
+  gap: 14px;&#13;
+&#13;
+  margin-bottom: 35px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-card {&#13;
+  min-width: 0;&#13;
+&#13;
+  padding: 17px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 12px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 19px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 4px 15px rgba(16,78,69,.05);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-icon {&#13;
+  width: 42px;&#13;
+  height: 42px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 14px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-icon svg {&#13;
+  width: 21px;&#13;
+  height: 21px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-lost {&#13;
+  background: #FBEAE7;&#13;
+  color: #B5502F;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-found {&#13;
+  background: #EDF5E9;&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-match {&#13;
+  background: #E9F1FF;&#13;
+  color: #2B5FA8;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-resolved {&#13;
+  background: #E4F4EA;&#13;
+  color: #168C70;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-card &gt; div:last-child {&#13;
+  min-width: 0;&#13;
+&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-card strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 22px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-stat-card span {&#13;
+  color: #000000;&#13;
+&#13;
+  font-size: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SECTION HEADER&#13;
+========================================================== */&#13;
+&#13;
+.cm-section-header {&#13;
+  display: flex;&#13;
+  align-items: flex-end;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 20px;&#13;
+&#13;
+  margin-bottom: 18px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-section-header h2 {&#13;
+  margin: 0 0 3px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 22px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-section-header p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #78878A;&#13;
+&#13;
+  font-size: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-explore-link {&#13;
+  color: #168C70 !important;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   FILTER&#13;
+========================================================== */&#13;
+&#13;
+.cm-report-filter {&#13;
+  display: flex;&#13;
+&#13;
+  gap: 8px;&#13;
+&#13;
+  margin-bottom: 20px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-filter button {&#13;
+  padding: 8px 16px;&#13;
+&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #617477;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  cursor: pointer;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-filter button.active {&#13;
+  border-color: #104E45;&#13;
+&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   REPORT GRID&#13;
+========================================================== */&#13;
+&#13;
+.cm-report-grid {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    repeat(3,minmax(0,1fr));&#13;
+&#13;
+  gap: 18px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   REPORT CARD&#13;
+========================================================== */&#13;
+&#13;
+.cm-report-item {&#13;
+  overflow: hidden;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 21px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 5px 17px rgba(16,78,69,.05);&#13;
+&#13;
+  transition:&#13;
+    transform .2s ease,&#13;
+    box-shadow .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-item:hover {&#13;
+  transform: translateY(-3px);&#13;
+&#13;
+  box-shadow:&#13;
+    0 11px 25px rgba(16,78,69,.09);&#13;
+}&#13;
+&#13;
+&#13;
+/* MEDIA */&#13;
+&#13;
+.cm-report-media {&#13;
+  position: relative;&#13;
+&#13;
+  height: 145px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  background:&#13;
+    linear-gradient(&#13;
+      145deg,&#13;
+      #EDF5E9,&#13;
+      #E3F0E5&#13;
+    );&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-media.lost {&#13;
+  background:&#13;
+    linear-gradient(&#13;
+      145deg,&#13;
+      #F9EEE8,&#13;
+      #F6E5DF&#13;
+    );&#13;
+&#13;
+  color: #A65A41;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   REPORT CARD IMAGE&#13;
+   STEP 7&#13;
+========================================================== */&#13;
+&#13;
+.cm-report-image {&#13;
+  position: absolute;&#13;
+&#13;
+  inset: 0;&#13;
+&#13;
+  width: 100%;&#13;
+  height: 100%;&#13;
+&#13;
+  display: block;&#13;
+&#13;
+  object-fit: cover;&#13;
+  object-position: center;&#13;
+&#13;
+  z-index: 1;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-media &gt; svg {&#13;
+  position: relative;&#13;
+&#13;
+  width: 52px;&#13;
+  height: 52px;&#13;
+&#13;
+  z-index: 2;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-type {&#13;
+  position: absolute;&#13;
+&#13;
+  top: 11px;&#13;
+  left: 11px;&#13;
+&#13;
+  padding: 5px 11px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  z-index: 3;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-type.lost {&#13;
+  color: #000000;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-type.found {&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+/* BODY */&#13;
+&#13;
+.cm-report-body {&#13;
+  padding: 17px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-body h3 {&#13;
+  min-height: 39px;&#13;
+&#13;
+  margin: 0 0 8px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 15px;&#13;
+  line-height: 1.3;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-meta {&#13;
+  display: flex;&#13;
+  flex-wrap: wrap;&#13;
+&#13;
+  gap: 7px 12px;&#13;
+&#13;
+  color: #000000;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-status-row {&#13;
+  display: flex;&#13;
+  flex-wrap: wrap;&#13;
+&#13;
+  gap: 6px;&#13;
+&#13;
+  margin-top: 14px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-badge,&#13;
+.cm-match-badge {&#13;
+  padding: 5px 9px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-active {&#13;
+  background: #FDF3DC;&#13;
+&#13;
+  color: #8A6719;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-resolved {&#13;
+  background: #E4F4EA;&#13;
+&#13;
+  color: #168C70;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-matched {&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-other {&#13;
+  background: #EDF2EE;&#13;
+&#13;
+  color: #617477;&#13;
+}&#13;
+&#13;
+&#13;
+/* SMALL STRONG / POTENTIAL BADGE - ORIGINAL COLOR */&#13;
+&#13;
+.cm-match-badge {&#13;
+  background: #E9F1FF;&#13;
+&#13;
+  color: #2B5FA8;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   BEST MATCH&#13;
+========================================================== */&#13;
+&#13;
+.cm-best-match {&#13;
+  margin-top: 13px;&#13;
+&#13;
+  padding: 10px 12px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  border-radius: 12px;&#13;
+&#13;
+  background: #F5F8F3;&#13;
+}&#13;
+&#13;
+&#13;
+/* STRONG TEXT LEFT OF PERCENTAGE - BLACK */&#13;
+&#13;
+.cm-best-match span {&#13;
+  color: #000000;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-best-match strong {&#13;
+  color: #168C70;&#13;
+&#13;
+  font-size: 13px;&#13;
+  font-weight: 900;&#13;
+}&#13;
+&#13;
+&#13;
+/* FOOTER */&#13;
+&#13;
+.cm-report-footer {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 10px;&#13;
+&#13;
+  margin-top: 15px;&#13;
+  padding-top: 13px;&#13;
+&#13;
+  border-top: 1px solid #EDF2EE;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-number {&#13;
+  color: #000000;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-footer a {&#13;
+  color: #104E45 !important;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-footer .cm-match-action {&#13;
+  padding: 6px 10px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #168C70 !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MATCH ACTIVITY&#13;
+========================================================== */&#13;
+&#13;
+.cm-activity-list {&#13;
+  position: relative;&#13;
+&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+&#13;
+  gap: 14px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-card {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    32px 1fr;&#13;
+&#13;
+  gap: 12px;&#13;
+&#13;
+  padding: 18px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 18px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-marker {&#13;
+  position: relative;&#13;
+&#13;
+  display: flex;&#13;
+  justify-content: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-marker span {&#13;
+  width: 14px;&#13;
+  height: 14px;&#13;
+&#13;
+  margin-top: 4px;&#13;
+&#13;
+  border: 3px solid #DFF0E5;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #249D78;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-content {&#13;
+  min-width: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-top {&#13;
+  display: flex;&#13;
+  align-items: flex-start;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 14px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-top h3 {&#13;
+  margin: 0 0 3px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 14px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-top p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-top &gt; span {&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  color: #8A979A;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-content &gt; p {&#13;
+  margin: 9px 0 0;&#13;
+&#13;
+  color: #617477;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-match-info {&#13;
+  margin-top: 11px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-match-info span {&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-match-info strong {&#13;
+  color: #168C70;&#13;
+&#13;
+  font-size: 13px;&#13;
+  font-weight: 900;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-progress {&#13;
+  height: 6px;&#13;
+&#13;
+  margin: 13px 0 11px;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF2EE;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-progress-fill {&#13;
+  height: 100%;&#13;
+&#13;
+  border-radius: inherit;&#13;
+&#13;
+  background: #249D78;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-content &gt; a {&#13;
+  color: #168C70 !important;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   EMPTY STATE&#13;
+========================================================== */&#13;
+&#13;
+.cm-empty {&#13;
+  padding: 55px 20px;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty-icon {&#13;
+  width: 65px;&#13;
+  height: 65px;&#13;
+&#13;
+  margin: 0 auto 15px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 20px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty-icon svg {&#13;
+  width: 29px;&#13;
+  height: 29px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty h3 {&#13;
+  margin: 0 0 6px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 18px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty p {&#13;
+  max-width: 390px;&#13;
+&#13;
+  margin: 0 auto 16px;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty &gt; a {&#13;
+  display: inline-flex;&#13;
+&#13;
+  padding: 10px 17px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF !important;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   TABLET&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 1050px) {&#13;
+&#13;
+  .cm-report-grid {&#13;
+    grid-template-columns:&#13;
+      repeat(2,minmax(0,1fr));&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-dashboard-stats {&#13;
+    grid-template-columns:&#13;
+      repeat(2,minmax(0,1fr));&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MOBILE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 760px) {&#13;
+&#13;
+  .cm-dashboard {&#13;
+    min-height: 100svh;&#13;
+&#13;
+    padding:&#13;
+      38px&#13;
+      16px&#13;
+      70px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #F5F7F0;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-dashboard-header {&#13;
+    align-items: flex-start;&#13;
+&#13;
+    flex-direction: column;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-dashboard-header h1 {&#13;
+    font-size: 30px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-header-actions {&#13;
+    width: 100%;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-header-actions a {&#13;
+    flex: 1;&#13;
+&#13;
+    text-align: center;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-dashboard-shell {&#13;
+    grid-template-columns:&#13;
+      1fr;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-dashboard-sidebar {&#13;
+    padding: 13px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-user-card {&#13;
+    display: none;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-dashboard-nav {&#13;
+    display: grid;&#13;
+&#13;
+    grid-template-columns:&#13;
+      1fr 1fr;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-dashboard-nav button,&#13;
+  .cm-dashboard-nav a {&#13;
+    justify-content: center;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-grid {&#13;
+    grid-template-columns:&#13;
+      1fr;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SMALL MOBILE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 480px) {&#13;
+&#13;
+  .cm-dashboard {&#13;
+    padding:&#13;
+      34px&#13;
+      12px&#13;
+      65px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-dashboard-stats {&#13;
+    gap: 9px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-stat-card {&#13;
+    padding: 13px;&#13;
+&#13;
+    gap: 9px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-stat-icon {&#13;
+    width: 36px;&#13;
+&#13;
+    height: 36px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-stat-card strong {&#13;
+    font-size: 19px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-stat-card span {&#13;
+    font-size: 10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-dashboard-nav button,&#13;
+  .cm-dashboard-nav a {&#13;
+    padding:&#13;
+      10px&#13;
+      6px;&#13;
+&#13;
+    font-size: 10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-section-header {&#13;
+    align-items: flex-start;&#13;
+&#13;
+    flex-direction: column;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-media {&#13;
+    height: 135px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CAMPUSMATCH CLAIM WITHDRAWAL&#13;
+========================================================== */&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   DASHBOARD ACTION MESSAGE&#13;
+========================================================== */&#13;
+&#13;
+.cm-dashboard-message {&#13;
+  margin-bottom: 18px;&#13;
+&#13;
+  padding: 12px 15px;&#13;
+&#13;
+  border: 1px solid #CDE5D7;&#13;
+  border-radius: 13px;&#13;
+&#13;
+  background: #E4F4EA;&#13;
+&#13;
+  color: #14765C;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard-message.error {&#13;
+  border-color: #F2D4CC;&#13;
+&#13;
+  background: #FBEAE7;&#13;
+&#13;
+  color: #A44832;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CLAIM STATUS INSIDE MATCH ACTIVITY&#13;
+========================================================== */&#13;
+&#13;
+.cm-claim-status-row {&#13;
+  margin-top: 12px;&#13;
+&#13;
+  padding: 9px 12px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 12px;&#13;
+&#13;
+  border-radius: 11px;&#13;
+&#13;
+  background: #F5F8F3;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-claim-status-row span {&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-claim-status-row strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MATCH ACTIVITY ACTIONS&#13;
+========================================================== */&#13;
+&#13;
+.cm-activity-actions {&#13;
+  margin-top: 12px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 9px;&#13;
+&#13;
+  flex-wrap: wrap;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-actions &gt; a {&#13;
+  display: inline-flex;&#13;
+  align-items: center;&#13;
+&#13;
+  min-height: 32px;&#13;
+&#13;
+  padding: 7px 11px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #168C70 !important;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+&#13;
+  transition:&#13;
+    background .2s ease,&#13;
+    color .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-activity-actions &gt; a:hover {&#13;
+  background: #DDECE2;&#13;
+&#13;
+  color: #104E45 !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   WITHDRAW CLAIM BUTTON&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdraw-btn {&#13;
+  min-height: 32px;&#13;
+&#13;
+  padding: 7px 13px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  transition:&#13;
+    border-color .2s ease,&#13;
+    background .2s ease,&#13;
+    color .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-btn:hover {&#13;
+  border-color: #15564B;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-btn:disabled {&#13;
+  opacity: .55;&#13;
+&#13;
+  cursor: not-allowed;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   WITHDRAWN CLAIM NOTE&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdrawn-note {&#13;
+  margin-top: 12px;&#13;
+&#13;
+  padding: 10px 12px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 11px;&#13;
+&#13;
+  background: #F5F8F3;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   WITHDRAW MODAL OVERLAY&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdraw-overlay {&#13;
+  position: fixed;&#13;
+&#13;
+  inset: 0;&#13;
+&#13;
+  z-index: 99999;&#13;
+&#13;
+  padding: 20px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+&#13;
+  background:&#13;
+    rgba(&#13;
+      16,&#13;
+      46,&#13;
+      52,&#13;
+      .48&#13;
+    );&#13;
+&#13;
+  backdrop-filter:&#13;
+    blur(3px);&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   WITHDRAW MODAL&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdraw-modal {&#13;
+  width: 100%;&#13;
+  max-width: 470px;&#13;
+&#13;
+  max-height: calc(100vh - 40px);&#13;
+&#13;
+  overflow-y: auto;&#13;
+&#13;
+  padding: 28px;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 23px;&#13;
+&#13;
+  background: #FBF8EF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 22px 65px&#13;
+    rgba(&#13;
+      16,&#13;
+      46,&#13;
+      52,&#13;
+      .22&#13;
+    );&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MODAL ICON&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdraw-icon {&#13;
+  width: 48px;&#13;
+  height: 48px;&#13;
+&#13;
+  margin-bottom: 15px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #FBEAE7;&#13;
+&#13;
+  color: #A44832;&#13;
+&#13;
+  font-size: 19px;&#13;
+  font-weight: 900;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MODAL TEXT&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdraw-modal h3 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    9px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 21px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal &gt; p {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    18px;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 12px;&#13;
+  line-height: 1.65;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MATCH SUMMARY&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdraw-summary {&#13;
+  margin-bottom: 20px;&#13;
+&#13;
+  padding: 12px 14px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 13px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-summary span {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 4px;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 8px;&#13;
+  font-weight: 700;&#13;
+&#13;
+  text-transform: uppercase;&#13;
+&#13;
+  letter-spacing: .5px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-summary strong {&#13;
+  display: block;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   REASON&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdraw-modal label {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 7px;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal label span {&#13;
+  color: #718185;&#13;
+&#13;
+  font-weight: 500;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal textarea {&#13;
+  width: 100%;&#13;
+  min-height: 95px;&#13;
+&#13;
+  padding: 12px 13px;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+&#13;
+  resize: vertical;&#13;
+&#13;
+  outline: none;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 13px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family:&#13;
+    "DM Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 11px;&#13;
+  line-height: 1.5;&#13;
+&#13;
+  transition:&#13;
+    border-color .2s ease,&#13;
+    box-shadow .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal textarea:focus {&#13;
+  border-color: #249D78;&#13;
+&#13;
+  box-shadow:&#13;
+    0 0 0 3px&#13;
+    rgba(&#13;
+      36,&#13;
+      157,&#13;
+      120,&#13;
+      .10&#13;
+    );&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal textarea::placeholder {&#13;
+  color: #9AA5A7;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CHARACTER COUNT&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdraw-character-count {&#13;
+  margin-top: 5px;&#13;
+&#13;
+  color: #849194;&#13;
+&#13;
+  font-size: 8px;&#13;
+&#13;
+  text-align: right;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MODAL ACTIONS&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdraw-actions {&#13;
+  margin-top: 21px;&#13;
+&#13;
+  display: flex;&#13;
+  justify-content: flex-end;&#13;
+&#13;
+  gap: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-cancel,&#13;
+.cm-withdraw-confirm {&#13;
+  min-width: 130px;&#13;
+&#13;
+  padding: 10px 16px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  transition:&#13;
+    background .2s ease,&#13;
+    border-color .2s ease,&#13;
+    color .2s ease,&#13;
+    opacity .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+/* CANCEL */&#13;
+&#13;
+.cm-withdraw-cancel {&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #506267;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-cancel:hover {&#13;
+  border-color: #B7CBC1;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+/* CONFIRM */&#13;
+&#13;
+.cm-withdraw-confirm {&#13;
+  border: 1px solid #104E45;&#13;
+&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-confirm:hover {&#13;
+  border-color: #15564B;&#13;
+&#13;
+  background: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-cancel:disabled,&#13;
+.cm-withdraw-confirm:disabled {&#13;
+  opacity: .55;&#13;
+&#13;
+  cursor: not-allowed;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   WITHDRAWAL RESPONSIVE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 560px) {&#13;
+&#13;
+  .cm-withdraw-overlay {&#13;
+    padding: 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-withdraw-modal {&#13;
+    padding: 22px 18px;&#13;
+&#13;
+    border-radius: 19px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-withdraw-modal h3 {&#13;
+    font-size: 19px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-withdraw-actions {&#13;
+    flex-direction: column-reverse;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-withdraw-cancel,&#13;
+  .cm-withdraw-confirm {&#13;
+    width: 100%;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-activity-actions {&#13;
+    align-items: stretch;&#13;
+&#13;
+    flex-direction: column;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-activity-actions &gt; a,&#13;
+  .cm-withdraw-btn {&#13;
+    width: 100%;&#13;
+&#13;
+    box-sizing: border-box;&#13;
+&#13;
+    justify-content: center;&#13;
+&#13;
+    text-align: center;&#13;
+  }&#13;
+&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>Logged-in user dashboard for reports and match activity</description>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_user_dashboard</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch User Dashboard</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+
+
+    /* ======================================================
+
+       TABLES
+
+    ====================================================== */
+
+
+
+    var ITEM_TABLE =
+
+        'x_snc_campusmatch_campusmatch_item';
+
+
+
+    var MATCH_TABLE =
+
+        'x_snc_campusmatch_campusmatch_match';
+
+
+
+    var CLAIM_TABLE =
+
+        'x_snc_campusmatch_campusmatch_claim';
+
+
+
+
+
+    /* ======================================================
+
+       MATCH FIELD VALUES
+
+    ====================================================== */
+
+
+
+    var MATCH_WITHDRAWN =
+
+        'withdrawn';
+
+
+
+    var MATCH_ACTIVE =
+
+        'active';
+
+
+
+    /*
+
+     * Actual Match rejected/no-match choice value
+
+     * in CampusMatch.
+
+     */
+
+
+
+    var MATCH_REJECTED =
+
+        'no_match';
+
+
+
+
+
+    /* ======================================================
+
+       CLAIM FIELD VALUES
+
+       IMPORTANT:
+
+       Your newly-created Withdrawn choice value is lowercase:
+
+       withdrawn
+
+       Existing values such as Submitted / Approved /
+
+       Rejected may use capitalization in your table.
+
+       Therefore comparisons below are normalized.
+
+    ====================================================== */
+
+
+
+    var CLAIM_WITHDRAWN =
+
+        'withdrawn';
+
+
+
+
+
+    /* ======================================================
+
+       OUTPUT
+
+    ====================================================== */
+
+
+
+    data.success =
+
+        false;
+
+
+
+    data.message =
+
+        '';
+
+
+
+    data.reports =
+
+        [];
+
+
+
+    data.activity =
+
+        [];
+
+
+
+    data.stats = {
+
+
+
+        lost: 0,
+
+
+
+        found: 0,
+
+
+
+        matched: 0,
+
+
+
+        resolved: 0
+
+
+
+    };
+
+
+
+
+
+    /* ======================================================
+
+       CURRENT USER
+
+    ====================================================== */
+
+
+
+    var access =
+
+        new CampusMatchAccess();
+
+
+
+    var userId =
+
+        access.getUserId();
+
+
+
+    data.userName =
+
+        gs.getUserDisplayName() ||
+
+        'Student';
+
+
+
+    data.firstName =
+
+        data.userName;
+
+
+
+    data.initials =
+
+        '';
+
+
+
+    if (
+
+        data.userName
+
+    ) {
+
+
+
+        var parts =
+
+            data.userName
+
+                .trim()
+
+                .split(/\s+/);
+
+
+
+        data.firstName =
+
+            parts[0];
+
+
+
+        if (
+
+            parts.length === 1
+
+        ) {
+
+
+
+            data.initials =
+
+                parts[0]
+
+                    .substring(
+
+                        0,
+
+                        2
+
+                    )
+
+                    .toUpperCase();
+
+
+
+        }
+
+        else {
+
+
+
+            data.initials =
+
+                (
+
+                    parts[0].charAt(0) +
+
+                    parts[
+
+                        parts.length - 1
+
+                    ].charAt(0)
+
+                )
+
+                .toUpperCase();
+
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       HELPERS
+
+    ====================================================== */
+
+
+
+    /*
+
+     * Some CampusMatch Claim fields were created at
+
+     * different stages of development.
+
+     *
+
+     * This helper safely finds the actual field that exists.
+
+     */
+
+
+
+    function firstValidField(
+
+        gr,
+
+        candidates
+
+    ) {
+
+
+
+        if (
+
+            !gr ||
+
+            !candidates
+
+        ) {
+
+
+
+            return '';
+
+
+
+        }
+
+
+
+        for (
+
+            var i = 0;
+
+            i < candidates.length;
+
+            i++
+
+        ) {
+
+
+
+            if (
+
+                gr.isValidField(
+
+                    candidates[i]
+
+                )
+
+            ) {
+
+
+
+                return candidates[i];
+
+
+
+            }
+
+
+
+        }
+
+
+
+        return '';
+
+
+
+    }
+
+
+
+
+
+    function normalize(
+
+        value
+
+    ) {
+
+
+
+        return (
+
+            value ||
+
+            ''
+
+        )
+
+        .toString()
+
+        .toLowerCase()
+
+        .trim();
+
+
+
+    }
+
+
+
+
+
+    function loadItem(
+
+        sysId
+
+    ) {
+
+
+
+        if (
+
+            !sysId
+
+        ) {
+
+
+
+            return null;
+
+
+
+        }
+
+
+
+        var gr =
+
+            new GlideRecord(
+
+                ITEM_TABLE
+
+            );
+
+
+
+        if (
+
+            !gr.get(
+
+                sysId
+
+            )
+
+        ) {
+
+
+
+            return null;
+
+
+
+        }
+
+
+
+        return gr;
+
+
+
+    }
+
+
+
+
+
+    function loadMatch(
+
+        sysId
+
+    ) {
+
+
+
+        if (
+
+            !sysId
+
+        ) {
+
+
+
+            return null;
+
+
+
+        }
+
+
+
+        var gr =
+
+            new GlideRecord(
+
+                MATCH_TABLE
+
+            );
+
+
+
+        if (
+
+            !gr.get(
+
+                sysId
+
+            )
+
+        ) {
+
+
+
+            return null;
+
+
+
+        }
+
+
+
+        return gr;
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       CLAIM FIELD HELPERS
+
+    ====================================================== */
+
+
+
+    function claimMatchField(
+
+        gr
+
+    ) {
+
+
+
+        return firstValidField(
+
+            gr,
+
+            [
+
+                'match',
+
+                'u_match'
+
+            ]
+
+        );
+
+
+
+    }
+
+
+
+
+
+    function claimItemField(
+
+        gr
+
+    ) {
+
+
+
+        return firstValidField(
+
+            gr,
+
+            [
+
+                'item',
+
+                'u_item'
+
+            ]
+
+        );
+
+
+
+    }
+
+
+
+
+
+    function claimantField(
+
+        gr
+
+    ) {
+
+
+
+        return firstValidField(
+
+            gr,
+
+            [
+
+                'claimant',
+
+                'u_claimant'
+
+            ]
+
+        );
+
+
+
+    }
+
+
+
+
+
+    function claimStatusField(
+
+        gr
+
+    ) {
+
+
+
+        return firstValidField(
+
+            gr,
+
+            [
+
+                'claim_status',
+
+                'u_claim_status'
+
+            ]
+
+        );
+
+
+
+    }
+
+
+
+
+
+    function handoverCompletedField(
+
+        gr
+
+    ) {
+
+
+
+        return firstValidField(
+
+            gr,
+
+            [
+
+                'handover_completed',
+
+                'u_handover_completed'
+
+            ]
+
+        );
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       CHECK WHETHER CLAIM BELONGS TO CURRENT USER
+
+    ====================================================== */
+
+
+
+    function userOwnsClaim(
+
+        claim,
+
+        relatedLostItemId
+
+    ) {
+
+
+
+        if (
+
+            !claim
+
+        ) {
+
+
+
+            return false;
+
+
+
+        }
+
+
+
+        /*
+
+         * Preferred check:
+
+         * Claim.Claimant = current user
+
+         */
+
+
+
+        var claimant =
+
+            claimantField(
+
+                claim
+
+            );
+
+
+
+        if (
+
+            claimant
+
+        ) {
+
+
+
+            var claimantId =
+
+                claim.getValue(
+
+                    claimant
+
+                );
+
+
+
+            if (
+
+                claimantId
+
+            ) {
+
+
+
+                return (
+
+                    claimantId ===
+
+                    userId
+
+                );
+
+
+
+            }
+
+
+
+        }
+
+
+
+
+
+        /*
+
+         * Safe fallback:
+
+         *
+
+         * CampusMatch claims belong to the Lost reporter.
+
+         *
+
+         * If older Claim records do not contain a claimant
+
+         * field, verify ownership using Match.Lost Item.
+
+         */
+
+
+
+        if (
+
+            relatedLostItemId
+
+        ) {
+
+
+
+            var lostItem =
+
+                loadItem(
+
+                    relatedLostItemId
+
+                );
+
+
+
+            if (
+
+                lostItem
+
+            ) {
+
+
+
+                return (
+
+                    lostItem.getValue(
+
+                        'reporter'
+
+                    ) ===
+
+                    userId
+
+                );
+
+
+
+            }
+
+
+
+        }
+
+
+
+        return false;
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       CAN CLAIM BE WITHDRAWN?
+
+    ====================================================== */
+
+
+
+    function canWithdrawClaim(
+
+        claim,
+
+        lostItemId
+
+    ) {
+
+
+
+        if (
+
+            !claim ||
+
+            !userOwnsClaim(
+
+                claim,
+
+                lostItemId
+
+            )
+
+        ) {
+
+
+
+            return false;
+
+
+
+        }
+
+
+
+        var statusField =
+
+            claimStatusField(
+
+                claim
+
+            );
+
+
+
+        if (
+
+            !statusField
+
+        ) {
+
+
+
+            return false;
+
+
+
+        }
+
+
+
+        var status =
+
+            normalize(
+
+                claim.getValue(
+
+                    statusField
+
+                )
+
+            );
+
+
+
+        /*
+
+         * CLOSED CLAIMS
+
+         */
+
+
+
+        if (
+
+            status === 'withdrawn' ||
+
+            status === 'rejected' ||
+
+            status === 'cancelled' ||
+
+            status === 'canceled'
+
+        ) {
+
+
+
+            return false;
+
+
+
+        }
+
+
+
+
+
+        /*
+
+         * PHYSICAL HANDOVER COMPLETE
+
+         *
+
+         * Once the student has actually collected the item,
+
+         * Unclaim is no longer allowed.
+
+         */
+
+
+
+        var handoverField =
+
+            handoverCompletedField(
+
+                claim
+
+            );
+
+
+
+        if (
+
+            handoverField
+
+        ) {
+
+
+
+            var completed =
+
+                normalize(
+
+                    claim.getValue(
+
+                        handoverField
+
+                    )
+
+                );
+
+
+
+            if (
+
+                completed === '1' ||
+
+                completed === 'true'
+
+            ) {
+
+
+
+                return false;
+
+
+
+            }
+
+
+
+        }
+
+
+
+        return true;
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       FIND CURRENT USER'S CLAIM FOR A MATCH
+
+    ====================================================== */
+
+
+
+    function findUserClaimForMatch(
+
+        matchId,
+
+        lostItemId
+
+    ) {
+
+
+
+        if (
+
+            !matchId
+
+        ) {
+
+
+
+            return null;
+
+
+
+        }
+
+
+
+        var claim =
+
+            new GlideRecord(
+
+                CLAIM_TABLE
+
+            );
+
+
+
+        var matchField =
+
+            claimMatchField(
+
+                claim
+
+            );
+
+
+
+        if (
+
+            !matchField
+
+        ) {
+
+
+
+            return null;
+
+
+
+        }
+
+
+
+        claim.addQuery(
+
+            matchField,
+
+            matchId
+
+        );
+
+
+
+        claim.orderByDesc(
+
+            'sys_created_on'
+
+        );
+
+
+
+        claim.query();
+
+
+
+        while (
+
+            claim.next()
+
+        ) {
+
+
+
+            if (
+
+                userOwnsClaim(
+
+                    claim,
+
+                    lostItemId
+
+                )
+
+            ) {
+
+
+
+                return claim;
+
+
+
+            }
+
+
+
+        }
+
+
+
+        return null;
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       SET ITEM BACK TO ACTIVE
+
+       IMPORTANT:
+
+       We only change Item Status.
+
+       Security Desk custody fields are NOT cleared.
+
+    ====================================================== */
+
+
+
+    function reactivateItem(
+
+        itemId
+
+    ) {
+
+
+
+        if (
+
+            !itemId
+
+        ) {
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        var item =
+
+            loadItem(
+
+                itemId
+
+            );
+
+
+
+        if (
+
+            !item
+
+        ) {
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        if (
+
+            item.isValidField(
+
+                'status'
+
+            )
+
+        ) {
+
+
+
+            item.setValue(
+
+                'status',
+
+                'active'
+
+            );
+
+
+
+            item.update();
+
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       REOPEN COMPETING MATCHES
+
+       Only reopen Matches that were rejected specifically
+
+       because another candidate was selected.
+
+       Staff-rejected Matches MUST stay rejected.
+
+    ====================================================== */
+
+
+
+    function reopenCompetingMatches(
+
+        selectedMatch
+
+    ) {
+
+
+
+        if (
+
+            !selectedMatch
+
+        ) {
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        var foundItemId =
+
+            selectedMatch.getValue(
+
+                'found_item'
+
+            );
+
+
+
+        if (
+
+            !foundItemId
+
+        ) {
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        /*
+
+         * Decision Reason was added specifically so we can
+
+         * distinguish:
+
+         *
+
+         * competing_candidate
+
+         * from
+
+         * staff_rejected
+
+         */
+
+
+
+        if (
+
+            !selectedMatch.isValidField(
+
+                'decision_reason'
+
+            )
+
+        ) {
+
+
+
+            /*
+
+             * SAFETY:
+
+             *
+
+             * If Decision Reason does not exist,
+
+             * DO NOT blindly reopen rejected Matches.
+
+             */
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        var competitor =
+
+            new GlideRecord(
+
+                MATCH_TABLE
+
+            );
+
+
+
+        competitor.addQuery(
+
+            'found_item',
+
+            foundItemId
+
+        );
+
+
+
+        competitor.addQuery(
+
+            'sys_id',
+
+            '!=',
+
+            selectedMatch.getUniqueValue()
+
+        );
+
+
+
+        competitor.addQuery(
+
+            'status',
+
+            MATCH_REJECTED
+
+        );
+
+
+
+        competitor.addQuery(
+
+            'decision_reason',
+
+            'competing_candidate'
+
+        );
+
+
+
+        /*
+
+         * Only Student-visible Potential / Strong matches.
+
+         */
+
+
+
+        competitor.addQuery(
+
+            'overall_score',
+
+            '>=',
+
+            65
+
+        );
+
+
+
+        competitor.query();
+
+
+
+        while (
+
+            competitor.next()
+
+        ) {
+
+
+
+            competitor.setValue(
+
+                'status',
+
+                MATCH_ACTIVE
+
+            );
+
+
+
+            competitor.setValue(
+
+                'decision_reason',
+
+                ''
+
+            );
+
+
+
+            if (
+
+                competitor.isValidField(
+
+                    'reviewed_by'
+
+                )
+
+            ) {
+
+
+
+                competitor.setValue(
+
+                    'reviewed_by',
+
+                    ''
+
+                );
+
+
+
+            }
+
+
+
+            if (
+
+                competitor.isValidField(
+
+                    'reviewed_on'
+
+                )
+
+            ) {
+
+
+
+                competitor.setValue(
+
+                    'reviewed_on',
+
+                    ''
+
+                );
+
+
+
+            }
+
+
+
+            competitor.update();
+
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       WITHDRAW CLAIM ACTION
+
+    ====================================================== */
+
+
+
+    if (
+
+        input &&
+
+        input.action ===
+
+            'withdrawClaim'
+
+    ) {
+
+
+
+        var requestedClaimId =
+
+            (
+
+                input.claim_id ||
+
+                ''
+
+            )
+
+            .toString()
+
+            .trim();
+
+
+
+        var withdrawalReason =
+
+            (
+
+                input.reason ||
+
+                ''
+
+            )
+
+            .toString()
+
+            .substring(
+
+                0,
+
+                500
+
+            );
+
+
+
+        if (
+
+            !requestedClaimId
+
+        ) {
+
+
+
+            data.success =
+
+                false;
+
+
+
+            data.message =
+
+                'Claim could not be identified.';
+
+
+
+            return;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           LOAD CLAIM
+
+        ================================================== */
+
+
+
+        var withdrawClaim =
+
+            new GlideRecord(
+
+                CLAIM_TABLE
+
+            );
+
+
+
+        if (
+
+            !withdrawClaim.get(
+
+                requestedClaimId
+
+            )
+
+        ) {
+
+
+
+            data.success =
+
+                false;
+
+
+
+            data.message =
+
+                'Claim record could not be found.';
+
+
+
+            return;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           LOAD RELATED MATCH
+
+        ================================================== */
+
+
+
+        var withdrawMatchField =
+
+            claimMatchField(
+
+                withdrawClaim
+
+            );
+
+
+
+        if (
+
+            !withdrawMatchField
+
+        ) {
+
+
+
+            data.success =
+
+                false;
+
+
+
+            data.message =
+
+                'The Claim is not linked to a Match.';
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        var relatedMatchId =
+
+            withdrawClaim.getValue(
+
+                withdrawMatchField
+
+            );
+
+
+
+        if (
+
+            !relatedMatchId
+
+        ) {
+
+
+
+            data.success =
+
+                false;
+
+
+
+            data.message =
+
+                'The Claim is not linked to a Match.';
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        var relatedMatch =
+
+            loadMatch(
+
+                relatedMatchId
+
+            );
+
+
+
+        if (
+
+            !relatedMatch
+
+        ) {
+
+
+
+            data.success =
+
+                false;
+
+
+
+            data.message =
+
+                'The related Match could not be found.';
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        var relatedLostItemId =
+
+            relatedMatch.getValue(
+
+                'lost_item'
+
+            );
+
+
+
+        var relatedFoundItemId =
+
+            relatedMatch.getValue(
+
+                'found_item'
+
+            );
+
+
+
+
+
+        /* ==================================================
+
+           SECURITY:
+
+           CLAIM MUST BELONG TO CURRENT USER
+
+        ================================================== */
+
+
+
+        if (
+
+            !userOwnsClaim(
+
+                withdrawClaim,
+
+                relatedLostItemId
+
+            )
+
+        ) {
+
+
+
+            data.success =
+
+                false;
+
+
+
+            data.message =
+
+                'You are not allowed to withdraw this claim.';
+
+
+
+            return;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           CLAIM STATUS VALIDATION
+
+        ================================================== */
+
+
+
+        var statusField =
+
+            claimStatusField(
+
+                withdrawClaim
+
+            );
+
+
+
+        if (
+
+            !statusField
+
+        ) {
+
+
+
+            data.success =
+
+                false;
+
+
+
+            data.message =
+
+                'Claim Status field could not be found.';
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        var existingClaimStatus =
+
+            normalize(
+
+                withdrawClaim.getValue(
+
+                    statusField
+
+                )
+
+            );
+
+
+
+        if (
+
+            existingClaimStatus ===
+
+                'withdrawn'
+
+        ) {
+
+
+
+            data.success =
+
+                false;
+
+
+
+            data.message =
+
+                'This claim has already been withdrawn.';
+
+
+
+            return;
+
+
+
+        }
+
+
+
+        if (
+
+            existingClaimStatus ===
+
+                'rejected' ||
+
+            existingClaimStatus ===
+
+                'cancelled'
+
+        ) {
+
+
+
+            data.success =
+
+                false;
+
+
+
+            data.message =
+
+                'This claim is already closed and cannot be withdrawn.';
+
+
+
+            return;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           HANDOVER VALIDATION
+
+        ================================================== */
+
+
+
+        var handoverField =
+
+            handoverCompletedField(
+
+                withdrawClaim
+
+            );
+
+
+
+        if (
+
+            handoverField
+
+        ) {
+
+
+
+            var handoverCompleted =
+
+                normalize(
+
+                    withdrawClaim.getValue(
+
+                        handoverField
+
+                    )
+
+                );
+
+
+
+            if (
+
+                handoverCompleted ===
+
+                    '1' ||
+
+                handoverCompleted ===
+
+                    'true'
+
+            ) {
+
+
+
+                data.success =
+
+                    false;
+
+
+
+                data.message =
+
+                    'This claim cannot be withdrawn because the item has already been collected.';
+
+
+
+                return;
+
+
+
+            }
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           UPDATE CLAIM
+
+        ================================================== */
+
+
+
+        withdrawClaim.setValue(
+
+            statusField,
+
+            CLAIM_WITHDRAWN
+
+        );
+
+
+
+        if (
+
+            withdrawClaim.isValidField(
+
+                'withdrawn_by'
+
+            )
+
+        ) {
+
+
+
+            withdrawClaim.setValue(
+
+                'withdrawn_by',
+
+                userId
+
+            );
+
+
+
+        }
+
+
+
+        if (
+
+            withdrawClaim.isValidField(
+
+                'withdrawn_on'
+
+            )
+
+        ) {
+
+
+
+            withdrawClaim.setValue(
+
+                'withdrawn_on',
+
+                new GlideDateTime()
+
+                    .getValue()
+
+            );
+
+
+
+        }
+
+
+
+        if (
+
+            withdrawClaim.isValidField(
+
+                'withdrawal_reason'
+
+            )
+
+        ) {
+
+
+
+            withdrawClaim.setValue(
+
+                'withdrawal_reason',
+
+                withdrawalReason
+
+            );
+
+
+
+        }
+
+
+
+        withdrawClaim.update();
+
+
+
+
+
+        /* ==================================================
+
+           UPDATE SELECTED MATCH
+
+        ================================================== */
+
+
+
+        if (
+
+            relatedMatch.isValidField(
+
+                'status'
+
+            )
+
+        ) {
+
+
+
+            relatedMatch.setValue(
+
+                'status',
+
+                MATCH_WITHDRAWN
+
+            );
+
+
+
+        }
+
+
+
+        if (
+
+            relatedMatch.isValidField(
+
+                'decision_reason'
+
+            )
+
+        ) {
+
+
+
+            relatedMatch.setValue(
+
+                'decision_reason',
+
+                'claim_withdrawn'
+
+            );
+
+
+
+        }
+
+
+
+        relatedMatch.update();
+
+
+
+
+
+        /* ==================================================
+
+           REACTIVATE LOST + FOUND ITEMS
+
+        ================================================== */
+
+
+
+        reactivateItem(
+
+            relatedLostItemId
+
+        );
+
+
+
+        reactivateItem(
+
+            relatedFoundItemId
+
+        );
+
+
+
+
+
+        /* ==================================================
+
+           REOPEN ELIGIBLE COMPETING MATCHES
+
+        ================================================== */
+
+
+
+        reopenCompetingMatches(
+
+            relatedMatch
+
+        );
+
+
+
+
+
+        /* ==================================================
+
+           SUCCESS
+
+        ================================================== */
+
+
+
+        data.success =
+
+            true;
+
+
+
+        data.message =
+
+            'Your claim has been withdrawn. CampusMatch will continue looking for another match.';
+
+
+
+        return;
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       LOAD ONLY CURRENT USER'S ITEMS
+
+       Students must never receive another user's reports.
+
+    ====================================================== */
+
+
+
+    var userItemIds =
+
+        [];
+
+
+
+    var reportIndex =
+
+        {};
+
+
+
+    var item =
+
+        new GlideRecord(
+
+            ITEM_TABLE
+
+        );
+
+
+
+    item.addQuery(
+
+        'reporter',
+
+        userId
+
+    );
+
+
+
+    item.orderByDesc(
+
+        'sys_created_on'
+
+    );
+
+
+
+    item.query();
+
+
+
+
+
+    while (
+
+        item.next()
+
+    ) {
+
+
+
+        var sysId =
+
+            item.getUniqueValue();
+
+
+
+        var type =
+
+            normalize(
+
+                item.getValue(
+
+                    'report_type'
+
+                )
+
+            );
+
+
+
+        var itemStatus =
+
+            normalize(
+
+                item.getValue(
+
+                    'status'
+
+                )
+
+            );
+
+
+
+
+
+        /*
+
+         * The reporter may see the original title
+
+         * of THEIR OWN report.
+
+         */
+
+
+
+        var title =
+
+            item.getValue(
+
+                'title'
+
+            ) ||
+
+
+
+            item.getDisplayValue(
+
+                'public_title'
+
+            ) ||
+
+
+
+            (
+
+                type === 'found'
+
+                    ? 'Found Item'
+
+                    : 'Lost Item'
+
+            );
+
+
+
+
+
+        /* ==================================================
+
+           COUNTS
+
+        ================================================== */
+
+
+
+        if (
+
+            type === 'lost'
+
+        ) {
+
+
+
+            data.stats.lost++;
+
+
+
+        }
+
+
+
+        if (
+
+            type === 'found'
+
+        ) {
+
+
+
+            data.stats.found++;
+
+
+
+        }
+
+
+
+        if (
+
+            itemStatus ===
+
+                'resolved'
+
+        ) {
+
+
+
+            data.stats.resolved++;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           OWNER ITEM IMAGE
+
+           LOAD CONVERTED USER_IMAGE SAFELY FOR OWNER
+
+           IMPORTANT:
+           Do not expose the raw sys_attachment URL to
+           the student's browser.
+
+           These Item records are already restricted to
+           the current reporter above, so the server can
+           read the converted image and return a data URL.
+
+        ================================================== */
+
+
+
+        var dashboardImageUrl =
+
+            '';
+
+
+
+        var imageAttachment =
+
+            new GlideRecord(
+
+                'sys_attachment'
+
+            );
+
+
+
+        imageAttachment.addQuery(
+
+            'table_sys_id',
+
+            sysId
+
+        );
+
+
+
+        imageAttachment.addQuery(
+
+            'table_name',
+
+            'ZZ_YY' + ITEM_TABLE
+
+        );
+
+
+
+        imageAttachment.addQuery(
+
+            'file_name',
+
+            'image'
+
+        );
+
+
+
+        imageAttachment.orderByDesc(
+
+            'sys_created_on'
+
+        );
+
+
+
+        imageAttachment.setLimit(
+
+            1
+
+        );
+
+
+
+        imageAttachment.query();
+
+
+
+        if (
+
+            imageAttachment.next()
+
+        ) {
+
+
+
+            try {
+
+
+
+                var attachmentApi =
+
+                    new GlideSysAttachment();
+
+
+
+                var imageBase64 =
+
+                    attachmentApi.getContentBase64(
+
+                        imageAttachment
+
+                    );
+
+
+
+                var imageContentType =
+
+                    imageAttachment.getValue(
+
+                        'content_type'
+
+                    ) ||
+
+                    'image/jpeg';
+
+
+
+                if (imageBase64) {
+
+
+
+                    dashboardImageUrl =
+
+                        'data:' +
+
+                        imageContentType +
+
+                        ';base64,' +
+
+                        imageBase64;
+
+
+
+                }
+
+
+
+            }
+
+            catch (imageError) {
+
+
+
+                gs.error(
+
+                    'CampusMatch Dashboard image load failed for Item ' +
+
+                    sysId +
+
+                    ': ' +
+
+                    imageError.message
+
+                );
+
+
+
+                dashboardImageUrl =
+
+                    '';
+
+
+
+            }
+
+
+
+        }
+
+
+
+        /* ==================================================
+
+           OWNER-SAFE REPORT OBJECT
+
+           HTML USES item.imageUrl
+
+        ================================================== */
+
+
+
+        var report = {
+
+
+
+            sys_id:
+
+                sysId,
+
+
+
+            number:
+
+                item.getDisplayValue(
+
+                    'number'
+
+                ) || '',
+
+
+
+            title:
+
+                title,
+
+
+
+            imageUrl:
+
+                dashboardImageUrl,
+
+
+
+            reportType:
+
+                type,
+
+
+
+            category:
+
+                item.getDisplayValue(
+
+                    'category'
+
+                ) || '—',
+
+
+
+            locationZone:
+
+                item.getDisplayValue(
+
+                    'location_zone'
+
+                ) || 'Campus',
+
+
+
+            reportedDisplay:
+
+                item.getDisplayValue(
+
+                    'reported_date_time'
+
+                ) || '—',
+
+
+
+            statusValue:
+
+                itemStatus,
+
+
+
+            statusDisplay:
+
+                item.getDisplayValue(
+
+                    'status'
+
+                ) || '—',
+
+
+
+            hasMatch:
+
+                false,
+
+
+
+            bestMatchId:
+
+                '',
+
+
+
+            bestMatchScore:
+
+                0,
+
+
+
+            bestMatchLevel:
+
+                ''
+
+
+
+        };
+
+
+
+        data.reports.push(
+
+            report
+
+        );
+
+
+
+        reportIndex[
+
+            sysId
+
+        ] =
+
+            report;
+
+
+
+        userItemIds.push(
+
+            sysId
+
+        );
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       STOP IF CURRENT USER HAS NO ITEMS
+
+    ====================================================== */
+
+
+
+    if (
+
+        userItemIds.length === 0
+
+    ) {
+
+
+
+        return;
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       LOAD ONLY MATCHES LINKED TO USER'S ITEMS
+
+    ====================================================== */
+
+
+
+    var idCSV =
+
+        userItemIds.join(
+
+            ','
+
+        );
+
+
+
+    var match =
+
+        new GlideRecord(
+
+            MATCH_TABLE
+
+        );
+
+
+
+    var q =
+
+        match.addQuery(
+
+            'lost_item',
+
+            'IN',
+
+            idCSV
+
+        );
+
+
+
+    q.addOrCondition(
+
+        'found_item',
+
+        'IN',
+
+        idCSV
+
+    );
+
+
+
+
+
+    /* ======================================================
+
+       STUDENT-FACING MATCH THRESHOLD
+
+       Only Potential + Strong matches are shown.
+
+       Below 65% stays backend-only.
+
+    ====================================================== */
+
+
+
+    match.addQuery(
+
+        'overall_score',
+
+        '>=',
+
+        65
+
+    );
+
+
+
+    match.orderByDesc(
+
+        'sys_created_on'
+
+    );
+
+
+
+    match.query();
+
+
+
+
+
+    var matchedItems =
+
+        {};
+
+
+
+
+
+    /* ======================================================
+
+       PROCESS MATCH RECORDS
+
+    ====================================================== */
+
+
+
+    while (
+
+        match.next()
+
+    ) {
+
+
+
+        var matchId =
+
+            match.getUniqueValue();
+
+
+
+        var lostId =
+
+            match.getValue(
+
+                'lost_item'
+
+            );
+
+
+
+        var foundId =
+
+            match.getValue(
+
+                'found_item'
+
+            );
+
+
+
+
+
+        /* ==================================================
+
+           DEFENSE-IN-DEPTH OWNERSHIP CHECK
+
+        ================================================== */
+
+
+
+        if (
+
+            !reportIndex[lostId] &&
+
+            !reportIndex[foundId]
+
+        ) {
+
+
+
+            continue;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           SCORE
+
+        ================================================== */
+
+
+
+        var score =
+
+            parseFloat(
+
+                match.getValue(
+
+                    'overall_score'
+
+                )
+
+            );
+
+
+
+        if (
+
+            isNaN(
+
+                score
+
+            )
+
+        ) {
+
+
+
+            score =
+
+                0;
+
+
+
+        }
+
+
+
+        score =
+
+            Math.round(
+
+                score * 100
+
+            ) / 100;
+
+
+
+
+
+        /* ==================================================
+
+           SAFETY:
+
+           NEVER EXPOSE LOW-SCORE MATCHES
+
+        ================================================== */
+
+
+
+        if (
+
+            score < 65
+
+        ) {
+
+
+
+            continue;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           MATCH LEVEL
+
+        ================================================== */
+
+
+
+        var levelValue =
+
+            normalize(
+
+                match.getValue(
+
+                    'match_level'
+
+                )
+
+            );
+
+
+
+        var levelDisplay =
+
+            match.getDisplayValue(
+
+                'match_level'
+
+            ) ||
+
+            'Match';
+
+
+
+
+
+        /* ==================================================
+
+           MATCH STATUS
+
+        ================================================== */
+
+
+
+        var statusValue =
+
+            normalize(
+
+                match.getValue(
+
+                    'status'
+
+                )
+
+            );
+
+
+
+        var statusDisplay =
+
+            match.getDisplayValue(
+
+                'status'
+
+            ) ||
+
+            'Active';
+
+
+
+
+
+        /* ==================================================
+
+           DETERMINE CURRENT USER'S ITEM
+
+        ================================================== */
+
+
+
+        var userItemId =
+
+            '';
+
+
+
+        var otherItemId =
+
+            '';
+
+
+
+        if (
+
+            reportIndex[
+
+                lostId
+
+            ]
+
+        ) {
+
+
+
+            userItemId =
+
+                lostId;
+
+
+
+            otherItemId =
+
+                foundId;
+
+
+
+        }
+
+        else if (
+
+            reportIndex[
+
+                foundId
+
+            ]
+
+        ) {
+
+
+
+            userItemId =
+
+                foundId;
+
+
+
+            otherItemId =
+
+                lostId;
+
+
+
+        }
+
+        else {
+
+
+
+            continue;
+
+
+
+        }
+
+
+
+        var report =
+
+            reportIndex[
+
+                userItemId
+
+            ];
+
+
+
+
+
+        /* ==================================================
+
+           OTHER ITEM
+
+           PRIVACY:
+
+           PUBLIC TITLE ONLY.
+
+        ================================================== */
+
+
+
+        var otherTitle =
+
+            'Potential Match';
+
+
+
+        if (
+
+            otherItemId
+
+        ) {
+
+
+
+            var other =
+
+                new GlideRecord(
+
+                    ITEM_TABLE
+
+                );
+
+
+
+            if (
+
+                other.get(
+
+                    otherItemId
+
+                )
+
+            ) {
+
+
+
+                otherTitle =
+
+                    other.getDisplayValue(
+
+                        'public_title'
+
+                    ) ||
+
+                    'Potential Match';
+
+
+
+            }
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           LOAD USER'S CLAIM FOR THIS MATCH
+
+        ================================================== */
+
+
+
+        var userClaim =
+
+            findUserClaimForMatch(
+
+                matchId,
+
+                lostId
+
+            );
+
+
+
+        var claimId =
+
+            '';
+
+
+
+        var claimStatusValue =
+
+            '';
+
+
+
+        var claimStatusDisplay =
+
+            '';
+
+
+
+        var canWithdraw =
+
+            false;
+
+
+
+        if (
+
+            userClaim
+
+        ) {
+
+
+
+            claimId =
+
+                userClaim.getUniqueValue();
+
+
+
+            var userClaimStatusField =
+
+                claimStatusField(
+
+                    userClaim
+
+                );
+
+
+
+            if (
+
+                userClaimStatusField
+
+            ) {
+
+
+
+                claimStatusValue =
+
+                    normalize(
+
+                        userClaim.getValue(
+
+                            userClaimStatusField
+
+                        )
+
+                    );
+
+
+
+                claimStatusDisplay =
+
+                    userClaim.getDisplayValue(
+
+                        userClaimStatusField
+
+                    ) ||
+
+                    '';
+
+
+
+            }
+
+
+
+            canWithdraw =
+
+                canWithdrawClaim(
+
+                    userClaim,
+
+                    lostId
+
+                );
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           WITHDRAWN MATCH
+
+        ================================================== */
+
+
+
+        if (
+
+            statusValue ===
+
+                'withdrawn'
+
+        ) {
+
+
+
+            data.activity.push({
+
+
+
+                matchId:
+
+                    matchId,
+
+
+
+                claimId:
+
+                    claimId,
+
+
+
+                claimStatusValue:
+
+                    claimStatusValue,
+
+
+
+                claimStatusDisplay:
+
+                    claimStatusDisplay,
+
+
+
+                canWithdraw:
+
+                    false,
+
+
+
+                title:
+
+                    'Claim Withdrawn',
+
+
+
+                itemTitle:
+
+                    report.title,
+
+
+
+                otherTitle:
+
+                    otherTitle,
+
+
+
+                score:
+
+                    score,
+
+
+
+                level:
+
+                    levelDisplay,
+
+
+
+                status:
+
+                    statusDisplay,
+
+
+
+                date:
+
+                    match.getDisplayValue(
+
+                        'sys_updated_on'
+
+                    ) ||
+
+                    match.getDisplayValue(
+
+                        'sys_created_on'
+
+                    ),
+
+
+
+                progress:
+
+                    35
+
+
+
+            });
+
+
+
+            continue;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           IGNORE STAFF-REJECTED / COMPETING REJECTED MATCHES
+
+        ================================================== */
+
+
+
+        if (
+
+            statusValue ===
+
+                MATCH_REJECTED ||
+
+            statusValue ===
+
+                'rejected'
+
+        ) {
+
+
+
+            continue;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           ACTIVE MATCH:
+
+           MARK USER'S REPORT AS MATCHED
+
+        ================================================== */
+
+
+
+        matchedItems[
+
+            userItemId
+
+        ] =
+
+            true;
+
+
+
+        report.hasMatch =
+
+            true;
+
+
+
+
+
+        /* ==================================================
+
+           BEST MATCH
+
+        ================================================== */
+
+
+
+        if (
+
+            !report.bestMatchId ||
+
+            score >
+
+                report.bestMatchScore
+
+        ) {
+
+
+
+            report.bestMatchId =
+
+                matchId;
+
+
+
+            report.bestMatchScore =
+
+                score;
+
+
+
+            report.bestMatchLevel =
+
+                levelDisplay;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           ACTIVITY TITLE / PROGRESS
+
+        ================================================== */
+
+
+
+        var activityTitle =
+
+            'Potential Match Found';
+
+
+
+        var progress =
+
+            55;
+
+
+
+
+
+        /*
+
+         * CLAIM-BASED ACTIVITY HAS PRIORITY
+
+         */
+
+
+
+        if (
+
+            claimStatusValue ===
+
+                'approved'
+
+        ) {
+
+
+
+            activityTitle =
+
+                'Claim Approved';
+
+
+
+            progress =
+
+                90;
+
+
+
+        }
+
+        else if (
+
+            claimStatusValue ===
+
+                'under review' ||
+
+            claimStatusValue ===
+
+                'under_review'
+
+        ) {
+
+
+
+            activityTitle =
+
+                'Claim Under Review';
+
+
+
+            progress =
+
+                75;
+
+
+
+        }
+
+        else if (
+
+            claimStatusValue ===
+
+                'submitted'
+
+        ) {
+
+
+
+            activityTitle =
+
+                'Ownership Claim Submitted';
+
+
+
+            progress =
+
+                70;
+
+
+
+        }
+
+        else if (
+
+            statusValue ===
+
+                'resolved'
+
+        ) {
+
+
+
+            activityTitle =
+
+                'Match Resolved';
+
+
+
+            progress =
+
+                100;
+
+
+
+        }
+
+        else if (
+
+            statusValue ===
+
+                'confirmed'
+
+        ) {
+
+
+
+            activityTitle =
+
+                'Match Confirmed';
+
+
+
+            progress =
+
+                80;
+
+
+
+        }
+
+        else if (
+
+            statusValue ===
+
+                'under_review'
+
+        ) {
+
+
+
+            activityTitle =
+
+                'Match Under Review';
+
+
+
+            progress =
+
+                65;
+
+
+
+        }
+
+        else if (
+
+            levelValue ===
+
+                'strong'
+
+        ) {
+
+
+
+            activityTitle =
+
+                'Strong Match Found';
+
+
+
+            progress =
+
+                60;
+
+
+
+        }
+
+
+
+
+
+        /* ==================================================
+
+           PRIVACY-SAFE ACTIVITY OBJECT
+
+        ================================================== */
+
+
+
+        data.activity.push({
+
+
+
+            matchId:
+
+                matchId,
+
+
+
+            claimId:
+
+                claimId,
+
+
+
+            claimStatusValue:
+
+                claimStatusValue,
+
+
+
+            claimStatusDisplay:
+
+                claimStatusDisplay,
+
+
+
+            canWithdraw:
+
+                canWithdraw,
+
+
+
+            title:
+
+                activityTitle,
+
+
+
+            itemTitle:
+
+                report.title,
+
+
+
+            otherTitle:
+
+                otherTitle,
+
+
+
+            score:
+
+                score,
+
+
+
+            level:
+
+                levelDisplay,
+
+
+
+            status:
+
+                statusDisplay,
+
+
+
+            date:
+
+                match.getDisplayValue(
+
+                    'sys_created_on'
+
+                ),
+
+
+
+            progress:
+
+                progress
+
+
+
+        });
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       MATCHED COUNT
+
+    ====================================================== */
+
+
+
+    for (
+
+        var matchedId
+
+        in matchedItems
+
+    ) {
+
+
+
+        if (
+
+            matchedItems
+
+                .hasOwnProperty(
+
+                    matchedId
+
+                )
+
+        ) {
+
+
+
+            data.stats.matched++;
+
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+    /* ======================================================
+
+       LIMIT ACTIVITY
+
+    ====================================================== */
+
+
+
+    if (
+
+        data.activity.length >
+
+            15
+
+    ) {
+
+
+
+        data.activity =
+
+            data.activity.slice(
+
+                0,
+
+                15
+
+            );
+
+
+
+    }
+
+
+
+
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 11:45:32</sys_created_on>
+        <sys_id>d8f6e227555f03107f4447f82ce73201</sys_id>
+        <sys_mod_count>23</sys_mod_count>
+        <sys_name>CampusMatch User Dashboard</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_d8f6e227555f03107f4447f82ce73201</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-30 19:04:32</sys_updated_on>
+        <template><![CDATA[<section class="cm-dashboard">
+
+  <div class="cm-dashboard-container">
+
+
+    <!-- =========================================
+         WELCOME HEADER
+    ========================================== -->
+
+    <div class="cm-dashboard-header">
+
+      <div>
+
+        <span class="cm-dashboard-eyebrow">
+          ✦ My CampusMatch
+        </span>
+
+        <h1>
+          Welcome back, {{data.firstName}}
+        </h1>
+
+        <p>
+          Here's what's happening with your reports.
+        </p>
+
+      </div>
+
+
+      <!-- QUICK ACTIONS -->
+
+      <div class="cm-header-actions">
+
+        <a
+          href="?id=campusmatch_report&type=lost"
+          class="cm-action-btn cm-action-primary">
+
+          Report Lost
+
+        </a>
+
+
+        <a
+          href="?id=campusmatch_report&type=found"
+          class="cm-action-btn cm-action-secondary">
+
+          Report Found
+
+        </a>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- =========================================
+         MAIN DASHBOARD SHELL
+    ========================================== -->
+
+    <div class="cm-dashboard-shell">
+
+
+      <!-- =====================================
+           SIDEBAR
+      ====================================== -->
+
+      <aside class="cm-dashboard-sidebar">
+
+
+        <!-- USER -->
+
+        <div class="cm-user-card">
+
+          <div class="cm-user-avatar">
+            {{data.initials}}
+          </div>
+
+
+          <div class="cm-user-info">
+
+            <strong>
+              {{data.userName}}
+            </strong>
+
+            <span>
+              Student
+            </span>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- NAV -->
+
+        <nav class="cm-dashboard-nav">
+
+
+          <!-- MY REPORTS -->
+
+          <button
+            type="button"
+            ng-class="{'active': c.activeTab === 'reports'}"
+            ng-click="c.changeTab('reports')">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+
+              <rect
+                x="3"
+                y="3"
+                width="7"
+                height="9"
+                rx="2">
+              </rect>
+
+              <rect
+                x="14"
+                y="3"
+                width="7"
+                height="5"
+                rx="2">
+              </rect>
+
+              <rect
+                x="14"
+                y="12"
+                width="7"
+                height="9"
+                rx="2">
+              </rect>
+
+              <rect
+                x="3"
+                y="16"
+                width="7"
+                height="5"
+                rx="2">
+              </rect>
+
+            </svg>
+
+            My Reports
+
+          </button>
+
+
+
+          <!-- MATCH ACTIVITY -->
+
+          <button
+            type="button"
+            ng-class="{'active': c.activeTab === 'activity'}"
+            ng-click="c.changeTab('activity')">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round">
+
+              <circle
+                cx="12"
+                cy="8"
+                r="4">
+              </circle>
+
+              <path
+                d="M4 21c0-4 4-6 8-6s8 2 8 6">
+              </path>
+
+            </svg>
+
+            Match Activity
+
+          </button>
+
+
+
+          <!-- DEADLINES -->
+
+          <a href="?id=campusmatch_deadlines">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+
+              <rect
+                x="3"
+                y="5"
+                width="18"
+                height="16"
+                rx="2">
+              </rect>
+
+              <path d="M16 3v4"></path>
+              <path d="M8 3v4"></path>
+              <path d="M3 10h18"></path>
+
+              <path d="M8 14h2"></path>
+              <path d="M14 14h2"></path>
+              <path d="M8 17h2"></path>
+
+            </svg>
+
+            Deadlines
+
+          </a>
+
+
+
+          <!-- REPORT LOST -->
+
+          <a href="?id=campusmatch_report&type=lost">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round">
+
+              <path d="M12 20h9"></path>
+
+              <path
+                d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z">
+              </path>
+
+            </svg>
+
+            Report Lost
+
+          </a>
+
+
+
+          <!-- REPORT FOUND -->
+
+          <a href="?id=campusmatch_report&type=found">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round">
+
+              <circle
+                cx="11"
+                cy="11"
+                r="7">
+              </circle>
+
+              <path
+                d="m21 21-4.3-4.3">
+              </path>
+
+            </svg>
+
+            Report Found
+
+          </a>
+
+        </nav>
+
+      </aside>
+
+
+
+      <!-- =====================================
+           MAIN CONTENT
+      ====================================== -->
+
+      <main class="cm-dashboard-main">
+
+
+        <!-- ==================================
+             STATS
+        =================================== -->
+
+        <div class="cm-dashboard-stats">
+
+
+          <!-- LOST -->
+
+          <div class="cm-stat-card">
+
+            <div class="cm-stat-icon cm-stat-lost">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8">
+
+                <path d="M12 20h9"></path>
+
+                <path
+                  d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z">
+                </path>
+
+              </svg>
+
+            </div>
+
+            <div>
+
+              <strong>
+                {{data.stats.lost}}
+              </strong>
+
+              <span>
+                Lost Items
+              </span>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- FOUND -->
+
+          <div class="cm-stat-card">
+
+            <div class="cm-stat-icon cm-stat-found">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8">
+
+                <circle
+                  cx="11"
+                  cy="11"
+                  r="7">
+                </circle>
+
+                <path
+                  d="m21 21-4.3-4.3">
+                </path>
+
+              </svg>
+
+            </div>
+
+            <div>
+
+              <strong>
+                {{data.stats.found}}
+              </strong>
+
+              <span>
+                Found Items
+              </span>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- MATCHED -->
+
+          <div class="cm-stat-card">
+
+            <div class="cm-stat-icon cm-stat-match">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8">
+
+                <circle
+                  cx="8"
+                  cy="12"
+                  r="4">
+                </circle>
+
+                <circle
+                  cx="16"
+                  cy="12"
+                  r="4">
+                </circle>
+
+                <path
+                  d="M10.5 9h3M10.5 15h3">
+                </path>
+
+              </svg>
+
+            </div>
+
+            <div>
+
+              <strong>
+                {{data.stats.matched}}
+              </strong>
+
+              <span>
+                Matched
+              </span>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- RESOLVED -->
+
+          <div class="cm-stat-card">
+
+            <div class="cm-stat-icon cm-stat-resolved">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round">
+
+                <path
+                  d="M20 6 9 17l-5-5">
+                </path>
+
+              </svg>
+
+            </div>
+
+            <div>
+
+              <strong>
+                {{data.stats.resolved}}
+              </strong>
+
+              <span>
+                Resolved
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================
+             MY REPORTS TAB
+        =================================== -->
+
+        <div ng-if="c.activeTab === 'reports'">
+
+
+          <div class="cm-section-header">
+
+            <div>
+
+              <h2>
+                My Reports
+              </h2>
+
+              <p>
+                Track everything you've reported.
+              </p>
+
+            </div>
+
+
+            <a
+              href="?id=campusmatch_explore"
+              class="cm-explore-link">
+
+              Explore Items →
+
+            </a>
+
+          </div>
+
+
+
+          <!-- FILTER -->
+
+          <div class="cm-report-filter">
+
+            <button
+              type="button"
+              ng-class="{'active': c.reportFilter === 'all'}"
+              ng-click="c.setReportFilter('all')">
+
+              All
+
+            </button>
+
+
+            <button
+              type="button"
+              ng-class="{'active': c.reportFilter === 'lost'}"
+              ng-click="c.setReportFilter('lost')">
+
+              Lost
+
+            </button>
+
+
+            <button
+              type="button"
+              ng-class="{'active': c.reportFilter === 'found'}"
+              ng-click="c.setReportFilter('found')">
+
+              Found
+
+            </button>
+
+          </div>
+
+
+
+          <!-- REPORT CARDS -->
+
+          <div
+            class="cm-report-grid"
+            ng-if="c.filteredReports().length">
+
+
+            <article
+              class="cm-report-item"
+              ng-repeat="item in c.filteredReports() track by item.sys_id">
+
+
+              <!-- REPORT MEDIA -->
+
+              <div
+                class="cm-report-media"
+                ng-class="{
+                  'lost': item.reportType === 'lost',
+                  'found': item.reportType === 'found'
+                }">
+
+
+                <span
+                  class="cm-report-type"
+                  ng-class="{
+                    'lost': item.reportType === 'lost',
+                    'found': item.reportType === 'found'
+                  }">
+
+                  {{item.reportType === 'lost'
+                      ? 'Lost'
+                      : 'Found'}}
+
+                </span>
+
+
+                <img
+                  ng-if="item.imageUrl"
+                  ng-src="{{item.imageUrl}}"
+                  class="cm-report-image"
+                  alt="{{item.title}}">
+
+
+                <svg
+                  ng-if="!item.imageUrl"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5">
+
+                  <rect
+                    x="5"
+                    y="6"
+                    width="14"
+                    height="14"
+                    rx="3">
+                  </rect>
+
+                  <path
+                    d="M8 6V5a4 4 0 0 1 8 0v1">
+                  </path>
+
+                </svg>
+
+              </div>
+
+
+
+              <!-- REPORT BODY -->
+
+              <div class="cm-report-body">
+
+
+                <h3>
+                  {{item.title}}
+                </h3>
+
+
+                <div class="cm-report-meta">
+
+                  <span>
+                    {{item.locationZone || 'Campus'}}
+                  </span>
+
+                  <span>
+                    {{item.reportedDisplay}}
+                  </span>
+
+                </div>
+
+
+
+                <div class="cm-report-status-row">
+
+
+                  <span
+                    class="cm-status-badge"
+                    ng-class="c.statusClass(item)">
+
+                    {{item.statusDisplay}}
+
+                  </span>
+
+
+                  <span
+                    class="cm-match-badge"
+                    ng-if="item.hasMatch">
+
+                    {{item.bestMatchLevel}}
+
+                  </span>
+
+                </div>
+
+
+
+                <div
+                  class="cm-best-match"
+                  ng-if="item.hasMatch">
+
+                  <span>
+                    {{item.bestMatchLevel}}
+                  </span>
+
+                  <strong>
+                    {{item.bestMatchScore}}%
+                  </strong>
+
+                </div>
+
+
+
+                <div class="cm-report-footer">
+
+
+                  <span class="cm-report-number">
+                    {{item.number}}
+                  </span>
+
+
+                  <a
+                    ng-if="item.hasMatch"
+                    class="cm-match-action"
+                    ng-href="?id=campusmatch_match&match_id={{item.bestMatchId}}">
+
+                    View Match →
+
+                  </a>
+
+                </div>
+
+
+              </div>
+
+            </article>
+
+          </div>
+
+
+
+          <!-- EMPTY REPORTS -->
+
+          <div
+            class="cm-empty"
+            ng-if="!c.filteredReports().length">
+
+            <div class="cm-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7">
+
+                <path
+                  d="M12 20h9">
+                </path>
+
+                <path
+                  d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z">
+                </path>
+
+              </svg>
+
+            </div>
+
+
+            <h3>
+              No reports here yet
+            </h3>
+
+
+            <p>
+              When you report a lost or found item,
+              it will appear here.
+            </p>
+
+
+            <a
+              href="?id=campusmatch_report&type=lost">
+
+              Create a report
+
+            </a>
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- ==================================
+             MATCH ACTIVITY TAB
+        =================================== -->
+
+        <div ng-if="c.activeTab === 'activity'">
+
+
+          <div class="cm-section-header">
+
+            <div>
+
+              <h2>
+                Match Activity
+              </h2>
+
+              <p>
+                Follow the progress of your active reports.
+              </p>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- ACTION MESSAGE -->
+
+          <div
+            class="cm-dashboard-message"
+            ng-if="c.actionMessage"
+            ng-class="{'error': c.actionError}">
+
+            {{c.actionMessage}}
+
+          </div>
+
+
+
+          <!-- ACTIVITY LIST -->
+
+          <div
+            class="cm-activity-list"
+            ng-if="data.activity.length">
+
+
+            <article
+              class="cm-activity-card"
+              ng-repeat="activity in data.activity track by activity.matchId">
+
+
+              <div class="cm-activity-marker">
+                <span></span>
+              </div>
+
+
+
+              <div class="cm-activity-content">
+
+
+                <div class="cm-activity-top">
+
+                  <div>
+
+                    <h3>
+                      {{activity.title}}
+                    </h3>
+
+                    <p>
+                      {{activity.itemTitle}}
+                    </p>
+
+                  </div>
+
+
+                  <span>
+                    {{activity.date}}
+                  </span>
+
+                </div>
+
+
+
+                <p ng-if="activity.otherTitle">
+                  Matched with {{activity.otherTitle}}
+                </p>
+
+
+
+                <div class="cm-activity-match-info">
+
+                  <span>
+                    {{activity.level}}
+                  </span>
+
+                  <strong>
+                    {{activity.score}}%
+                  </strong>
+
+                </div>
+
+
+
+                <div
+                  class="cm-claim-status-row"
+                  ng-if="activity.claimId">
+
+                  <span>
+                    Claim Status
+                  </span>
+
+                  <strong>
+                    {{activity.claimStatusDisplay || 'Submitted'}}
+                  </strong>
+
+                </div>
+
+
+
+                <div
+                  class="cm-activity-progress"
+                  ng-if="
+                    activity.score !== null &&
+                    activity.score !== undefined
+                  ">
+
+
+                  <div
+                    class="cm-progress-fill"
+                    ng-style="{
+                      'width':
+                        activity.score + '%'
+                    }">
+                  </div>
+
+                </div>
+
+
+
+                <div class="cm-activity-actions">
+
+
+                  <a
+                    ng-if="activity.matchId"
+                    ng-href="?id=campusmatch_match&match_id={{activity.matchId}}">
+
+                    View Match →
+
+                  </a>
+
+
+                  <button
+                    type="button"
+                    class="cm-withdraw-btn"
+                    ng-if="activity.canWithdraw"
+                    ng-disabled="c.processing"
+                    ng-click="c.openWithdraw(activity)">
+
+                    Withdraw Claim
+
+                  </button>
+
+                </div>
+
+
+
+                <div
+                  class="cm-withdrawn-note"
+                  ng-if="activity.claimStatusValue === 'withdrawn'">
+
+                  You withdrew your claim for this match.
+
+                </div>
+
+
+              </div>
+
+            </article>
+
+          </div>
+
+
+
+          <!-- NO ACTIVITY -->
+
+          <div
+            class="cm-empty"
+            ng-if="!data.activity.length">
+
+
+            <div class="cm-empty-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7">
+
+                <circle
+                  cx="12"
+                  cy="8"
+                  r="4">
+                </circle>
+
+                <path
+                  d="M4 21c0-4 4-6 8-6s8 2 8 6">
+                </path>
+
+              </svg>
+
+            </div>
+
+
+            <h3>
+              No match activity yet
+            </h3>
+
+
+            <p>
+              CampusMatch will update this area when your
+              reports move through the matching process.
+            </p>
+
+
+          </div>
+
+
+        </div>
+
+
+      </main>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- ==========================================================
+       WITHDRAW CLAIM MODAL
+  =========================================================== -->
+
+  <div
+    class="cm-withdraw-overlay"
+    ng-if="c.withdrawOpen">
+
+    <div
+      class="cm-withdraw-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cmWithdrawTitle">
+
+
+      <div class="cm-withdraw-icon">
+        !
+      </div>
+
+
+      <h3 id="cmWithdrawTitle">
+        Withdraw this claim?
+      </h3>
+
+
+      <p>
+        If this item is not yours, you can withdraw your claim.
+        You will no longer be able to collect this item using
+        this claim.
+      </p>
+
+
+
+      <div
+        class="cm-withdraw-summary"
+        ng-if="c.withdrawClaim">
+
+        <span>
+          Match
+        </span>
+
+        <strong>
+          {{c.withdrawClaim.otherTitle ||
+            c.withdrawClaim.itemTitle ||
+            'CampusMatch Item'}}
+        </strong>
+
+      </div>
+
+
+
+      <label for="cmWithdrawalReason">
+
+        Reason for withdrawal
+
+        <span>
+          (optional)
+        </span>
+
+      </label>
+
+
+      <textarea
+        id="cmWithdrawalReason"
+        ng-model="c.withdrawReason"
+        maxlength="500"
+        placeholder="Example: I realized this is not my item.">
+      </textarea>
+
+
+      <div class="cm-withdraw-character-count">
+
+        {{(c.withdrawReason || '').length}} / 500
+
+      </div>
+
+
+
+      <div class="cm-withdraw-actions">
+
+
+        <button
+          type="button"
+          class="cm-withdraw-cancel"
+          ng-click="c.closeWithdraw()"
+          ng-disabled="c.processing">
+
+          Cancel
+
+        </button>
+
+
+        <button
+          type="button"
+          class="cm-withdraw-confirm"
+          ng-click="c.confirmWithdraw()"
+          ng-disabled="c.processing">
+
+          {{c.processing
+              ? 'Withdrawing...'
+              : 'Confirm Withdrawal'}}
+
+        </button>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+</section>]]></template>
+    </sp_widget>
+</record_update>

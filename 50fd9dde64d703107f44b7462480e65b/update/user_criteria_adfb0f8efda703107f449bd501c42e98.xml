@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="user_criteria">
+    <user_criteria action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <advanced>true</advanced>
+        <company/>
+        <department/>
+        <group/>
+        <location/>
+        <match_all>false</match_all>
+        <name>CampusMatch Non Staff Mobile</name>
+        <role/>
+        <script><![CDATA[answer = !gs.hasRole('x_snc_campusmatch.staff');]]></script>
+        <short_description/>
+        <sys_class_name>user_criteria</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-27 08:51:29</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>adfb0f8efda703107f449bd501c42e98</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch Non Staff Mobile</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>user_criteria_adfb0f8efda703107f449bd501c42e98</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-27 08:51:29</sys_updated_on>
+        <user/>
+    </user_criteria>
+    <sys_translated_text action="delete_multiple" query="documentkey=adfb0f8efda703107f449bd501c42e98"/>
+</record_update>

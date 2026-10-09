@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="" label="CampusMatch Deadline" language="en" table="x_snc_campusmatch_campusmatch_deadline">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element/>
+            <help/>
+            <hint/>
+            <label>CampusMatch Deadline</label>
+            <language>en</language>
+            <name>x_snc_campusmatch_campusmatch_deadline</name>
+            <plural>CampusMatch Deadlines</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-30 16:26:38</sys_created_on>
+            <sys_id>7001dc1fe1a303107f44ae7e9de11063</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>CampusMatch Deadline</sys_name>
+            <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+            <sys_update_name>sys_documentation_x_snc_campusmatch_campusmatch_deadline__en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-30 16:26:38</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

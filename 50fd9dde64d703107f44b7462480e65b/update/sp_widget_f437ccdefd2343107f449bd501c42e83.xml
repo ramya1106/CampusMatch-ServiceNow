@@ -1,0 +1,2208 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function() {
+
+    var c = this;
+
+
+    function fixRecoveryCharts() {
+
+        if (
+            !window.Highcharts ||
+            !window.Highcharts.charts
+        ) {
+            return;
+        }
+
+
+        for (
+            var i = 0;
+            i < window.Highcharts.charts.length;
+            i++
+        ) {
+
+            var chart =
+                window.Highcharts.charts[i];
+
+
+            if (
+                !chart ||
+                !chart.renderTo
+            ) {
+                continue;
+            }
+
+
+            var card = null;
+
+
+            if (chart.renderTo.closest) {
+
+                card =
+                    chart.renderTo.closest(
+                        '.cm-ri-chart-card'
+                    );
+
+            }
+
+
+            /*
+             * Ignore every chart outside
+             * CampusMatch Recovery Insights
+             */
+            if (!card) {
+                continue;
+            }
+
+
+            /* ==================================================
+               REPORTS BY CATEGORY
+            ================================================== */
+
+            if (
+                card.classList.contains(
+                    'cm-ri-chart-wide'
+                )
+            ) {
+
+                try {
+
+                    chart.update({
+
+                        chart: {
+                            height: 220,
+
+                            marginTop: 8,
+                            marginRight: 12,
+                            marginBottom: 58,
+                            marginLeft: 62,
+
+                            spacingTop: 0,
+                            spacingRight: 0,
+                            spacingBottom: 0,
+                            spacingLeft: 0,
+
+                            animation: false
+                        },
+
+
+                        credits: {
+                            enabled: false
+                        },
+
+
+                        legend: {
+
+                            enabled: true,
+
+                            layout: 'horizontal',
+
+                            align: 'center',
+
+                            verticalAlign: 'bottom',
+
+                            floating: false,
+
+                            /*
+                             * Slightly upward
+                             */
+                            y: -4,
+
+                            margin: 2,
+                            padding: 0,
+
+                            symbolWidth: 10,
+                            symbolHeight: 10,
+
+                            itemDistance: 16,
+
+                            itemStyle: {
+                                color: '#40585C',
+                                fontSize: '11px',
+                                fontWeight: '600'
+                            }
+
+                        },
+
+
+                        xAxis: {
+
+                            labels: {
+
+                                rotation: -35,
+
+                                y: 15,
+
+                                style: {
+                                    color: '#506267',
+                                    fontSize: '10px',
+                                    fontWeight: '600'
+                                }
+
+                            }
+
+                        },
+
+
+                        yAxis: {
+
+                            labels: {
+
+                                x: -4,
+
+                                style: {
+                                    color: '#506267',
+                                    fontSize: '11px',
+                                    fontWeight: '600'
+                                }
+
+                            },
+
+
+                            title: {
+
+                                margin: 11,
+
+                                style: {
+                                    color: '#254B4B',
+                                    fontSize: '11px',
+                                    fontWeight: '700'
+                                }
+
+                            }
+
+                        }
+
+                    }, false);
+
+
+                    chart.setSize(
+                        null,
+                        220,
+                        false
+                    );
+
+
+                    chart.redraw(false);
+
+                    chart.reflow();
+
+                }
+                catch (e) {}
+
+            }
+
+
+            /* ==================================================
+               DONUT CHARTS
+            ================================================== */
+
+            else {
+
+                try {
+
+                    var isMatchQuality =
+                        card.querySelector('h4') &&
+                        card.querySelector('h4')
+                            .textContent
+                            .trim()
+                            .toLowerCase() ===
+                            'match quality';
+
+
+                    chart.update({
+
+                        chart: {
+
+                            height: 220,
+
+                            spacingTop: 2,
+                            spacingRight: 3,
+                            spacingBottom: 0,
+                            spacingLeft: 3,
+
+                            animation: false
+
+                        },
+
+
+                        credits: {
+                            enabled: false
+                        },
+
+
+                        legend: {
+
+                            enabled: true,
+
+                            layout: 'vertical',
+
+                            align: 'center',
+
+                            verticalAlign: 'bottom',
+
+                            floating: false,
+
+                            y: 0,
+
+                            margin: 0,
+                            padding: 0,
+
+                            itemMarginTop: 0,
+                            itemMarginBottom: 0,
+
+                            symbolWidth: 10,
+                            symbolHeight: 10,
+
+                            /*
+                             * Match Quality has 3 entries.
+                             * Give it enough legend height so
+                             * Highcharts does not create ▲ 1/3 ▼.
+                             */
+                            maxHeight:
+                                isMatchQuality ?
+                                64 :
+                                48,
+
+                            navigation: {
+                                enabled: false
+                            },
+
+                            itemStyle: {
+
+                                color: '#40585C',
+
+                                /*
+                                 * Slightly smaller ONLY for
+                                 * Match Quality because it has
+                                 * three longer entries.
+                                 */
+                                fontSize:
+                                    isMatchQuality ?
+                                    '10px' :
+                                    '11px',
+
+                                fontWeight: '600',
+
+                                textOverflow: 'none'
+
+                            }
+
+                        },
+
+
+                        plotOptions: {
+
+                            pie: {
+
+                                size:
+                                    isMatchQuality ?
+                                    108 :
+                                    112,
+
+                                center: [
+                                    '50%',
+                                    '36%'
+                                ],
+
+                                dataLabels: {
+                                    enabled: false
+                                }
+
+                            }
+
+                        }
+
+                    }, false);
+
+
+                    chart.setSize(
+                        null,
+                        220,
+                        false
+                    );
+
+
+                    chart.redraw(false);
+
+                    chart.reflow();
+
+                }
+                catch (e) {}
+
+            }
+
+        }
+
+    }
+
+
+    /*
+     * ServiceNow report widgets render asynchronously.
+     */
+
+    setTimeout(
+        fixRecoveryCharts,
+        700
+    );
+
+
+    setTimeout(
+        fixRecoveryCharts,
+        1600
+    );
+
+
+    setTimeout(
+        fixRecoveryCharts,
+        3000
+    );
+
+
+    setTimeout(
+        fixRecoveryCharts,
+        4500
+    );
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ==========================================================&#13;
+   CAMPUSMATCH RECOVERY INSIGHTS&#13;
+   FINAL ALIGNED VERSION&#13;
+========================================================== */&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   FULL WIDTH SECTION&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri {&#13;
+  position: relative;&#13;
+&#13;
+  width: 100vw;&#13;
+  max-width: none;&#13;
+&#13;
+  margin-left: calc(50% - 50vw);&#13;
+&#13;
+  padding:&#13;
+    32px&#13;
+    20px&#13;
+    68px;&#13;
+&#13;
+  background: #F7F8F2;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family:&#13;
+    "DM Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+&#13;
+  overflow: visible;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri *,&#13;
+.cm-ri *::before,&#13;
+.cm-ri *::after {&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SAME CONTENT WIDTH AS ADMIN DASHBOARD&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-container {&#13;
+  width: 100%;&#13;
+&#13;
+  max-width: 1250px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto;&#13;
+&#13;
+  padding-bottom: 8px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MAIN HEADER&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-header {&#13;
+  margin-bottom: 25px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-eyebrow {&#13;
+  display: inline-block;&#13;
+&#13;
+  margin-bottom: 6px;&#13;
+&#13;
+  color: #168C70;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 900;&#13;
+&#13;
+  letter-spacing: 2px;&#13;
+&#13;
+  text-transform: uppercase;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-header-row {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: flex-end;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 24px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-header h2 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    6px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 30px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  line-height: 1.15;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-header p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  line-height: 1.55;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   LIVE DATA BADGE&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-live {&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  display: inline-flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 7px;&#13;
+&#13;
+  padding:&#13;
+    7px&#13;
+    11px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-live &gt; span {&#13;
+  width: 7px;&#13;
+  height: 7px;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #249D78;&#13;
+&#13;
+  box-shadow:&#13;
+    0 0 0 4px&#13;
+    rgba(36, 157, 120, 0.11);&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SECTION HEADINGS&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-section-head {&#13;
+  margin-bottom: 13px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: flex-end;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 20px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-section-kicker {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 3px;&#13;
+&#13;
+  color: #81908C;&#13;
+&#13;
+  font-size: 8px;&#13;
+  font-weight: 900;&#13;
+&#13;
+  letter-spacing: 1.5px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-section-head h3 {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 17px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  line-height: 1.25;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-section-head &gt; p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #81908C;&#13;
+&#13;
+  font-size: 9px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-analytics-head {&#13;
+  margin-top: 30px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   KPI GRID&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-kpi-grid {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    repeat(4, minmax(0, 1fr));&#13;
+&#13;
+  gap: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   KPI CARD&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-kpi-card {&#13;
+  min-width: 0;&#13;
+&#13;
+  min-height: 112px;&#13;
+&#13;
+  padding:&#13;
+    14px&#13;
+    16px&#13;
+    12px;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  border:&#13;
+    1px solid&#13;
+    #D7E2DD;&#13;
+&#13;
+  border-radius: 16px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 4px 14px&#13;
+    rgba(16, 78, 69, 0.04);&#13;
+&#13;
+  transition:&#13;
+    transform 0.18s ease,&#13;
+    box-shadow 0.18s ease,&#13;
+    border-color 0.18s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-kpi-card:hover {&#13;
+  transform:&#13;
+    translateY(-2px);&#13;
+&#13;
+  border-color: #BFD5CB;&#13;
+&#13;
+  box-shadow:&#13;
+    0 8px 20px&#13;
+    rgba(16, 78, 69, 0.07);&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   KPI SUBHEADING&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-kpi-label {&#13;
+  position: relative;&#13;
+&#13;
+  min-height: 28px;&#13;
+&#13;
+  padding-left: 15px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  color: #365B59;&#13;
+&#13;
+  font-size: 14px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  line-height: 1.25;&#13;
+&#13;
+  letter-spacing: 0.1px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-kpi-label::before {&#13;
+  content: "";&#13;
+&#13;
+  position: absolute;&#13;
+&#13;
+  left: 0;&#13;
+  top: 50%;&#13;
+&#13;
+  width: 4px;&#13;
+  height: 22px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #249D78;&#13;
+&#13;
+  transform:&#13;
+    translateY(-50%);&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   KPI REPORT VALUE&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-score {&#13;
+  min-height: 65px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-score &gt; * {&#13;
+  width: 100%;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   ANALYTICS GRID&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-grid {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    repeat(4, minmax(0, 1fr));&#13;
+&#13;
+  gap: 14px;&#13;
+&#13;
+  align-items: stretch;&#13;
+&#13;
+  padding-bottom: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   ANALYTICS CARD&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-card {&#13;
+  min-width: 0;&#13;
+&#13;
+  height: 300px;&#13;
+&#13;
+  padding:&#13;
+    14px&#13;
+    13px&#13;
+    12px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  flex-direction: column;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  border:&#13;
+    1px solid&#13;
+    #D7E2DD;&#13;
+&#13;
+  border-radius: 17px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 4px 14px&#13;
+    rgba(16, 78, 69, 0.045);&#13;
+&#13;
+  transition:&#13;
+    transform 0.18s ease,&#13;
+    border-color 0.18s ease,&#13;
+    box-shadow 0.18s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-chart-card:hover {&#13;
+  transform:&#13;
+    translateY(-2px);&#13;
+&#13;
+  border-color: #C2D8CE;&#13;
+&#13;
+  box-shadow:&#13;
+    0 8px 20px&#13;
+    rgba(16, 78, 69, 0.07);&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   REPORTS BY CATEGORY&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-wide {&#13;
+  grid-column: span 2;&#13;
+&#13;
+  overflow: hidden;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CHART CARD HEADER&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-heading {&#13;
+  width: 100%;&#13;
+&#13;
+  height: 38px;&#13;
+&#13;
+  min-height: 38px;&#13;
+&#13;
+  margin-bottom: 4px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 10px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-chart-heading &gt; div {&#13;
+  min-width: 0;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 9px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CHART NUMBER&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-index {&#13;
+  width: 29px;&#13;
+  height: 29px;&#13;
+&#13;
+  display: inline-flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 9px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #168C70;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 900;&#13;
+&#13;
+  line-height: 1;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CHART TITLE&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-heading h4 {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 13px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  line-height: 1.2;&#13;
+&#13;
+  white-space: nowrap;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CHART TYPE BADGE&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-type {&#13;
+  min-height: 24px;&#13;
+&#13;
+  margin: 0;&#13;
+&#13;
+  padding:&#13;
+    5px&#13;
+    10px;&#13;
+&#13;
+  display: inline-flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  align-self: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #F5F8F3;&#13;
+&#13;
+  color: #607276;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 700;&#13;
+&#13;
+  line-height: 1;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   REMOVE SERVICENOW REPORT CARD SHELL&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-report {&#13;
+  width: 100%;&#13;
+&#13;
+  min-width: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-report .panel,&#13;
+.cm-ri-report .panel-default {&#13;
+  margin: 0 !important;&#13;
+&#13;
+  border: 0 !important;&#13;
+&#13;
+  background:&#13;
+    transparent !important;&#13;
+&#13;
+  box-shadow:&#13;
+    none !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-report .panel-heading,&#13;
+.cm-ri-report .panel-title,&#13;
+.cm-ri-report .report-title,&#13;
+.cm-ri-report .widget-title {&#13;
+  display:&#13;
+    none !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-report .panel-body {&#13;
+  margin:&#13;
+    0 !important;&#13;
+&#13;
+  padding:&#13;
+    0 !important;&#13;
+&#13;
+  background:&#13;
+    transparent !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CHART AREA&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-report {&#13;
+  width: 100%;&#13;
+&#13;
+  height: 225px;&#13;
+&#13;
+  min-width: 0;&#13;
+&#13;
+  min-height: 225px;&#13;
+&#13;
+  max-height: 225px;&#13;
+&#13;
+  flex: none;&#13;
+&#13;
+  position: relative;&#13;
+&#13;
+  margin: 0;&#13;
+&#13;
+  padding: 0;&#13;
+&#13;
+  overflow: visible;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-chart-report &gt; * {&#13;
+  width: 100%;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   NESTED REPORT CONTAINER&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-report .panel,&#13;
+.cm-ri-chart-report .panel-body,&#13;
+.cm-ri-chart-report .report-widget,&#13;
+.cm-ri-chart-report .report-content,&#13;
+.cm-ri-chart-report .report_content,&#13;
+.cm-ri-chart-report .chart-container {&#13;
+  width:&#13;
+    100% !important;&#13;
+&#13;
+  height:&#13;
+    225px !important;&#13;
+&#13;
+  min-height:&#13;
+    225px !important;&#13;
+&#13;
+  max-height:&#13;
+    225px !important;&#13;
+&#13;
+  margin:&#13;
+    0 !important;&#13;
+&#13;
+  padding:&#13;
+    0 !important;&#13;
+&#13;
+  border:&#13;
+    0 !important;&#13;
+&#13;
+  background:&#13;
+    transparent !important;&#13;
+&#13;
+  box-shadow:&#13;
+    none !important;&#13;
+&#13;
+  overflow:&#13;
+    visible !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   HIGHCHART BASE&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-report&#13;
+.highcharts-container,&#13;
+&#13;
+.cm-ri-chart-report&#13;
+.highcharts-root,&#13;
+&#13;
+.cm-ri-chart-report&#13;
+svg {&#13;
+  overflow:&#13;
+    visible !important;&#13;
+&#13;
+  max-height:&#13;
+    none !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   DONUT POSITION&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-card:not(.cm-ri-chart-wide)&#13;
+.highcharts-series-group {&#13;
+  transform-box:&#13;
+    fill-box !important;&#13;
+&#13;
+  transform-origin:&#13;
+    center center !important;&#13;
+&#13;
+  transform:&#13;
+    translateY(-12px) !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   DONUT LEGEND BELOW CHART&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-card:not(.cm-ri-chart-wide)&#13;
+.highcharts-legend {&#13;
+  transform-box:&#13;
+    fill-box !important;&#13;
+&#13;
+  transform-origin:&#13;
+    center center !important;&#13;
+&#13;
+  transform:&#13;
+    translateY(150px) !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-chart-card:not(.cm-ri-chart-wide)&#13;
+.highcharts-legend-item text {&#13;
+  font-size:&#13;
+    11px !important;&#13;
+&#13;
+  font-weight:&#13;
+    600 !important;&#13;
+&#13;
+  fill:&#13;
+    #40585C !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-chart-card:not(.cm-ri-chart-wide)&#13;
+.highcharts-legend-item rect {&#13;
+  width:&#13;
+    10px !important;&#13;
+&#13;
+  height:&#13;
+    10px !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   BAR CHART&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.cm-ri-chart-report {&#13;
+  overflow:&#13;
+    visible !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   BAR LEGEND&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.highcharts-legend {&#13;
+  transform-box:&#13;
+    fill-box !important;&#13;
+&#13;
+  transform-origin:&#13;
+    center center !important;&#13;
+&#13;
+  transform:&#13;
+    translateY(198px) !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.highcharts-legend-item text {&#13;
+  font-size:&#13;
+    10px !important;&#13;
+&#13;
+  font-weight:&#13;
+    600 !important;&#13;
+&#13;
+  fill:&#13;
+    #40585C !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   BAR X AXIS&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.highcharts-xaxis-labels {&#13;
+  transform:&#13;
+    translateY(-8px) !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.highcharts-xaxis-labels text {&#13;
+  font-size:&#13;
+    9px !important;&#13;
+&#13;
+  font-weight:&#13;
+    600 !important;&#13;
+&#13;
+  fill:&#13;
+    #506267 !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   BAR Y AXIS&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.highcharts-yaxis-labels text {&#13;
+  font-size:&#13;
+    10px !important;&#13;
+&#13;
+  font-weight:&#13;
+    600 !important;&#13;
+&#13;
+  fill:&#13;
+    #40585C !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.highcharts-yaxis&#13;
+.highcharts-axis-title {&#13;
+  font-size:&#13;
+    10px !important;&#13;
+&#13;
+  font-weight:&#13;
+    700 !important;&#13;
+&#13;
+  fill:&#13;
+    #254B4B !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   BAR GRID&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.highcharts-grid-line {&#13;
+  stroke:&#13;
+    #E5ECE8 !important;&#13;
+&#13;
+  stroke-width:&#13;
+    1px !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.highcharts-axis-line {&#13;
+  stroke:&#13;
+    #BCCBC6 !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   DATA LABELS&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-chart-report&#13;
+.highcharts-data-label text {&#13;
+  font-size:&#13;
+    9px !important;&#13;
+&#13;
+  font-weight:&#13;
+    600 !important;&#13;
+&#13;
+  fill:&#13;
+    #40585C !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   WARNING&#13;
+========================================================== */&#13;
+&#13;
+.cm-ri-warning {&#13;
+  margin-top: 20px;&#13;
+&#13;
+  padding:&#13;
+    13px&#13;
+    15px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  flex-direction: column;&#13;
+&#13;
+  gap: 3px;&#13;
+&#13;
+  border:&#13;
+    1px solid&#13;
+    #E7CFCB;&#13;
+&#13;
+  border-radius: 13px;&#13;
+&#13;
+  background: #FBF1EF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-warning strong {&#13;
+  color: #6F3F3A;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ri-warning span {&#13;
+  color: #84615D;&#13;
+&#13;
+  font-size: 9px;&#13;
+&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SMALL LAPTOP&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 1100px) {&#13;
+&#13;
+  .cm-ri-chart-grid {&#13;
+    grid-template-columns:&#13;
+      repeat(&#13;
+        2,&#13;
+        minmax(0, 1fr)&#13;
+      );&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-chart-wide {&#13;
+    grid-column:&#13;
+      span 2;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   TABLET&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 950px) {&#13;
+&#13;
+  .cm-ri-kpi-grid {&#13;
+    grid-template-columns:&#13;
+      repeat(&#13;
+        2,&#13;
+        minmax(0, 1fr)&#13;
+      );&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MOBILE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 700px) {&#13;
+&#13;
+  .cm-ri {&#13;
+    width: 100vw;&#13;
+&#13;
+    margin-left:&#13;
+      calc(50% - 50vw);&#13;
+&#13;
+    padding:&#13;
+      26px&#13;
+      14px&#13;
+      50px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-header-row {&#13;
+    flex-direction:&#13;
+      column;&#13;
+&#13;
+    align-items:&#13;
+      flex-start;&#13;
+&#13;
+    gap: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-header h2 {&#13;
+    font-size: 25px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-section-head {&#13;
+    flex-direction:&#13;
+      column;&#13;
+&#13;
+    align-items:&#13;
+      flex-start;&#13;
+&#13;
+    gap: 4px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-chart-grid {&#13;
+    grid-template-columns:&#13;
+      1fr;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-chart-wide {&#13;
+    grid-column:&#13;
+      auto;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SMALL MOBILE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 430px) {&#13;
+&#13;
+  .cm-ri-kpi-grid {&#13;
+    grid-template-columns:&#13;
+      repeat(&#13;
+        2,&#13;
+        minmax(0, 1fr)&#13;
+      );&#13;
+&#13;
+    gap: 10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-kpi-card {&#13;
+    min-height: 106px;&#13;
+&#13;
+    padding:&#13;
+      12px&#13;
+      10px&#13;
+      10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-kpi-label {&#13;
+    min-height: 24px;&#13;
+&#13;
+    padding-left: 11px;&#13;
+&#13;
+    font-size: 10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-kpi-label::before {&#13;
+    height: 19px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-chart-card {&#13;
+    height: 295px;&#13;
+&#13;
+    padding:&#13;
+      12px&#13;
+      10px&#13;
+      10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-chart-index {&#13;
+    width: 27px;&#13;
+    height: 27px;&#13;
+&#13;
+    font-size: 9px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-chart-heading h4 {&#13;
+    font-size: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-chart-type {&#13;
+    min-height: 22px;&#13;
+&#13;
+    padding:&#13;
+      4px&#13;
+      7px;&#13;
+&#13;
+    font-size: 8px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-ri-chart-card:not(.cm-ri-chart-wide)&#13;
+  .highcharts-legend-item text {&#13;
+    font-size:&#13;
+      9px !important;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+/* ==========================================================&#13;
+   LAPTOP / DESKTOP READABILITY POLISH&#13;
+   Text only — chart geometry, cards and responsive layout stay unchanged.&#13;
+========================================================== */&#13;
+&#13;
+@media (min-width: 1101px) {&#13;
+&#13;
+  .cm-ri-eyebrow {&#13;
+    font-size: 11px;&#13;
+  }&#13;
+&#13;
+  .cm-ri-header p {&#13;
+    font-size: 13px;&#13;
+    line-height: 1.6;&#13;
+  }&#13;
+&#13;
+  .cm-ri-live {&#13;
+    font-size: 10px;&#13;
+  }&#13;
+&#13;
+  .cm-ri-section-kicker {&#13;
+    font-size: 9px;&#13;
+  }&#13;
+&#13;
+  .cm-ri-section-head h3 {&#13;
+    font-size: 18px;&#13;
+  }&#13;
+&#13;
+  .cm-ri-section-head &gt; p {&#13;
+    font-size: 10px;&#13;
+  }&#13;
+&#13;
+  .cm-ri-chart-index {&#13;
+    font-size: 11px;&#13;
+  }&#13;
+&#13;
+  .cm-ri-chart-heading h4 {&#13;
+    font-size: 14px;&#13;
+  }&#13;
+&#13;
+  .cm-ri-chart-type {&#13;
+    font-size: 10px;&#13;
+  }&#13;
+&#13;
+  .cm-ri-chart-card:not(.cm-ri-chart-wide)&#13;
+  .highcharts-legend-item text {&#13;
+    font-size: 12px !important;&#13;
+  }&#13;
+&#13;
+  .cm-ri-chart-wide&#13;
+  .highcharts-legend-item text {&#13;
+    font-size: 11px !important;&#13;
+  }&#13;
+&#13;
+  .cm-ri-chart-wide&#13;
+  .highcharts-xaxis-labels text {&#13;
+    font-size: 10px !important;&#13;
+  }&#13;
+&#13;
+  .cm-ri-chart-wide&#13;
+  .highcharts-yaxis-labels text {&#13;
+    font-size: 11px !important;&#13;
+  }&#13;
+&#13;
+  .cm-ri-chart-wide&#13;
+  .highcharts-yaxis&#13;
+  .highcharts-axis-title {&#13;
+    font-size: 11px !important;&#13;
+  }&#13;
+&#13;
+  .cm-ri-chart-report&#13;
+  .highcharts-data-label text {&#13;
+    font-size: 10px !important;&#13;
+  }&#13;
+&#13;
+  .cm-ri-warning strong {&#13;
+    font-size: 11px;&#13;
+  }&#13;
+&#13;
+  .cm-ri-warning span {&#13;
+    font-size: 10px;&#13;
+  }&#13;
+}&#13;
+/* ==========================================================&#13;
+   FINAL ANALYTICS LEGEND POSITION POLISH&#13;
+========================================================== */&#13;
+&#13;
+&#13;
+/* ----------------------------------------------------------&#13;
+   DONUT LEGENDS&#13;
+   Keep information neatly below each pie&#13;
+---------------------------------------------------------- */&#13;
+&#13;
+.cm-ri-chart-card:not(.cm-ri-chart-wide)&#13;
+.highcharts-legend {&#13;
+  transform-box: fill-box !important;&#13;
+  transform-origin: center center !important;&#13;
+&#13;
+  transform:&#13;
+    translateY(143px) !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* Match Quality has 3 legend rows */&#13;
+&#13;
+.cm-ri-chart-card:nth-child(3)&#13;
+.highcharts-legend {&#13;
+  transform:&#13;
+    translateY(137px) !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ----------------------------------------------------------&#13;
+   BAR CHART LEGEND&#13;
+   Move Found / Lost slightly upward&#13;
+---------------------------------------------------------- */&#13;
+&#13;
+.cm-ri-chart-wide&#13;
+.highcharts-legend {&#13;
+  transform-box: fill-box !important;&#13;
+  transform-origin: center center !important;&#13;
+&#13;
+  transform:&#13;
+    translateY(188px) !important;&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>campusmatch_recovery_insights</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch Recovery Insights</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+    /* ======================================================
+       STAFF ACCESS
+    ====================================================== */
+
+    data.authorized = false;
+
+    data.kpis = [];
+    data.charts = [];
+    data.missingReports = [];
+
+
+    var access =
+        new CampusMatchAccess();
+
+
+    data.authorized =
+        access.isStaff();
+
+
+    /*
+     * Do not expose staff analytics to
+     * unauthorised portal users.
+     */
+    if (!data.authorized) {
+        return;
+    }
+
+
+
+    /* ======================================================
+       REPORT CONFIGURATION
+
+       IMPORTANT:
+       reportTitle must EXACTLY match sys_report.title.
+    ====================================================== */
+
+    var KPI_CONFIG = [
+
+        {
+            key: 'total',
+            label: 'Total Reports',
+            reportTitle:
+                'CampusMatch - Total Reports'
+        },
+
+        {
+            key: 'active_lost',
+            label: 'Active Lost',
+            reportTitle:
+                'CampusMatch - Active Lost Reports'
+        },
+
+        {
+            key: 'claims_review',
+            label: 'Claims Review',
+            reportTitle:
+                'CampusMatch - Claims Needing Review'
+        },
+
+        {
+            key: 'strong_matches',
+            label: 'Strong Matches',
+            reportTitle:
+                'CampusMatch - Strong Matches'
+        },
+
+        {
+            key: 'ready_collection',
+            label: 'Ready for Collection',
+            reportTitle:
+                'CampusMatch - Ready for Collection'
+        },
+
+        {
+            key: 'recovered',
+            label: 'Items Recovered',
+            reportTitle:
+                'CampusMatch - Items Recovered'
+        },
+
+        {
+            key: 'pending_matches',
+            label: 'Pending Matches',
+            reportTitle:
+                'CampusMatch - Pending PI Matches'
+        },
+
+        {
+            key: 'average_confidence',
+            label: 'Avg. Match Confidence',
+            reportTitle:
+                'CampusMatch - Average Match Confidence'
+        }
+
+    ];
+
+
+    var CHART_CONFIG = [
+
+        {
+            key: 'lost_found',
+            index: '01',
+            label: 'Lost vs Found',
+            typeLabel: 'Reports',
+            reportTitle:
+                'CampusMatch - Lost vs Found'
+        },
+
+        {
+            key: 'report_status',
+            index: '02',
+            label: 'Report Status',
+            typeLabel: 'Status',
+            reportTitle:
+                'CampusMatch - Report Status'
+        },
+
+        {
+            key: 'match_quality',
+            index: '03',
+            label: 'Match Quality',
+            typeLabel: 'Matching',
+            reportTitle:
+                'CampusMatch - Match Quality'
+        },
+
+        {
+            key: 'claim_verification',
+            index: '04',
+            label: 'Claim Verification',
+            typeLabel: 'Claims',
+            reportTitle:
+                'CampusMatch - Claim Verification'
+        },
+
+        {
+            key: 'security_desk',
+            index: '05',
+            label: 'Security Desk Intake',
+            typeLabel: 'Custody',
+            reportTitle:
+                'CampusMatch - Security Desk Intake'
+        },
+
+        {
+            key: 'collection_status',
+            index: '06',
+            label: 'Collection Status',
+            typeLabel: 'Handover',
+            reportTitle:
+                'CampusMatch - Collection Status'
+        },
+
+        {
+            key: 'category',
+            index: '07',
+            label: 'Reports by Category',
+            typeLabel: 'Categories',
+            reportTitle:
+                'CampusMatch - Reports by Category',
+            wide: true
+        }
+
+    ];
+
+
+
+    /* ======================================================
+       BUILD LIST OF REPORT TITLES
+    ====================================================== */
+
+    var requestedTitles = [];
+
+
+    KPI_CONFIG.forEach(
+        function(config) {
+
+            requestedTitles.push(
+                config.reportTitle
+            );
+
+        }
+    );
+
+
+    CHART_CONFIG.forEach(
+        function(config) {
+
+            requestedTitles.push(
+                config.reportTitle
+            );
+
+        }
+    );
+
+
+
+    /* ======================================================
+       LOAD REPORT SYS_IDS IN ONE QUERY
+    ====================================================== */
+
+    var reportIds = {};
+
+
+    var reportGR =
+        new GlideRecord(
+            'sys_report'
+        );
+
+
+    reportGR.addQuery(
+        'title',
+        'IN',
+        requestedTitles.join(',')
+    );
+
+
+    reportGR.query();
+
+
+    while (
+        reportGR.next()
+    ) {
+
+        reportIds[
+            reportGR.getValue('title')
+        ] =
+            reportGR.getUniqueValue();
+
+    }
+
+
+
+    /* ======================================================
+       CREATE NESTED REPORT WIDGET
+    ====================================================== */
+
+    function buildReportWidget(
+        reportTitle
+    ) {
+
+        var reportId =
+            reportIds[
+                reportTitle
+            ];
+
+
+        if (!reportId) {
+
+            data.missingReports.push(
+                reportTitle
+            );
+
+            return null;
+
+        }
+
+
+        /*
+         * The OOB Service Portal Report widget
+         * receives the sys_report sys_id.
+         *
+         * show_title = false because CampusMatch
+         * supplies its own shorter labels.
+         */
+
+        var reportOptions = {
+
+            report_id:
+                reportId,
+
+            show_title:
+                false,
+
+            widget_parameters:
+                JSON.stringify({
+
+                    report_id: {
+
+                        value:
+                            reportId,
+
+                        displayValue:
+                            reportTitle
+
+                    },
+
+                    show_title: {
+
+                        value:
+                            'false',
+
+                        displayValue:
+                            'false'
+
+                    }
+
+                })
+
+        };
+
+
+        return $sp.getWidget(
+            'report',
+            reportOptions
+        );
+
+    }
+
+
+
+    /* ======================================================
+       BUILD KPI MODELS
+    ====================================================== */
+
+    KPI_CONFIG.forEach(
+        function(config) {
+
+            var reportWidget =
+                buildReportWidget(
+                    config.reportTitle
+                );
+
+
+            if (!reportWidget) {
+                return;
+            }
+
+
+            data.kpis.push({
+
+                key:
+                    config.key,
+
+                label:
+                    config.label,
+
+                widget:
+                    reportWidget
+
+            });
+
+        }
+    );
+
+
+
+    /* ======================================================
+       BUILD CHART MODELS
+    ====================================================== */
+
+    CHART_CONFIG.forEach(
+        function(config) {
+
+            var reportWidget =
+                buildReportWidget(
+                    config.reportTitle
+                );
+
+
+            if (!reportWidget) {
+                return;
+            }
+
+
+            data.charts.push({
+
+                key:
+                    config.key,
+
+                index:
+                    config.index,
+
+                label:
+                    config.label,
+
+                typeLabel:
+                    config.typeLabel,
+
+                wide:
+                    config.wide === true,
+
+                widget:
+                    reportWidget
+
+            });
+
+        }
+    );
+
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-27 13:10:25</sys_created_on>
+        <sys_id>f437ccdefd2343107f449bd501c42e83</sys_id>
+        <sys_mod_count>18</sys_mod_count>
+        <sys_name>CampusMatch Recovery Insights</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_f437ccdefd2343107f449bd501c42e83</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-28 10:32:11</sys_updated_on>
+        <template><![CDATA[<section class="cm-ri" ng-if="data.authorized">
+
+  <div class="cm-ri-container">
+
+    <!-- ==================================================
+         SECTION HEADER
+    =================================================== -->
+
+    <div class="cm-ri-header">
+
+      <span class="cm-ri-eyebrow">
+        CAMPUS INTELLIGENCE
+      </span>
+
+      <div class="cm-ri-header-row">
+
+        <div>
+
+          <h2>
+            Recovery Insights
+          </h2>
+
+          <p>
+            Live operational insights from CampusMatch reports,
+            matches and claims.
+          </p>
+
+        </div>
+
+        <div class="cm-ri-live">
+          <span></span>
+          Live data
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         KEY METRICS
+    =================================================== -->
+
+    <div class="cm-ri-section-head">
+
+      <div>
+
+        <span class="cm-ri-section-kicker">
+          OVERVIEW
+        </span>
+
+        <h3>
+          Key Metrics
+        </h3>
+
+      </div>
+
+      <p>
+        Current CampusMatch operational totals
+      </p>
+
+    </div>
+
+
+    <div class="cm-ri-kpi-grid">
+
+      <article
+        class="cm-ri-kpi-card"
+        ng-repeat="metric in data.kpis track by metric.key">
+
+        <div class="cm-ri-kpi-label">
+          {{metric.label}}
+        </div>
+
+        <div class="cm-ri-report cm-ri-score">
+
+          <sp-widget
+            widget="metric.widget">
+          </sp-widget>
+
+        </div>
+
+      </article>
+
+    </div>
+
+
+    <!-- ==================================================
+         ANALYTICS
+    =================================================== -->
+
+    <div class="cm-ri-section-head cm-ri-analytics-head">
+
+      <div>
+
+        <span class="cm-ri-section-kicker">
+          ANALYTICS
+        </span>
+
+        <h3>
+          Status &amp; Quality
+        </h3>
+
+      </div>
+
+      <p>
+        Distribution across reports, matches and recovery activity
+      </p>
+
+    </div>
+
+
+    <div class="cm-ri-chart-grid">
+
+      <article
+        class="cm-ri-chart-card"
+        ng-repeat="chart in data.charts track by chart.key"
+        ng-class="{
+          'cm-ri-chart-wide': chart.wide
+        }">
+
+        <div class="cm-ri-chart-heading">
+
+          <div>
+
+            <span class="cm-ri-chart-index">
+              {{chart.index}}
+            </span>
+
+            <h4>
+              {{chart.label}}
+            </h4>
+
+          </div>
+
+          <span class="cm-ri-chart-type">
+            {{chart.typeLabel}}
+          </span>
+
+        </div>
+
+
+        <div class="cm-ri-report cm-ri-chart-report">
+
+          <sp-widget
+            widget="chart.widget">
+          </sp-widget>
+
+        </div>
+
+      </article>
+
+    </div>
+
+
+    <!-- ==================================================
+         CONFIGURATION WARNING
+    =================================================== -->
+
+    <div
+      class="cm-ri-warning"
+      ng-if="data.missingReports.length">
+
+      <strong>
+        Some reports could not be loaded
+      </strong>
+
+      <span>
+        Check that these Report records still exist:
+        {{data.missingReports.join(', ')}}
+      </span>
+
+    </div>
+
+  </div>
+
+</section>]]></template>
+    </sp_widget>
+</record_update>

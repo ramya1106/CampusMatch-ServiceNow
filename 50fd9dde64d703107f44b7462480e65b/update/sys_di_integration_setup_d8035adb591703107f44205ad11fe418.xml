@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_di_integration_setup">
+    <sys_di_integration_setup action="INSERT_OR_UPDATE">
+        <condition/>
+        <create_flow>true</create_flow>
+        <flow display_value="DocIntel Extract Values Flow - CampusMatch Item Image Extraction - Extract Values">2c031edb591703107f44205ad11fe49b</flow>
+        <flow_conditions>statusCHANGESTODone^source_table=x_snc_campusmatch_campusmatch_item^task_definition=e982f9da64db03107f44b7462480e6ab</flow_conditions>
+        <mluc_id/>
+        <name>Extract Values</name>
+        <sys_class_name>sys_di_integration_setup</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 15:38:52</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_id>d8035adb591703107f44205ad11fe418</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>Extract Values</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_di_integration_setup_d8035adb591703107f44205ad11fe418</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 15:38:55</sys_updated_on>
+        <target_table>x_snc_campusmatch_campusmatch_item</target_table>
+        <task_definition display_value="CampusMatch Item Image Extraction">e982f9da64db03107f44b7462480e6ab</task_definition>
+        <trigger>x_snc_campusmatch_campusmatch_item</trigger>
+        <type>extract_values</type>
+    </sys_di_integration_setup>
+</record_update>

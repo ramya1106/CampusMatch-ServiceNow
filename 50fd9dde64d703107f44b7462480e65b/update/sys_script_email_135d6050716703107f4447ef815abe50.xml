@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>campusmatch_collection_qr</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript(
+    current,
+    template,
+    email,
+    email_action,
+    event
+) {
+
+    /* =====================================================
+       GET COLLECTION TOKEN
+    ===================================================== */
+
+    var token =
+        current.getValue(
+            'collection_toke0'
+        );
+
+
+    if (!token) {
+
+        template.print(
+            '<p>Collection QR is not yet available.</p>'
+        );
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       BUILD COLLECTION URL
+    ===================================================== */
+
+    var baseUrl =
+        gs.getProperty(
+            'glide.servlet.uri'
+        );
+
+
+    var collectionUrl =
+    baseUrl +
+    'campusmatch?id=campusmatch_collect&token=' +
+    encodeURIComponent(
+        token
+    );
+
+
+    /* =====================================================
+       GENERATE QR IMAGE URL
+    ===================================================== */
+
+    var qrImageUrl =
+        'https://api.qrserver.com/v1/create-qr-code/' +
+        '?size=220x220' +
+        '&data=' +
+        encodeURIComponent(
+            collectionUrl
+        );
+
+
+    /* =====================================================
+       PRINT QR INTO EMAIL
+    ===================================================== */
+
+    template.print(
+        '<div style="margin:24px 0;text-align:center;">'
+    );
+
+
+    template.print(
+        '<p style="font-weight:700;">Collection QR</p>'
+    );
+
+
+    template.print(
+        '<img src="' +
+        qrImageUrl +
+        '" width="220" height="220" ' +
+        'alt="CampusMatch Collection QR" ' +
+        'style="display:block;margin:0 auto;">'
+    );
+
+
+    template.print(
+        '<p style="font-size:12px;color:#666;">' +
+        'Show this QR to Security Desk staff when collecting the item.' +
+        '</p>'
+    );
+
+
+    /* =====================================================
+       FALLBACK LINK
+    ===================================================== */
+
+    template.print(
+        '<p>' +
+        '<a href="' +
+        collectionUrl +
+        '">' +
+        'Open collection verification link' +
+        '</a>' +
+        '</p>'
+    );
+
+
+    template.print(
+        '</div>'
+    );
+
+})(
+    current,
+    template,
+    email,
+    email_action,
+    event
+);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-21 10:49:30</sys_created_on>
+        <sys_id>135d6050716703107f4447ef815abe50</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>campusmatch_collection_qr</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_email_135d6050716703107f4447ef815abe50</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-22 01:27:00</sys_updated_on>
+    </sys_script_email>
+</record_update>

@@ -1,0 +1,955 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_campusmatch.CampusMatchScoringEngine</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description>Calculate the Overall Match Score using individual 6-factor scores.</description>
+        <mobile_callable>false</mobile_callable>
+        <name>CampusMatchScoringEngine</name>
+        <sandbox_callable>false</sandbox_callable>
+        <script><![CDATA[var CampusMatchScoringEngine = Class.create();
+
+CampusMatchScoringEngine.prototype = {
+
+    initialize: function() {
+    },
+
+
+    /* ======================================================
+       1. CATEGORY SCORE
+    ====================================================== */
+
+    calculateCategoryScore: function(
+        lostItem,
+        foundItem
+    ) {
+
+        if (
+            !lostItem ||
+            !foundItem
+        ) {
+            return 0;
+        }
+
+
+        var lostCategory =
+            lostItem.getValue(
+                'category'
+            );
+
+
+        var foundCategory =
+            foundItem.getValue(
+                'category'
+            );
+
+
+        if (
+            !lostCategory ||
+            !foundCategory
+        ) {
+            return 0;
+        }
+
+
+        return (
+            lostCategory ==
+            foundCategory
+        )
+            ? 100
+            : 0;
+    },
+
+
+    /* ======================================================
+       2. LOCATION SCORE
+    ====================================================== */
+
+    calculateLocationScore: function(
+        lostItem,
+        foundItem
+    ) {
+
+        if (
+            !lostItem ||
+            !foundItem
+        ) {
+            return 0;
+        }
+
+
+        var x1 =
+            parseFloat(
+                lostItem.getValue(
+                    'location_x'
+                )
+            );
+
+
+        var y1 =
+            parseFloat(
+                lostItem.getValue(
+                    'location_y'
+                )
+            );
+
+
+        var x2 =
+            parseFloat(
+                foundItem.getValue(
+                    'location_x'
+                )
+            );
+
+
+        var y2 =
+            parseFloat(
+                foundItem.getValue(
+                    'location_y'
+                )
+            );
+
+
+        if (
+            isNaN(x1) ||
+            isNaN(y1) ||
+            isNaN(x2) ||
+            isNaN(y2)
+        ) {
+            return 0;
+        }
+
+
+        var dx =
+            x1 - x2;
+
+
+        var dy =
+            y1 - y2;
+
+
+        var distance =
+            Math.sqrt(
+                (dx * dx) +
+                (dy * dy)
+            );
+
+
+        if (distance <= 5) {
+            return 100;
+        }
+
+
+        if (distance <= 10) {
+            return 85;
+        }
+
+
+        if (distance <= 20) {
+            return 70;
+        }
+
+
+        if (distance <= 35) {
+            return 50;
+        }
+
+
+        if (distance <= 50) {
+            return 25;
+        }
+
+
+        return 0;
+    },
+
+
+    /* ======================================================
+       3. TIME SCORE
+    ====================================================== */
+
+    calculateTimeScore: function(
+        lostItem,
+        foundItem
+    ) {
+
+        if (
+            !lostItem ||
+            !foundItem
+        ) {
+            return 0;
+        }
+
+
+        var lostTimeValue =
+            lostItem.getValue(
+                'reported_date_time'
+            );
+
+
+        var foundTimeValue =
+            foundItem.getValue(
+                'reported_date_time'
+            );
+
+
+        if (
+            !lostTimeValue ||
+            !foundTimeValue
+        ) {
+            return 0;
+        }
+
+
+        var lostTime =
+            new GlideDateTime(
+                lostTimeValue
+            );
+
+
+        var foundTime =
+            new GlideDateTime(
+                foundTimeValue
+            );
+
+
+        var differenceMs =
+            Math.abs(
+                lostTime.getNumericValue() -
+                foundTime.getNumericValue()
+            );
+
+
+        var differenceHours =
+            differenceMs /
+            (
+                1000 *
+                60 *
+                60
+            );
+
+
+        if (differenceHours <= 1) {
+            return 100;
+        }
+
+
+        if (differenceHours <= 6) {
+            return 90;
+        }
+
+
+        if (differenceHours <= 24) {
+            return 80;
+        }
+
+
+        if (differenceHours <= 72) {
+            return 60;
+        }
+
+
+        if (differenceHours <= 168) {
+            return 40;
+        }
+
+
+        return 20;
+    },
+
+
+    /* ======================================================
+       4. DESCRIPTION SIMILARITY
+       PURE PREDICTIVE INTELLIGENCE
+
+       NUMBER = PI returned the pair
+       NULL   = PI pair not available yet
+    ====================================================== */
+
+    calculateDescriptionScore: function(
+        lostItem,
+        foundItem
+    ) {
+
+        return this._calculatePISimilarity(
+            'ml_x_snc_x_snc_campusmatch_global_campusmatch_description_similarity',
+            lostItem,
+            foundItem,
+            'Description'
+        );
+    },
+
+
+    /* ======================================================
+       5. IMAGE ATTRIBUTE SIMILARITY
+       PURE PREDICTIVE INTELLIGENCE
+    ====================================================== */
+
+    calculateImageAttributeScore: function(
+        lostItem,
+        foundItem
+    ) {
+
+        return this._calculatePISimilarity(
+            'ml_x_snc_x_snc_campusmatch_global_campusmatch_image_attribute_similarity',
+            lostItem,
+            foundItem,
+            'Image Attribute'
+        );
+    },
+
+
+    /* ======================================================
+       6. UNIQUE ATTRIBUTE SIMILARITY
+       PURE PREDICTIVE INTELLIGENCE
+    ====================================================== */
+
+    calculateUniqueAttributeScore: function(
+        lostItem,
+        foundItem
+    ) {
+
+        return this._calculatePISimilarity(
+            'ml_x_snc_x_snc_campusmatch_global_campusmatch_unique_feature_similarity',
+            lostItem,
+            foundItem,
+            'Unique Attribute'
+        );
+    },
+
+
+    /* ======================================================
+       DOES ITEM HAVE AN UPLOADED IMAGE?
+    ====================================================== */
+
+    hasUploadedImage: function(
+        item
+    ) {
+
+        if (!item) {
+            return false;
+        }
+
+
+        var image =
+            item.getValue(
+                'image'
+            );
+
+
+        return (
+            image !== null &&
+            image !== undefined &&
+            image.toString()
+                .replace(
+                    /^\s+|\s+$/g,
+                    ''
+                )
+                .length > 0
+        );
+    },
+
+
+    /* ======================================================
+       IS IMAGE AI DATA READY?
+    ====================================================== */
+
+    hasImageEvidence: function(
+        item
+    ) {
+
+        if (!item) {
+            return false;
+        }
+
+
+        var text =
+            item.getValue(
+                'ai_attribute_text'
+            );
+
+
+        return (
+            text !== null &&
+            text !== undefined &&
+            text.toString()
+                .replace(
+                    /^\s+|\s+$/g,
+                    ''
+                )
+                .length > 0
+        );
+    },
+
+
+    /* ======================================================
+       PI SIMILARITY HELPER
+
+       IMPORTANT:
+
+       NUMBER
+       → PI genuinely returned this Lost/Found pair.
+
+       NULL
+       → PI has NOT returned this pair yet.
+
+       NULL MUST NEVER BE CONVERTED TO ZERO.
+    ====================================================== */
+
+    _calculatePISimilarity: function(
+        solutionName,
+        lostItem,
+        foundItem,
+        label
+    ) {
+
+        if (
+            !lostItem ||
+            !foundItem
+        ) {
+            return null;
+        }
+
+
+        try {
+
+            var solution =
+                sn_ml.MLSolutionFactory.getSolution(
+                    solutionName
+                );
+
+
+            if (!solution) {
+
+                gs.error(
+                    'CampusMatch ' +
+                    label +
+                    ' Similarity: ' +
+                    'PI solution could not be loaded.'
+                );
+
+
+                return null;
+            }
+
+
+            var options = {};
+
+
+            /*
+             * CampusMatch dataset is currently small.
+             * Return enough candidates to locate the
+             * exact opposite Item.
+             */
+            options.top_n =
+                100;
+
+
+            /*
+             * IMPORTANT:
+             *
+             * Still PURE PI.
+             *
+             * false only means:
+             * PI should return candidates even if their
+             * confidence is below the solution threshold.
+             *
+             * CampusMatch itself decides:
+             *
+             * >= 80 → Strong
+             * >= 65 → Potential
+             * < 65  → Low
+             */
+            options.apply_threshold =
+                false;
+
+
+            /* ==============================================
+               TRY 1
+               Lost -> Found
+            ============================================== */
+
+            var score =
+                this._findSimilarityPairScore(
+                    solution,
+                    lostItem,
+                    foundItem,
+                    options
+                );
+
+
+            if (
+                score !== null
+            ) {
+
+                return score;
+            }
+
+
+            /* ==============================================
+               TRY 2
+               Found -> Lost
+
+               VERY IMPORTANT FOR LIVE DEMO:
+
+               Old Lost record can already exist in
+               PI's similarity window while the Found
+               record is fresh.
+            ============================================== */
+
+            score =
+                this._findSimilarityPairScore(
+                    solution,
+                    foundItem,
+                    lostItem,
+                    options
+                );
+
+
+            if (
+                score !== null
+            ) {
+
+                return score;
+            }
+
+
+            /*
+             * PI has not returned this specific pair yet.
+             *
+             * DO NOT:
+             * return 0
+             *
+             * DO:
+             * return null so Orchestrator keeps it Pending.
+             */
+            return null;
+
+
+        }
+        catch (e) {
+
+            gs.error(
+                'CampusMatch ' +
+                label +
+                ' Similarity Error: ' +
+                e.message
+            );
+
+
+            return null;
+        }
+    },
+
+
+    /* ======================================================
+       FIND SPECIFIC TARGET IN PI RESULTS
+    ====================================================== */
+
+    _findSimilarityPairScore: function(
+        solution,
+        sourceItem,
+        targetItem,
+        options
+    ) {
+
+        if (
+            !solution ||
+            !sourceItem ||
+            !targetItem
+        ) {
+            return null;
+        }
+
+
+        try {
+
+            var results =
+                solution.predict(
+                    sourceItem,
+                    options
+                );
+
+
+            if (!results) {
+
+                return null;
+            }
+
+
+            var obj =
+                JSON.parse(
+                    results
+                );
+
+
+            var sourceSysId =
+                sourceItem.getUniqueValue();
+
+
+            var targetSysId =
+                targetItem.getUniqueValue();
+
+
+            if (
+                !sourceSysId ||
+                !targetSysId
+            ) {
+
+                return null;
+            }
+
+
+            var predictions =
+                obj[
+                    sourceSysId
+                ] || [];
+
+
+            for (
+                var i = 0;
+                i < predictions.length;
+                i++
+            ) {
+
+                if (
+                    predictions[i]
+                        .predictedSysId ==
+                    targetSysId
+                ) {
+
+                    return this.normalizeScore(
+                        predictions[i]
+                            .confidence
+                    );
+                }
+            }
+
+
+            /*
+             * Target not returned by PI yet.
+             */
+            return null;
+
+
+        }
+        catch (e) {
+
+            gs.error(
+                'CampusMatch PI Pair Lookup Error: ' +
+                e.message
+            );
+
+
+            return null;
+        }
+    },
+
+
+    /* ======================================================
+       OVERALL SCORE
+
+       NORMAL:
+       Image       35%
+       Description 20%
+       Location    15%
+       Time        10%
+       Category    10%
+       Unique      10%
+
+       NO-IMAGE:
+       Remove Image 35% and normalize remaining 65%.
+    ====================================================== */
+
+    calculateOverallScore: function(
+        scores
+    ) {
+
+        if (!scores) {
+            return 0;
+        }
+
+
+        var image =
+            parseFloat(
+                scores.image
+            );
+
+
+        var description =
+            parseFloat(
+                scores.description
+            );
+
+
+        var location =
+            parseFloat(
+                scores.location
+            );
+
+
+        var time =
+            parseFloat(
+                scores.time
+            );
+
+
+        var category =
+            parseFloat(
+                scores.category
+            );
+
+
+        var unique =
+            parseFloat(
+                scores.unique
+            );
+
+
+        if (isNaN(image))
+            image = 0;
+
+        if (isNaN(description))
+            description = 0;
+
+        if (isNaN(location))
+            location = 0;
+
+        if (isNaN(time))
+            time = 0;
+
+        if (isNaN(category))
+            category = 0;
+
+        if (isNaN(unique))
+            unique = 0;
+
+
+        var weightedTotal =
+            0;
+
+
+        var availableWeight =
+            0;
+
+
+        /* ==============================================
+           IMAGE
+        ============================================== */
+
+        if (
+            scores.imageAvailable === true
+        ) {
+
+            weightedTotal +=
+                image *
+                0.35;
+
+
+            availableWeight +=
+                0.35;
+        }
+
+
+        /* ==============================================
+           DESCRIPTION
+        ============================================== */
+
+        weightedTotal +=
+            description *
+            0.20;
+
+
+        availableWeight +=
+            0.20;
+
+
+        /* ==============================================
+           LOCATION
+        ============================================== */
+
+        weightedTotal +=
+            location *
+            0.15;
+
+
+        availableWeight +=
+            0.15;
+
+
+        /* ==============================================
+           TIME
+        ============================================== */
+
+        weightedTotal +=
+            time *
+            0.10;
+
+
+        availableWeight +=
+            0.10;
+
+
+        /* ==============================================
+           CATEGORY
+        ============================================== */
+
+        weightedTotal +=
+            category *
+            0.10;
+
+
+        availableWeight +=
+            0.10;
+
+
+        /* ==============================================
+           UNIQUE
+        ============================================== */
+
+        weightedTotal +=
+            unique *
+            0.10;
+
+
+        availableWeight +=
+            0.10;
+
+
+        if (
+            availableWeight <= 0
+        ) {
+
+            return 0;
+        }
+
+
+        /*
+         * Example:
+         *
+         * No image:
+         *
+         * availableWeight = 0.65
+         *
+         * Divide by 0.65 so the remaining evidence
+         * is normalized back to a 0-100 score.
+         */
+        var overall =
+            weightedTotal /
+            availableWeight;
+
+
+        return Math.round(
+            overall *
+            100
+        ) / 100;
+    },
+
+
+    /* ======================================================
+       MATCH LEVEL
+    ====================================================== */
+
+    getMatchLevel: function(
+        score
+    ) {
+
+        score =
+            parseFloat(
+                score
+            );
+
+
+        if (
+            isNaN(score)
+        ) {
+
+            score =
+                0;
+        }
+
+
+        if (
+            score >= 80
+        ) {
+
+            return 'strong';
+        }
+
+
+        if (
+            score >= 65
+        ) {
+
+            return 'potential';
+        }
+
+
+        return 'low';
+    },
+
+
+    /* ======================================================
+       NORMALIZE PI SCORE
+    ====================================================== */
+
+    normalizeScore: function(
+        value
+    ) {
+
+        var score =
+            parseFloat(
+                value
+            );
+
+
+        if (
+            isNaN(score)
+        ) {
+
+            return 0;
+        }
+
+
+        if (
+            score < 0
+        ) {
+
+            return 0;
+        }
+
+
+        if (
+            score > 100
+        ) {
+
+            return 100;
+        }
+
+
+        return Math.round(
+            score *
+            100
+        ) / 100;
+    },
+
+
+    type:
+        'CampusMatchScoringEngine'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:11:55</sys_created_on>
+        <sys_id>616e8cdba89303107f44bd86c8568bfd</sys_id>
+        <sys_mod_count>11</sys_mod_count>
+        <sys_name>CampusMatchScoringEngine</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_include_616e8cdba89303107f44bd86c8568bfd</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-23 17:46:03</sys_updated_on>
+    </sys_script_include>
+</record_update>

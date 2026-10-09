@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_snc_campusmatch_campusmatch_deadline</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>CampusMatch - Deadline In-App Notificati</name>
+        <order>300</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous) {
+
+    // Only when Reminder Sent changes false → true
+    if (!current.reminder_sent.changesTo(true)) {
+        return;
+    }
+
+    // Student notification only for Collection deadlines
+    if (current.getValue('deadline_type') != 'collection') {
+        return;
+    }
+
+    if (!current.getValue('user')) {
+        return;
+    }
+
+    var n = new GlideRecord(
+        'x_snc_campusmatch_campusmatch_notification'
+    );
+
+    n.initialize();
+
+    n.setValue('recipient', current.getValue('user'));
+    n.setValue('audience', 'student');
+    n.setValue('notification_type', 'deadline');
+
+    n.setValue(
+        'title',
+        'Collection deadline approaching'
+    );
+
+    n.setValue(
+        'message',
+        'Your verified item is waiting at the Security Desk. Please collect it before ' +
+        current.getDisplayValue('due_date_time') + '.'
+    );
+
+    n.setValue(
+        'source_table',
+        'x_snc_campusmatch_campusmatch_deadline'
+    );
+
+    n.setValue(
+        'source_sys_id',
+        current.getUniqueValue()
+    );
+
+    n.setValue('read', false);
+
+    n.setValue(
+        'dedupe_key',
+        'collection_deadline_' + current.getUniqueValue()
+    );
+
+    n.insert();
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-30 18:34:20</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>e7eda41fe1a703107f44ae7e9de1104a</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch - Deadline In-App Notificati</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_e7eda41fe1a703107f44ae7e9de1104a</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-30 18:34:20</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=e7eda41fe1a703107f44ae7e9de1104a"/>
+</record_update>

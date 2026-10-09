@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_snc_campusmatch_campusmatch_match</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>CampusMatch - PI Measurement</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+
+    // Only measure MAT0001748
+    var targetMatchSysId = '6e6da3b2d56f43107f4491472fd3df69';
+
+    if (current.getUniqueValue() != targetMatchSysId) {
+        return;
+    }
+
+    // We only care about the exact transition:
+    // PI Pending = true  ->  false
+    if (previous.getValue('pi_pending') != '1') {
+        return;
+    }
+
+    if (current.getValue('pi_pending') != '0') {
+        return;
+    }
+
+    // Make sure the PI values are actually populated
+    var imageScore = current.getValue('image_similarity');
+    var descriptionScore = current.getValue('description_similarity');
+    var uniqueScore = current.getValue('unique_attribute_score');
+
+    if (!imageScore || !descriptionScore || !uniqueScore) {
+        return;
+    }
+
+    // Read the measurement start timestamp
+    var startValue = gs.getProperty(
+        'x_snc_campusmatch.pi_measurement_start'
+    );
+
+    if (!startValue) {
+        gs.warn(
+            'CampusMatch PI Measurement: Start timestamp not found.'
+        );
+        return;
+    }
+
+    var startTime = new GlideDateTime(startValue);
+    var endTime = new GlideDateTime();
+
+    var elapsedMilliseconds =
+        endTime.getNumericValue() -
+        startTime.getNumericValue();
+
+    var elapsedSeconds =
+        elapsedMilliseconds / 1000;
+
+    gs.info('========================================');
+    gs.info('CampusMatch PI PERFORMANCE MEASUREMENT');
+    gs.info('========================================');
+    gs.info('Match: ' + current.getDisplayValue());
+    gs.info('Start Time: ' + startTime.getDisplayValue());
+    gs.info('Completion Time: ' + endTime.getDisplayValue());
+    gs.info('Elapsed Time: ' + elapsedSeconds.toFixed(3) + ' seconds');
+    gs.info('Image Similarity: ' + imageScore);
+    gs.info('Description Similarity: ' + descriptionScore);
+    gs.info('Unique Attribute Score: ' + uniqueScore);
+    gs.info('Overall Score: ' + current.getValue('overall_score'));
+    gs.info('PI Pending: ' + current.getValue('pi_pending'));
+    gs.info('========================================');
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-10-02 18:54:47</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>66e503734caf43107f447ab3a88631a0</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch - PI Measurement</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_66e503734caf43107f447ab3a88631a0</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-10-02 18:54:47</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=66e503734caf43107f447ab3a88631a0"/>
+</record_update>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_snc_campusmatch_campusmatch_claim</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>CampusMatch - Close Collection Deadline</name>
+        <order>300</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous) {
+
+    var DEADLINE_TABLE =
+        'x_snc_campusmatch_campusmatch_deadline';
+
+    var newStatus = '';
+
+    /* Successfully collected */
+    if (current.handover_completed.changesTo(true)) {
+        newStatus = 'completed';
+    }
+
+    /* Student withdrew */
+    else if (current.claim_status.changesTo('Withdrawn')) {
+        newStatus = 'cancelled';
+    }
+
+    /* Claim rejected/cancelled */
+    else if (
+        current.claim_status.changesTo('Rejected') ||
+        current.claim_status.changesTo('Cancelled')
+    ) {
+        newStatus = 'cancelled';
+    }
+
+    if (!newStatus)
+        return;
+
+
+    var deadline = new GlideRecord(DEADLINE_TABLE);
+
+    deadline.addQuery('claim', current.getUniqueValue());
+    deadline.addQuery('deadline_type', 'collection');
+    deadline.addQuery('status', 'active');
+    deadline.query();
+
+    while (deadline.next()) {
+        deadline.setValue('status', newStatus);
+        deadline.update();
+    }
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-30 17:40:38</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>6781a853e16703107f44ae7e9de11000</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch - Close Collection Deadline</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_6781a853e16703107f44ae7e9de11000</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-30 17:40:38</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=6781a853e16703107f44ae7e9de11000"/>
+</record_update>

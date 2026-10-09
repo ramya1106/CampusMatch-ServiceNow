@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>sys_attachment</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>CampusMatch Prepare Image for AI</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous) {
+
+    var TARGET_TABLE =
+        'x_snc_campusmatch_campusmatch_item';
+
+    var USER_IMAGE_TABLE =
+        'ZZ_YY' + TARGET_TABLE;
+
+
+    // Only handle the CampusMatch "image" user_image field
+    if (
+        current.getValue('table_name') != USER_IMAGE_TABLE ||
+        current.getValue('file_name') != 'image'
+    ) {
+        return;
+    }
+
+
+    /*
+     * If this Business Rule fired because of UPDATE,
+     * continue only when this attachment has JUST
+     * become the CampusMatch user_image attachment.
+     */
+    if (
+        current.operation() == 'update' &&
+        !current.table_name.changesTo(USER_IMAGE_TABLE) &&
+        !current.file_name.changesTo('image')
+    ) {
+        return;
+    }
+
+
+    var contentType =
+        current.getValue('content_type') || '';
+
+    if (current.getValue('file_name') != 'image')
+        return;
+
+    var contentType =
+        current.getValue('content_type') || '';
+
+    if (contentType.indexOf('image/') != 0)
+        return;
+
+    // Get the CampusMatch Item
+    var item = new GlideRecord(TARGET_TABLE);
+
+    if (!item.get(current.getValue('table_sys_id')))
+        return;
+
+    // Support JPG / PNG images
+    var extension;
+
+    if (contentType == 'image/png') {
+        extension = '.png';
+    }
+    else if (
+        contentType == 'image/jpeg' ||
+        contentType == 'image/jpg'
+    ) {
+        extension = '.jpg';
+    }
+    else {
+        return;
+    }
+
+    // Unique name for AI-processing copy
+    var newFileName =
+        'campusmatch_ai_' +
+        current.getUniqueValue() +
+        extension;
+
+    // Prevent duplicate copy
+    var existing = new GlideRecord('sys_attachment');
+
+    existing.addQuery('table_name', TARGET_TABLE);
+    existing.addQuery(
+        'table_sys_id',
+        current.getValue('table_sys_id')
+    );
+    existing.addQuery('file_name', newFileName);
+    existing.setLimit(1);
+    existing.query();
+
+    if (existing.next())
+        return;
+
+    // Copy user_image into a normal attachment
+    var gsa = new GlideSysAttachment();
+
+    var stream =
+        gsa.getContentStream(
+            current.getUniqueValue()
+        );
+
+    if (!stream)
+        return;
+
+    var newAttachmentId =
+        gsa.writeContentStream(
+            item,
+            newFileName,
+            contentType,
+            stream
+        );
+
+    // ONLY signal AI processing after copy was successful
+    if (newAttachmentId) {
+
+        item.setValue('ai_ready', true);
+        item.setValue('ai_processed', false);
+        item.update();
+
+        gs.info(
+            'CampusMatch AI attachment created: ' +
+            newAttachmentId +
+            ' | AI Ready set to true for item: ' +
+            item.getUniqueValue()
+        );
+    }
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 16:29:59</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>476e9ad3599703107f44205ad11fe4d5</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>CampusMatch Prepare Image for AI</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_476e9ad3599703107f44205ad11fe4d5</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-20 06:06:08</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=476e9ad3599703107f44205ad11fe4d5"/>
+</record_update>

@@ -1,0 +1,2040 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function() {
+
+    var c = this;
+
+
+    /* ======================================================
+       DONUT CALCULATION
+    ====================================================== */
+
+    c.donutStyle = function(
+        value,
+        total
+    ) {
+
+        if (!total) {
+
+            return {
+                strokeDasharray:
+                    '0 100'
+            };
+
+        }
+
+
+        var percent =
+            (
+                value /
+                total
+            ) * 100;
+
+
+        return {
+
+            strokeDasharray:
+                percent +
+                ' ' +
+                (
+                    100 -
+                    percent
+                )
+
+        };
+
+    };
+
+
+
+    /* ======================================================
+       CATEGORY MAX
+    ====================================================== */
+
+    c.maxCategory =
+        function() {
+
+            var categories =
+                c.data.categories || [];
+
+
+            var max = 1;
+
+
+            categories.forEach(
+                function(category) {
+
+                    if (
+                        category.total >
+                        max
+                    ) {
+
+                        max =
+                            category.total;
+
+                    }
+
+                }
+            );
+
+
+            return max;
+
+        };
+
+
+
+    /* ======================================================
+       CATEGORY WIDTH
+    ====================================================== */
+
+    c.categoryWidth =
+        function(category) {
+
+            var max =
+                c.maxCategory();
+
+
+            return {
+
+                width:
+                    (
+                        (
+                            category.total /
+                            max
+                        ) * 100
+                    ) +
+                    '%'
+
+            };
+
+        };
+
+
+
+    /* ======================================================
+       MATCH WIDTH
+    ====================================================== */
+
+    c.matchWidth =
+        function(value) {
+
+            var total =
+                c.data.summary
+                    .totalMatches ||
+                1;
+
+
+            return {
+
+                width:
+                    (
+                        (
+                            value /
+                            total
+                        ) * 100
+                    ) +
+                    '%'
+
+            };
+
+        };
+
+
+
+    /* ======================================================
+       CLAIM WIDTH
+    ====================================================== */
+
+    c.claimWidth =
+        function(value) {
+
+            var total =
+                c.data.summary
+                    .totalClaims ||
+                1;
+
+
+            return {
+
+                width:
+                    (
+                        (
+                            value /
+                            total
+                        ) * 100
+                    ) +
+                    '%'
+
+            };
+
+        };
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* =========================================================&#13;
+   CAMPUSMATCH ADMIN ANALYTICS&#13;
+   WEBSITE + NOW MOBILE APP&#13;
+   FULL-BLEED SAFE VERSION&#13;
+========================================================= */&#13;
+&#13;
+.cm-analytics,&#13;
+.cm-analytics * {&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-analytics {&#13;
+  position: relative;&#13;
+  display: block;&#13;
+&#13;
+  /* FULL-BLEED HORIZONTAL FIX */&#13;
+  width: 100vw !important;&#13;
+  max-width: 100vw !important;&#13;
+&#13;
+  margin-left: calc(50% - 50vw) !important;&#13;
+  margin-right: calc(50% - 50vw) !important;&#13;
+&#13;
+  margin-top: 0 !important;&#13;
+  margin-bottom: 0 !important;&#13;
+&#13;
+  min-height: 100vh;&#13;
+  min-height: 100svh;&#13;
+&#13;
+  padding: 28px;&#13;
+&#13;
+  background: #FBF8EF !important;&#13;
+&#13;
+  /*&#13;
+     Covers ServiceNow outer top/bottom gaps&#13;
+     without touching Header.&#13;
+  */&#13;
+  box-shadow:&#13;
+    0 -60px 0 #FBF8EF,&#13;
+    0 60px 0 #FBF8EF;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    Arial,&#13;
+    sans-serif;&#13;
+&#13;
+  overflow-x: hidden;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   HEADER&#13;
+========================================================= */&#13;
+&#13;
+.cm-analytics-header {&#13;
+  margin-bottom: 22px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-analytics-header span,&#13;
+.cm-chart-heading span {&#13;
+  color: #249D78;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  letter-spacing: 1.3px;&#13;
+&#13;
+  text-transform: uppercase;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-analytics-header h2 {&#13;
+  margin: 6px 0 7px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 27px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-analytics-header p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 11px;&#13;
+  line-height: 1.6;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   TOP METRIC CARDS&#13;
+========================================================= */&#13;
+&#13;
+.cm-metric-grid {&#13;
+  margin-bottom: 20px;&#13;
+&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    repeat(4, minmax(0, 1fr));&#13;
+&#13;
+  gap: 14px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-metric-card {&#13;
+  position: relative;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  min-height: 105px;&#13;
+&#13;
+  padding: 20px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 20px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 6px 20px rgba(16, 78, 69, 0.06);&#13;
+&#13;
+  transition:&#13;
+    transform 0.2s ease,&#13;
+    box-shadow 0.2s ease,&#13;
+    border-color 0.2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-metric-card:hover {&#13;
+  transform: translateY(-2px);&#13;
+&#13;
+  border-color: #249D78;&#13;
+&#13;
+  box-shadow:&#13;
+    0 9px 24px rgba(16, 78, 69, 0.10);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-metric-card::before {&#13;
+  content: "";&#13;
+&#13;
+  position: absolute;&#13;
+&#13;
+  top: 0;&#13;
+  left: 0;&#13;
+&#13;
+  width: 100%;&#13;
+  height: 4px;&#13;
+&#13;
+  background: #249D78;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-metric-card span {&#13;
+  display: block;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 8px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  letter-spacing: 0.9px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-metric-card strong {&#13;
+  display: block;&#13;
+&#13;
+  margin-top: 9px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 28px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   MAIN GRID&#13;
+========================================================= */&#13;
+&#13;
+.cm-analytics-grid {&#13;
+  margin-bottom: 20px;&#13;
+&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    repeat(2, minmax(0, 1fr));&#13;
+&#13;
+  gap: 20px;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   CHART CARDS&#13;
+========================================================= */&#13;
+&#13;
+.cm-chart-card {&#13;
+  min-width: 0;&#13;
+&#13;
+  padding: 22px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 22px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 6px 22px rgba(16, 78, 69, 0.055);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-full-chart {&#13;
+  margin-bottom: 20px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-chart-heading {&#13;
+  margin-bottom: 20px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-chart-heading h3 {&#13;
+  margin: 5px 0 0;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 18px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   DONUT&#13;
+========================================================= */&#13;
+&#13;
+.cm-donut-area {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 32px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut {&#13;
+  position: relative;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  width: 150px;&#13;
+  height: 150px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut svg {&#13;
+  width: 100%;&#13;
+  height: 100%;&#13;
+&#13;
+  transform: rotate(-90deg);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut-base {&#13;
+  fill: none;&#13;
+&#13;
+  stroke: #EDF5E9;&#13;
+&#13;
+  stroke-width: 5;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut-lost {&#13;
+  fill: none;&#13;
+&#13;
+  stroke: #104E45;&#13;
+&#13;
+  stroke-width: 5;&#13;
+&#13;
+  stroke-dasharray: 0 100;&#13;
+&#13;
+  stroke-linecap: round;&#13;
+&#13;
+  transition:&#13;
+    stroke-dasharray 0.4s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut-center {&#13;
+  position: absolute;&#13;
+&#13;
+  inset: 0;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  flex-direction: column;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut-center strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 27px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut-center span {&#13;
+  margin-top: 2px;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 600;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   DONUT LEGEND&#13;
+========================================================= */&#13;
+&#13;
+.cm-donut-legend {&#13;
+  flex: 1;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut-legend &gt; div {&#13;
+  padding: 10px 0;&#13;
+&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    11px 1fr auto;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 9px;&#13;
+&#13;
+  border-bottom: 1px solid #EDF5E9;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut-legend &gt; div:last-child {&#13;
+  border-bottom: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut-legend p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 600;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-donut-legend strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-legend-dot {&#13;
+  width: 9px;&#13;
+  height: 9px;&#13;
+&#13;
+  border-radius: 50%;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-legend-dot.lost {&#13;
+  background: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-legend-dot.found {&#13;
+  background: #249D78;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   LIFECYCLE&#13;
+========================================================= */&#13;
+&#13;
+.cm-lifecycle {&#13;
+  min-height: 150px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 9px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-life-stat {&#13;
+  flex: 1;&#13;
+&#13;
+  min-width: 0;&#13;
+&#13;
+  padding: 16px 8px;&#13;
+&#13;
+  text-align: center;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 16px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-life-stat strong {&#13;
+  display: block;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 21px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-life-stat span {&#13;
+  display: block;&#13;
+&#13;
+  margin-top: 6px;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 8px;&#13;
+  font-weight: 600;&#13;
+&#13;
+  line-height: 1.35;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-life-arrow {&#13;
+  color: #249D78;&#13;
+&#13;
+  font-size: 17px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   CATEGORY DISTRIBUTION&#13;
+========================================================= */&#13;
+&#13;
+.cm-category-row {&#13;
+  padding: 11px 0;&#13;
+&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    180px&#13;
+    minmax(0, 1fr)&#13;
+    40px;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 14px;&#13;
+&#13;
+  border-bottom: 1px solid #EDF5E9;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-row:last-child {&#13;
+  border-bottom: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-label strong,&#13;
+.cm-category-label span {&#13;
+  display: block;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-label strong {&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-label span {&#13;
+  margin-top: 4px;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 8px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-track,&#13;
+.cm-quality-track {&#13;
+  height: 10px;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-bar {&#13;
+  height: 100%;&#13;
+&#13;
+  min-width: 3px;&#13;
+&#13;
+  border-radius: inherit;&#13;
+&#13;
+  background: #249D78;&#13;
+&#13;
+  transition:&#13;
+    width 0.4s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-total {&#13;
+  text-align: right;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   MATCH QUALITY / CLAIM QUALITY&#13;
+========================================================= */&#13;
+&#13;
+.cm-quality-row {&#13;
+  margin: 17px 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-quality-label {&#13;
+  margin-bottom: 8px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-quality-label span {&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-quality-label strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-quality-track {&#13;
+  height: 11px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-quality-bar {&#13;
+  height: 100%;&#13;
+&#13;
+  min-width: 0;&#13;
+&#13;
+  border-radius: inherit;&#13;
+&#13;
+  transition:&#13;
+    width 0.4s ease;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   MATCH QUALITY COLORS&#13;
+========================================================= */&#13;
+&#13;
+.cm-quality-bar.strong {&#13;
+  background: #249D78;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-quality-bar.potential {&#13;
+  background: #168C70;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-quality-bar.low {&#13;
+  background: #506267;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   CLAIM VERIFICATION COLORS&#13;
+========================================================= */&#13;
+&#13;
+.cm-quality-bar.pass {&#13;
+  background: #249D78;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-quality-bar.review {&#13;
+  background: #168C70;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-quality-bar.fail {&#13;
+  background: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   ACCESS DENIED&#13;
+========================================================= */&#13;
+&#13;
+.cm-analytics-denied {&#13;
+  padding: 34px;&#13;
+&#13;
+  text-align: center;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 20px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   RESPONSIVE — TABLET&#13;
+========================================================= */&#13;
+&#13;
+@media (max-width: 900px) {&#13;
+&#13;
+  .cm-analytics {&#13;
+    padding: 22px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #FBF8EF;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-metric-grid {&#13;
+    grid-template-columns:&#13;
+      repeat(2, minmax(0, 1fr));&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-analytics-grid {&#13;
+    grid-template-columns: 1fr;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   RESPONSIVE — MOBILE&#13;
+========================================================= */&#13;
+&#13;
+@media (max-width: 600px) {&#13;
+&#13;
+  .cm-analytics {&#13;
+    min-height: 100svh;&#13;
+&#13;
+    padding:&#13;
+      18px&#13;
+      14px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #FBF8EF;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-analytics-header h2 {&#13;
+    font-size: 23px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-metric-grid {&#13;
+    grid-template-columns:&#13;
+      repeat(2, minmax(0, 1fr));&#13;
+&#13;
+    gap: 10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-metric-card {&#13;
+    min-height: 90px;&#13;
+&#13;
+    padding: 15px;&#13;
+&#13;
+    border-radius: 16px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-metric-card strong {&#13;
+    font-size: 23px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-chart-card {&#13;
+    padding: 17px;&#13;
+&#13;
+    border-radius: 18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-donut-area {&#13;
+    flex-direction: column;&#13;
+&#13;
+    align-items: stretch;&#13;
+&#13;
+    gap: 18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-donut {&#13;
+    margin: 0 auto;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-lifecycle {&#13;
+    display: grid;&#13;
+&#13;
+    grid-template-columns:&#13;
+      repeat(2, minmax(0, 1fr));&#13;
+&#13;
+    gap: 9px;&#13;
+&#13;
+    min-height: 0;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-life-arrow {&#13;
+    display: none;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-category-row {&#13;
+    grid-template-columns:&#13;
+      110px&#13;
+      minmax(0, 1fr)&#13;
+      28px;&#13;
+&#13;
+    gap: 9px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* =========================================================&#13;
+   EXTRA SMALL MOBILE&#13;
+========================================================= */&#13;
+&#13;
+@media (max-width: 390px) {&#13;
+&#13;
+  .cm-analytics {&#13;
+    padding-left: 10px;&#13;
+    padding-right: 10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-metric-grid {&#13;
+    grid-template-columns:&#13;
+      1fr 1fr;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-category-row {&#13;
+    grid-template-columns:&#13;
+      95px&#13;
+      minmax(0, 1fr)&#13;
+      25px;&#13;
+  }&#13;
+&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_admin_analytics</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CampusMatch Admin Analytics</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+    /* ======================================================
+       TABLES
+    ====================================================== */
+
+    var ITEM_TABLE =
+        'x_snc_campusmatch_campusmatch_item';
+
+    var MATCH_TABLE =
+        'x_snc_campusmatch_campusmatch_match';
+
+    var CLAIM_TABLE =
+        'x_snc_campusmatch_campusmatch_claim';
+
+
+    /* ======================================================
+       TASK 14 - CAMPUSMATCH STAFF SECURITY
+    ====================================================== */
+
+    var access =
+        new CampusMatchAccess();
+
+
+    data.isStaff =
+        access.isStaff();
+
+
+    /*
+     * Keep this temporarily in case existing HTML
+     * still refers to data.isAdmin.
+     */
+    data.isAdmin =
+        data.isStaff;
+
+
+    data.allowed =
+        data.isStaff;
+
+
+    /*
+     * IMPORTANT:
+     * Stop before querying any analytics data.
+     */
+    if (!data.allowed) {
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       OUTPUT
+    ====================================================== */
+
+    data.summary = {
+
+        totalReports: 0,
+
+        lost: 0,
+
+        found: 0,
+
+        resolved: 0,
+
+        active: 0,
+
+        totalMatches: 0,
+
+        strongMatches: 0,
+
+        potentialMatches: 0,
+
+        lowMatches: 0,
+
+        totalClaims: 0,
+
+        claimPass: 0,
+
+        claimReview: 0,
+
+        claimFail: 0
+
+    };
+
+
+    data.categories = [];
+
+
+    /* ======================================================
+       ITEM ANALYTICS
+    ====================================================== */
+
+    var categoryMap = {};
+
+
+    var item =
+        new GlideRecord(
+            ITEM_TABLE
+        );
+
+
+    item.query();
+
+
+    while (item.next()) {
+
+        data.summary.totalReports++;
+
+
+        var type =
+            (
+                item.getValue(
+                    'report_type'
+                ) || ''
+            )
+            .toLowerCase();
+
+
+        var status =
+            (
+                item.getValue(
+                    'status'
+                ) || ''
+            )
+            .toLowerCase();
+
+
+        if (type === 'lost') {
+
+            data.summary.lost++;
+
+        }
+
+
+        if (type === 'found') {
+
+            data.summary.found++;
+
+        }
+
+
+        if (status === 'resolved') {
+
+            data.summary.resolved++;
+
+        }
+        else {
+
+            data.summary.active++;
+
+        }
+
+
+        /* ======================================
+           CATEGORY COUNTS
+        ====================================== */
+
+        var categoryValue =
+            item.getValue(
+                'category'
+            ) || 'other';
+
+
+        var categoryDisplay =
+            item.getDisplayValue(
+                'category'
+            ) || 'Other';
+
+
+        if (
+            !categoryMap[
+                categoryValue
+            ]
+        ) {
+
+            categoryMap[
+                categoryValue
+            ] = {
+
+                value:
+                    categoryValue,
+
+                label:
+                    categoryDisplay,
+
+                total:
+                    0,
+
+                lost:
+                    0,
+
+                found:
+                    0
+
+            };
+
+        }
+
+
+        categoryMap[
+            categoryValue
+        ].total++;
+
+
+        if (type === 'lost') {
+
+            categoryMap[
+                categoryValue
+            ].lost++;
+
+        }
+
+
+        if (type === 'found') {
+
+            categoryMap[
+                categoryValue
+            ].found++;
+
+        }
+
+    }
+
+
+    /* ======================================================
+       BUILD CATEGORY ARRAY
+    ====================================================== */
+
+    for (
+        var categoryKey
+        in categoryMap
+    ) {
+
+        if (
+            categoryMap.hasOwnProperty(
+                categoryKey
+            )
+        ) {
+
+            data.categories.push(
+                categoryMap[
+                    categoryKey
+                ]
+            );
+
+        }
+
+    }
+
+
+    data.categories.sort(
+        function(a, b) {
+
+            return (
+                b.total -
+                a.total
+            );
+
+        }
+    );
+
+
+    /* ======================================================
+       MATCH ANALYTICS
+
+       Only count records that actually contain a Match Engine
+       overall score.
+
+       Old/test records with no score are ignored.
+    ====================================================== */
+
+    var match =
+        new GlideRecord(
+            MATCH_TABLE
+        );
+
+
+    match.query();
+
+
+    while (match.next()) {
+
+        var rawScore =
+            match.getValue(
+                'overall_score'
+            );
+
+
+        /*
+         * Ignore old/test records that were created
+         * before the Match Engine generated scores.
+         */
+        if (
+            rawScore === null ||
+            rawScore === undefined ||
+            rawScore.toString().trim() === ''
+        ) {
+
+            continue;
+
+        }
+
+
+        var overall =
+            parseFloat(
+                rawScore
+            );
+
+
+        /*
+         * Extra protection against invalid values.
+         */
+        if (isNaN(overall)) {
+
+            continue;
+
+        }
+
+
+        /*
+         * Only now do we consider this a real
+         * Match Engine record.
+         */
+        data.summary.totalMatches++;
+
+
+        if (overall >= 80) {
+
+            data.summary.strongMatches++;
+
+        }
+        else if (overall >= 65) {
+
+            data.summary.potentialMatches++;
+
+        }
+        else {
+
+            data.summary.lowMatches++;
+
+        }
+
+    }
+
+
+    /* ======================================================
+       CLAIM ANALYTICS
+    ====================================================== */
+
+    var claim =
+        new GlideRecord(
+            CLAIM_TABLE
+        );
+
+
+    claim.query();
+
+
+    while (claim.next()) {
+
+        data.summary.totalClaims++;
+
+
+        var verification =
+            (
+                claim.getValue(
+                    'u_verification_result'
+                ) || ''
+            )
+            .toLowerCase();
+
+
+        if (verification === 'pass') {
+
+            data.summary.claimPass++;
+
+        }
+
+
+        if (verification === 'review') {
+
+            data.summary.claimReview++;
+
+        }
+
+
+        if (verification === 'fail') {
+
+            data.summary.claimFail++;
+
+        }
+
+    }
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-20 12:45:37</sys_created_on>
+        <sys_id>318e33733cdf03107f440dd077ef633e</sys_id>
+        <sys_mod_count>10</sys_mod_count>
+        <sys_name>CampusMatch Admin Analytics</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_318e33733cdf03107f440dd077ef633e</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-27 12:14:25</sys_updated_on>
+        <template><![CDATA[<section class="cm-analytics">
+
+
+  <!-- =========================================
+       ACCESS DENIED
+  ========================================== -->
+
+  <div
+    class="cm-analytics-denied"
+    ng-if="!data.isStaff">
+
+    Staff access required.
+
+  </div>
+
+
+
+  <!-- =========================================
+       STAFF ANALYTICS CONTENT
+  ========================================== -->
+
+  <div ng-if="data.isStaff">
+
+
+    <!-- HEADER -->
+
+    <div class="cm-analytics-header">
+
+      <div>
+
+        <span>
+          CAMPUSMATCH ANALYTICS
+        </span>
+
+        <h2>
+          Recovery Insights
+        </h2>
+
+        <p>
+          Live analytics generated from CampusMatch records.
+        </p>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- TOP METRICS -->
+
+    <div class="cm-metric-grid">
+
+
+      <div class="cm-metric-card">
+
+        <span>
+          TOTAL REPORTS
+        </span>
+
+        <strong>
+          {{data.summary.totalReports}}
+        </strong>
+
+      </div>
+
+
+      <div class="cm-metric-card">
+
+        <span>
+          MATCHES
+        </span>
+
+        <strong>
+          {{data.summary.totalMatches}}
+        </strong>
+
+      </div>
+
+
+      <div class="cm-metric-card">
+
+        <span>
+          CLAIMS
+        </span>
+
+        <strong>
+          {{data.summary.totalClaims}}
+        </strong>
+
+      </div>
+
+
+      <div class="cm-metric-card">
+
+        <span>
+          RESOLVED
+        </span>
+
+        <strong>
+          {{data.summary.resolved}}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- ROW 1 -->
+
+    <div class="cm-analytics-grid">
+
+
+      <!-- LOST VS FOUND -->
+
+      <div class="cm-chart-card">
+
+        <div class="cm-chart-heading">
+
+          <span>
+            REPORT DISTRIBUTION
+          </span>
+
+          <h3>
+            Lost vs Found
+          </h3>
+
+        </div>
+
+
+        <div class="cm-donut-area">
+
+
+          <div class="cm-donut">
+
+            <svg
+              viewBox="0 0 42 42">
+
+              <circle
+                class="cm-donut-base"
+                cx="21"
+                cy="21"
+                r="15.9155">
+              </circle>
+
+
+              <circle
+                class="cm-donut-lost"
+                cx="21"
+                cy="21"
+                r="15.9155"
+                ng-style="
+                  c.donutStyle(
+                    data.summary.lost,
+                    data.summary.totalReports
+                  )
+                ">
+              </circle>
+
+            </svg>
+
+
+            <div class="cm-donut-center">
+
+              <strong>
+                {{data.summary.totalReports}}
+              </strong>
+
+              <span>
+                Reports
+              </span>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="cm-donut-legend">
+
+
+            <div>
+
+              <span
+                class="cm-legend-dot lost">
+              </span>
+
+              <p>
+                Lost
+              </p>
+
+              <strong>
+                {{data.summary.lost}}
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span
+                class="cm-legend-dot found">
+              </span>
+
+              <p>
+                Found
+              </p>
+
+              <strong>
+                {{data.summary.found}}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- LIFECYCLE -->
+
+      <div class="cm-chart-card">
+
+        <div class="cm-chart-heading">
+
+          <span>
+            CURRENT STATE
+          </span>
+
+          <h3>
+            Report Lifecycle
+          </h3>
+
+        </div>
+
+
+        <div class="cm-lifecycle">
+
+
+          <div class="cm-life-stat">
+
+            <strong>
+              {{data.summary.active}}
+            </strong>
+
+            <span>
+              Active Reports
+            </span>
+
+          </div>
+
+
+          <div class="cm-life-arrow">
+            →
+          </div>
+
+
+          <div class="cm-life-stat">
+
+            <strong>
+              {{data.summary.totalMatches}}
+            </strong>
+
+            <span>
+              Matches
+            </span>
+
+          </div>
+
+
+          <div class="cm-life-arrow">
+            →
+          </div>
+
+
+          <div class="cm-life-stat">
+
+            <strong>
+              {{data.summary.totalClaims}}
+            </strong>
+
+            <span>
+              Claims
+            </span>
+
+          </div>
+
+
+          <div class="cm-life-arrow">
+            →
+          </div>
+
+
+          <div class="cm-life-stat">
+
+            <strong>
+              {{data.summary.resolved}}
+            </strong>
+
+            <span>
+              Resolved
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- CATEGORY DISTRIBUTION -->
+
+    <div class="cm-chart-card cm-full-chart">
+
+      <div class="cm-chart-heading">
+
+        <span>
+          REPORT TYPES
+        </span>
+
+        <h3>
+          Reports by Category
+        </h3>
+
+      </div>
+
+
+      <div
+        class="cm-category-row"
+        ng-repeat="
+          category in data.categories
+          | limitTo:8
+          track by category.value
+        ">
+
+
+        <div class="cm-category-label">
+
+          <strong>
+            {{category.label}}
+          </strong>
+
+          <span>
+            {{category.lost}} Lost ·
+            {{category.found}} Found
+          </span>
+
+        </div>
+
+
+        <div class="cm-category-track">
+
+          <div
+            class="cm-category-bar"
+            ng-style="
+              c.categoryWidth(
+                category
+              )
+            ">
+          </div>
+
+        </div>
+
+
+        <div class="cm-category-total">
+
+          {{category.total}}
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- ROW 2 -->
+
+    <div class="cm-analytics-grid">
+
+
+      <!-- MATCH QUALITY -->
+
+      <div class="cm-chart-card">
+
+        <div class="cm-chart-heading">
+
+          <span>
+            MATCHING ENGINE
+          </span>
+
+          <h3>
+            Match Quality
+          </h3>
+
+        </div>
+
+
+
+        <div class="cm-quality-row">
+
+          <div class="cm-quality-label">
+
+            <span>
+              Strong
+            </span>
+
+            <strong>
+              {{data.summary.strongMatches}}
+            </strong>
+
+          </div>
+
+
+          <div class="cm-quality-track">
+
+            <div
+              class="cm-quality-bar strong"
+              ng-style="
+                c.matchWidth(
+                  data.summary.strongMatches
+                )
+              ">
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="cm-quality-row">
+
+          <div class="cm-quality-label">
+
+            <span>
+              Potential
+            </span>
+
+            <strong>
+              {{data.summary.potentialMatches}}
+            </strong>
+
+          </div>
+
+
+          <div class="cm-quality-track">
+
+            <div
+              class="cm-quality-bar potential"
+              ng-style="
+                c.matchWidth(
+                  data.summary.potentialMatches
+                )
+              ">
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="cm-quality-row">
+
+          <div class="cm-quality-label">
+
+            <span>
+              Low
+            </span>
+
+            <strong>
+              {{data.summary.lowMatches}}
+            </strong>
+
+          </div>
+
+
+          <div class="cm-quality-track">
+
+            <div
+              class="cm-quality-bar low"
+              ng-style="
+                c.matchWidth(
+                  data.summary.lowMatches
+                )
+              ">
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- CLAIM VERIFICATION -->
+
+      <div class="cm-chart-card">
+
+        <div class="cm-chart-heading">
+
+          <span>
+            OWNERSHIP CHECKS
+          </span>
+
+          <h3>
+            Claim Verification
+          </h3>
+
+        </div>
+
+
+
+        <div class="cm-quality-row">
+
+          <div class="cm-quality-label">
+
+            <span>
+              Pass
+            </span>
+
+            <strong>
+              {{data.summary.claimPass}}
+            </strong>
+
+          </div>
+
+
+          <div class="cm-quality-track">
+
+            <div
+              class="cm-quality-bar pass"
+              ng-style="
+                c.claimWidth(
+                  data.summary.claimPass
+                )
+              ">
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="cm-quality-row">
+
+          <div class="cm-quality-label">
+
+            <span>
+              Review
+            </span>
+
+            <strong>
+              {{data.summary.claimReview}}
+            </strong>
+
+          </div>
+
+
+          <div class="cm-quality-track">
+
+            <div
+              class="cm-quality-bar review"
+              ng-style="
+                c.claimWidth(
+                  data.summary.claimReview
+                )
+              ">
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="cm-quality-row">
+
+          <div class="cm-quality-label">
+
+            <span>
+              Fail
+            </span>
+
+            <strong>
+              {{data.summary.claimFail}}
+            </strong>
+
+          </div>
+
+
+          <div class="cm-quality-track">
+
+            <div
+              class="cm-quality-bar fail"
+              ng-style="
+                c.claimWidth(
+                  data.summary.claimFail
+                )
+              ">
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>]]></template>
+    </sp_widget>
+    <sys_es_latest_script action="INSERT_OR_UPDATE">
+        <id>318e33733cdf03107f440dd077ef633e</id>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-20 12:45:37</sys_created_on>
+        <sys_id>fd8eb3733cdf03107f440dd077ef63a3</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-20 12:45:37</sys_updated_on>
+        <table>sp_widget</table>
+        <use_es_latest>true</use_es_latest>
+    </sys_es_latest_script>
+</record_update>

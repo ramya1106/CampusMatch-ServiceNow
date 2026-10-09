@@ -1,0 +1,3037 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function($window, cabrillo) {
+
+    var c = this;
+
+
+    c.menuOpen = false;
+    c.userMenuOpen = false;
+    c.userPickerOpen = false;
+    c.userSearch = '';
+    c.userResults = [];
+    c.userSearching = false;
+    c.notificationOpen = false;
+
+
+    /* =========================================
+       DETECT REAL NOW MOBILE APP
+    ========================================= */
+
+    c.isNative = false;
+
+    try {
+
+        c.isNative =
+            cabrillo &&
+            cabrillo.isNative &&
+            cabrillo.isNative();
+
+    }
+    catch (e) {
+
+        c.isNative = false;
+
+    }
+
+
+    c.isAppView =
+        c.isNative ||
+        (
+            c.data &&
+            c.data.isMobileApp === true
+        );
+
+
+    /* =========================================
+       BUILD CAMPUSMATCH URL
+    ========================================= */
+
+    c.buildCampusMatchUrl = function(pageId) {
+
+        var target =
+            $window.location.origin +
+            '/campusmatch?id=' +
+            pageId;
+
+
+        if (c.isAppView) {
+
+            target +=
+                '&cm_mobile=1';
+
+        }
+
+
+        return target;
+
+    };
+
+
+    /* =========================================
+       BUILD NOTIFICATION TARGET URL
+    ========================================= */
+
+    c.buildNotificationUrl = function(targetUrl) {
+
+        targetUrl =
+            targetUrl ||
+            '?id=campusmatch_dashboard';
+
+
+        var target = '';
+
+
+        if (
+            targetUrl.indexOf('http://') === 0 ||
+            targetUrl.indexOf('https://') === 0
+        ) {
+
+            target = targetUrl;
+
+        }
+        else if (
+            targetUrl.charAt(0) === '?'
+        ) {
+
+            target =
+                $window.location.origin +
+                '/campusmatch' +
+                targetUrl;
+
+        }
+        else if (
+            targetUrl.charAt(0) === '/'
+        ) {
+
+            target =
+                $window.location.origin +
+                targetUrl;
+
+        }
+        else {
+
+            target =
+                $window.location.origin +
+                '/campusmatch?' +
+                targetUrl;
+
+        }
+
+
+        if (
+            c.isAppView &&
+            target.indexOf('cm_mobile=1') === -1
+        ) {
+
+            target +=
+                (
+                    target.indexOf('?') !== -1
+                        ? '&'
+                        : '?'
+                ) +
+                'cm_mobile=1';
+
+        }
+
+
+        return target;
+
+    };
+
+
+    /* =========================================
+       WEBSITE MENU
+    ========================================= */
+
+    c.toggleMenu = function() {
+
+        c.menuOpen =
+            !c.menuOpen;
+
+        c.notificationOpen =
+            false;
+
+        c.userMenuOpen =
+            false;
+
+    };
+
+
+    c.closeMenu = function() {
+
+        c.menuOpen = false;
+
+    };
+
+
+    /* =========================================
+       NOTIFICATION MENU
+    ========================================= */
+
+    c.toggleNotifications = function($event) {
+
+        if ($event) {
+
+            $event.preventDefault();
+            $event.stopPropagation();
+
+        }
+
+
+        c.notificationOpen =
+            !c.notificationOpen;
+
+
+        c.menuOpen =
+            false;
+
+        c.userMenuOpen =
+            false;
+
+    };
+
+
+    /* =========================================
+       OPEN NOTIFICATION
+    ========================================= */
+
+    c.openNotification = function(
+        $event,
+        notification
+    ) {
+
+        if ($event) {
+
+            $event.preventDefault();
+            $event.stopPropagation();
+
+        }
+
+
+        if (
+            !notification ||
+            !notification.sys_id
+        ) {
+
+            return;
+
+        }
+
+
+        var target =
+            c.buildNotificationUrl(
+                notification.targetUrl
+            );
+
+
+        if (
+            !notification.isRead
+        ) {
+
+            notification.isRead =
+                true;
+
+
+            if (
+                c.data.notificationUnreadCount >
+                0
+            ) {
+
+                c.data.notificationUnreadCount--;
+
+            }
+
+        }
+
+
+        c.notificationOpen =
+            false;
+
+
+        c.server.get({
+
+            action:
+                'mark_notification_read',
+
+            notification_id:
+                notification.sys_id
+
+        }).then(
+
+            function() {
+
+                $window.location.href =
+                    target;
+
+            },
+
+            function() {
+
+                $window.location.href =
+                    target;
+
+            }
+
+        );
+
+    };
+
+
+    /* =========================================
+       APP USER MENU
+    ========================================= */
+
+    c.toggleUserMenu = function($event) {
+
+        if ($event) {
+
+            $event.preventDefault();
+            $event.stopPropagation();
+
+        }
+
+
+        c.userMenuOpen =
+            !c.userMenuOpen;
+
+
+        c.notificationOpen =
+            false;
+
+    };
+
+
+    /* =========================================
+       SWITCH USER
+    ========================================= */
+
+    c.showUserPicker = function($event) {
+
+        if ($event) {
+
+            $event.preventDefault();
+            $event.stopPropagation();
+
+        }
+
+
+        c.userMenuOpen = false;
+
+        c.notificationOpen = false;
+
+
+        var campusMatchTarget =
+            c.buildCampusMatchUrl(
+                'campusmatch_home_hero'
+            );
+
+
+        var target =
+            $window.location.origin +
+            '/impersonate_dialog.do' +
+            '?sysparm_target=' +
+            encodeURIComponent(
+                campusMatchTarget
+            );
+
+
+        $window.location.href =
+            target;
+
+    };
+
+
+    /* =========================================
+       END IMPERSONATION
+    ========================================= */
+
+    c.endImpersonation = function($event) {
+
+        if ($event) {
+
+            $event.preventDefault();
+            $event.stopPropagation();
+
+        }
+
+
+        c.userMenuOpen = false;
+
+        c.notificationOpen = false;
+
+
+        var campusMatchTarget =
+            c.buildCampusMatchUrl(
+                'campusmatch_home_hero'
+            );
+
+
+        var target =
+            $window.location.origin +
+            '/impersonate_dialog.do' +
+            '?sysparm_target=' +
+            encodeURIComponent(
+                campusMatchTarget
+            );
+
+
+        $window.location.href =
+            target;
+
+    };
+
+
+    /* =========================================
+       RELOAD CAMPUSMATCH
+    ========================================= */
+
+    c.reloadCampusMatch = function() {
+
+        var target =
+            c.buildCampusMatchUrl(
+                'campusmatch_home_hero'
+            );
+
+
+        $window.location.replace(
+            target
+        );
+
+    };
+
+
+    /* =========================================
+       HARD PORTAL NAVIGATION
+    ========================================= */
+
+    c.goToPage = function(
+        $event,
+        pageId
+    ) {
+
+        if ($event) {
+
+            $event.preventDefault();
+            $event.stopPropagation();
+
+        }
+
+
+        c.menuOpen = false;
+
+        c.userMenuOpen = false;
+
+        c.notificationOpen = false;
+
+
+        var target =
+            c.buildCampusMatchUrl(
+                pageId
+            );
+
+
+        $window.location.replace(
+            target
+        );
+
+    };
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* =====================================================&#13;
+   CAMPUSMATCH HEADER&#13;
+   WEBSITE + NOW MOBILE APP&#13;
+===================================================== */&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   COMMON FULL-BLEED HEADER BASE&#13;
+===================================================== */&#13;
+&#13;
+.cm-navbar,&#13;
+.cm-app-header {&#13;
+  position: relative;&#13;
+  z-index: 1000;&#13;
+&#13;
+  width: 100vw !important;&#13;
+  max-width: 100vw !important;&#13;
+&#13;
+  margin-left: calc(50% - 50vw) !important;&#13;
+  margin-right: calc(50% - 50vw) !important;&#13;
+&#13;
+  margin-top: 0 !important;&#13;
+  margin-bottom: 0 !important;&#13;
+&#13;
+  background: #FBF8EF !important;&#13;
+&#13;
+  border-bottom: 1px solid #D2DED8;&#13;
+&#13;
+  box-sizing: border-box !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   COVER TOP WHITE STRIP&#13;
+===================================================== */&#13;
+&#13;
+.cm-navbar::before,&#13;
+.cm-app-header::before {&#13;
+  content: "";&#13;
+&#13;
+  position: absolute;&#13;
+&#13;
+  left: 50%;&#13;
+  top: -40px;&#13;
+&#13;
+  width: 100vw;&#13;
+  height: 40px;&#13;
+&#13;
+  transform: translateX(-50%);&#13;
+&#13;
+  background: #FBF8EF;&#13;
+&#13;
+  pointer-events: none;&#13;
+&#13;
+  z-index: -1;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   WEBSITE HEADER INNER CONTAINER&#13;
+===================================================== */&#13;
+&#13;
+.cm-nav-container {&#13;
+  width: 100%;&#13;
+  max-width: 100%;&#13;
+&#13;
+  min-height: 64px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  padding: 6px 28px;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   WEBSITE LOGO&#13;
+===================================================== */&#13;
+&#13;
+.cm-brand {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-brand-logo {&#13;
+  display: block;&#13;
+&#13;
+  width: 158px;&#13;
+  max-width: 158px;&#13;
+&#13;
+  height: auto;&#13;
+&#13;
+  object-fit: contain;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   DESKTOP NAVIGATION&#13;
+===================================================== */&#13;
+&#13;
+.cm-desktop-nav {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 28px;&#13;
+&#13;
+  margin-left: auto;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-desktop-nav a {&#13;
+  color: #163D39 !important;&#13;
+&#13;
+  font-family:&#13;
+    'DM Sans',&#13;
+    'Segoe UI',&#13;
+    Arial,&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 15px;&#13;
+  font-weight: 600;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+&#13;
+  white-space: nowrap;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  transition: color 0.2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-desktop-nav a:hover {&#13;
+  color: #2F766A !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   DESKTOP USER&#13;
+===================================================== */&#13;
+&#13;
+.cm-user-area {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  margin-left: 24px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-user-circle {&#13;
+  width: 42px;&#13;
+  height: 42px;&#13;
+&#13;
+  min-width: 42px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-family:&#13;
+    'DM Sans',&#13;
+    'Segoe UI',&#13;
+    Arial,&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 14px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  line-height: 1;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   HAMBURGER BUTTON&#13;
+===================================================== */&#13;
+&#13;
+.cm-menu-button {&#13;
+  display: none;&#13;
+&#13;
+  width: 44px;&#13;
+  height: 44px;&#13;
+&#13;
+  margin-left: auto;&#13;
+&#13;
+  padding: 10px;&#13;
+&#13;
+  border: 0;&#13;
+  border-radius: 10px;&#13;
+&#13;
+  background: transparent;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  flex-direction: column;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  gap: 5px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-menu-button span {&#13;
+  display: block;&#13;
+&#13;
+  width: 23px;&#13;
+  height: 2px;&#13;
+&#13;
+  background: #15564B;&#13;
+&#13;
+  border-radius: 10px;&#13;
+&#13;
+  transition:&#13;
+    transform 0.2s ease,&#13;
+    opacity 0.2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   HAMBURGER → X&#13;
+===================================================== */&#13;
+&#13;
+.cm-menu-button.active span:nth-child(1) {&#13;
+  transform: translateY(7px) rotate(45deg);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-menu-button.active span:nth-child(2) {&#13;
+  opacity: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-menu-button.active span:nth-child(3) {&#13;
+  transform: translateY(-7px) rotate(-45deg);&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   WEBSITE MOBILE / TABLET MENU&#13;
+===================================================== */&#13;
+&#13;
+.cm-mobile-menu {&#13;
+  display: none;&#13;
+&#13;
+  width: 100%;&#13;
+  max-width: 100%;&#13;
+&#13;
+  padding: 8px 20px 20px;&#13;
+&#13;
+  background: #FBF8EF;&#13;
+&#13;
+  border-top: 1px solid #E0E8E3;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-mobile-menu.open {&#13;
+  display: flex;&#13;
+&#13;
+  flex-direction: column;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-mobile-menu &gt; a {&#13;
+  width: 100%;&#13;
+&#13;
+  padding: 14px 4px;&#13;
+&#13;
+  color: #163D39 !important;&#13;
+&#13;
+  font-family:&#13;
+    'DM Sans',&#13;
+    'Segoe UI',&#13;
+    Arial,&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 15px;&#13;
+  font-weight: 600;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+&#13;
+  border-bottom: 1px solid #E7ECE8;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   WEBSITE MOBILE USER&#13;
+===================================================== */&#13;
+&#13;
+.cm-mobile-user {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 12px;&#13;
+&#13;
+  padding-top: 18px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-mobile-user-details {&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+&#13;
+  gap: 2px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-mobile-user-name {&#13;
+  color: #163D39;&#13;
+&#13;
+  font-family:&#13;
+    'DM Sans',&#13;
+    'Segoe UI',&#13;
+    Arial,&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 14px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-mobile-user-role {&#13;
+  color: #66827D;&#13;
+&#13;
+  font-family:&#13;
+    'DM Sans',&#13;
+    'Segoe UI',&#13;
+    Arial,&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 500;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   DESKTOP / LAPTOP WEBSITE&#13;
+===================================================== */&#13;
+&#13;
+@media (min-width: 901px) {&#13;
+&#13;
+  .cm-desktop-nav {&#13;
+    display: flex !important;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-user-area {&#13;
+    display: flex !important;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-menu-button {&#13;
+    display: none !important;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-mobile-menu {&#13;
+    display: none !important;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   TABLET + MOBILE WEBSITE&#13;
+===================================================== */&#13;
+&#13;
+@media (max-width: 900px) {&#13;
+&#13;
+  .cm-nav-container {&#13;
+    min-height: 72px;&#13;
+&#13;
+    padding: 10px 18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-brand {&#13;
+    margin-right: auto;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-brand-logo {&#13;
+    width: 150px;&#13;
+    max-width: 150px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-desktop-nav {&#13;
+    display: none !important;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-user-area {&#13;
+    display: none !important;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-menu-button {&#13;
+    display: flex !important;&#13;
+&#13;
+    margin-left: 4px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-mobile-menu {&#13;
+    display: none !important;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-mobile-menu.open {&#13;
+    display: flex !important;&#13;
+&#13;
+    flex-direction: column;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   VERY SMALL WEBSITE SCREENS&#13;
+===================================================== */&#13;
+&#13;
+@media (max-width: 480px) {&#13;
+&#13;
+  .cm-nav-container {&#13;
+    padding-left: 14px;&#13;
+    padding-right: 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-brand-logo {&#13;
+    width: 142px;&#13;
+    max-width: 142px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOW MOBILE APP HEADER&#13;
+===================================================== */&#13;
+&#13;
+.cm-app-header {&#13;
+  min-height: 76px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 16px;&#13;
+&#13;
+  padding: 12px 18px;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOW MOBILE APP LOGO&#13;
+===================================================== */&#13;
+&#13;
+.cm-app-brand {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  flex: 1 1 auto;&#13;
+&#13;
+  min-width: 0;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-app-brand-logo {&#13;
+  display: block;&#13;
+&#13;
+  width: 158px;&#13;
+  max-width: 158px;&#13;
+&#13;
+  height: auto;&#13;
+&#13;
+  object-fit: contain;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   APP USER WRAPPER&#13;
+===================================================== */&#13;
+&#13;
+.cm-app-user-wrapper {&#13;
+  position: relative;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOW MOBILE APP USER CIRCLE&#13;
+===================================================== */&#13;
+&#13;
+.cm-app-user-circle {&#13;
+  width: 42px;&#13;
+  height: 42px;&#13;
+&#13;
+  min-width: 42px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-family:&#13;
+    'DM Sans',&#13;
+    'Segoe UI',&#13;
+    Arial,&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 14px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  line-height: 1;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   SMALL MOBILE APP&#13;
+===================================================== */&#13;
+&#13;
+@media (max-width: 480px) {&#13;
+&#13;
+  .cm-app-header {&#13;
+    min-height: 72px;&#13;
+&#13;
+    padding: 10px 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-app-brand-logo {&#13;
+    width: 142px;&#13;
+    max-width: 142px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-app-user-circle {&#13;
+    width: 40px;&#13;
+    height: 40px;&#13;
+&#13;
+    min-width: 40px;&#13;
+&#13;
+    font-size: 13px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   VERY SMALL MOBILE APP&#13;
+===================================================== */&#13;
+&#13;
+@media (max-width: 390px) {&#13;
+&#13;
+  .cm-app-header {&#13;
+    padding-left: 12px;&#13;
+    padding-right: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-app-brand-logo {&#13;
+    width: 136px;&#13;
+    max-width: 136px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-app-user-circle {&#13;
+    width: 38px;&#13;
+    height: 38px;&#13;
+&#13;
+    min-width: 38px;&#13;
+&#13;
+    font-size: 12px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOTIFICATION WRAPPER&#13;
+===================================================== */&#13;
+&#13;
+.cm-notification-wrap {&#13;
+  position: relative;&#13;
+&#13;
+  margin-left: 16px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  font-family:&#13;
+    'DM Sans',&#13;
+    'Segoe UI',&#13;
+    Arial,&#13;
+    sans-serif;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOTIFICATION BUTTON&#13;
+===================================================== */&#13;
+&#13;
+.cm-notification-button {&#13;
+  position: relative;&#13;
+&#13;
+  width: 42px;&#13;
+  height: 42px;&#13;
+&#13;
+  min-width: 42px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  padding: 0;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+&#13;
+  transition:&#13;
+    background 0.2s ease,&#13;
+    border-color 0.2s ease,&#13;
+    transform 0.2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-button:hover {&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  border-color: #B7CBC1;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-button:active {&#13;
+  transform: scale(0.96);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-button svg {&#13;
+  width: 19px;&#13;
+  height: 19px;&#13;
+&#13;
+  display: block;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   ORANGE UNREAD INDICATOR&#13;
+===================================================== */&#13;
+&#13;
+.cm-notification-indicator {&#13;
+  position: absolute;&#13;
+&#13;
+  top: 3px;&#13;
+  right: 3px;&#13;
+&#13;
+  width: 10px;&#13;
+  height: 10px;&#13;
+&#13;
+  display: block;&#13;
+&#13;
+  border: 2px solid #FBF8EF;&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #F4A261;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+&#13;
+  pointer-events: none;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOTIFICATION PANEL&#13;
+===================================================== */&#13;
+&#13;
+.cm-notification-panel {&#13;
+  position: absolute;&#13;
+&#13;
+  top: calc(100% + 10px);&#13;
+  right: 0;&#13;
+&#13;
+  width: 355px;&#13;
+  max-height: 430px;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 18px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 18px 45px&#13;
+    rgba(16, 78, 69, 0.15);&#13;
+&#13;
+  z-index: 5000;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-panel-header {&#13;
+  padding: 15px 16px;&#13;
+&#13;
+  border-bottom: 1px solid #E6ECE8;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-panel-header &gt; div {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-panel-header strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 14px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-panel-header span {&#13;
+  color: #66827D;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 600;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOTIFICATION LIST&#13;
+===================================================== */&#13;
+&#13;
+.cm-notification-list {&#13;
+  max-height: 365px;&#13;
+&#13;
+  overflow-y: auto;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-row {&#13;
+  width: 100%;&#13;
+&#13;
+  padding: 14px 15px;&#13;
+&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    9px minmax(0, 1fr);&#13;
+&#13;
+  align-items: flex-start;&#13;
+&#13;
+  gap: 11px;&#13;
+&#13;
+  border: 0;&#13;
+  border-bottom: 1px solid #EDF2EE;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  text-align: left;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+&#13;
+  transition:&#13;
+    background 0.2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-row:last-child {&#13;
+  border-bottom: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-row:hover {&#13;
+  background: #F8FAF6;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-row.unread {&#13;
+  background: #F2F8EF;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOTIFICATION ROW DOT&#13;
+===================================================== */&#13;
+&#13;
+.cm-notification-dot {&#13;
+  width: 8px;&#13;
+  height: 8px;&#13;
+&#13;
+  margin-top: 5px;&#13;
+&#13;
+  display: block;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #D2DED8;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-row.unread&#13;
+.cm-notification-dot {&#13;
+  background: #249D78;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOTIFICATION CONTENT&#13;
+===================================================== */&#13;
+&#13;
+.cm-notification-content {&#13;
+  min-width: 0;&#13;
+&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+&#13;
+  gap: 4px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-content strong {&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  line-height: 1.35;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-message {&#13;
+  display: -webkit-box;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 500;&#13;
+&#13;
+  line-height: 1.45;&#13;
+&#13;
+  -webkit-box-orient: vertical;&#13;
+  -webkit-line-clamp: 2;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-notification-content small {&#13;
+  color: #879397;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 500;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   EMPTY NOTIFICATION STATE&#13;
+===================================================== */&#13;
+&#13;
+.cm-notification-empty {&#13;
+  padding: 30px 18px;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 500;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   TABLET + MOBILE WEBSITE NOTIFICATIONS&#13;
+===================================================== */&#13;
+&#13;
+@media (max-width: 900px) {&#13;
+&#13;
+  .cm-notification-wrap {&#13;
+    margin-left: 8px;&#13;
+    margin-right: 4px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-notification-panel {&#13;
+    position: fixed;&#13;
+&#13;
+    top: 76px;&#13;
+    right: 14px;&#13;
+&#13;
+    width: calc(100vw - 28px);&#13;
+&#13;
+    max-width: 380px;&#13;
+&#13;
+    max-height: calc(100vh - 100px);&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-notification-list {&#13;
+    max-height: calc(100vh - 165px);&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   NOW MOBILE APP NOTIFICATIONS&#13;
+===================================================== */&#13;
+&#13;
+.cm-app-notification-wrap {&#13;
+  margin-left: 4px;&#13;
+  margin-right: 4px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-app-notification-panel {&#13;
+  position: fixed;&#13;
+&#13;
+  top: 82px;&#13;
+  right: 14px;&#13;
+&#13;
+  width: calc(100vw - 28px);&#13;
+&#13;
+  max-width: 380px;&#13;
+&#13;
+  max-height: calc(100vh - 105px);&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   SMALL SCREEN NOTIFICATIONS&#13;
+===================================================== */&#13;
+&#13;
+@media (max-width: 480px) {&#13;
+&#13;
+  .cm-notification-button {&#13;
+    width: 40px;&#13;
+    height: 40px;&#13;
+&#13;
+    min-width: 40px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-notification-button svg {&#13;
+    width: 18px;&#13;
+    height: 18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-notification-indicator {&#13;
+    top: 3px;&#13;
+    right: 3px;&#13;
+&#13;
+    width: 9px;&#13;
+    height: 9px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-notification-panel,&#13;
+  .cm-app-notification-panel {&#13;
+    top: 74px;&#13;
+    right: 10px;&#13;
+&#13;
+    width: calc(100vw - 20px);&#13;
+&#13;
+    border-radius: 16px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* =====================================================&#13;
+   VERY SMALL SCREEN NOTIFICATIONS&#13;
+===================================================== */&#13;
+&#13;
+@media (max-width: 390px) {&#13;
+&#13;
+  .cm-notification-button {&#13;
+    width: 38px;&#13;
+    height: 38px;&#13;
+&#13;
+    min-width: 38px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-notification-indicator {&#13;
+    width: 9px;&#13;
+    height: 9px;&#13;
+  }&#13;
+&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>Responsive shared navigation header for CampusMatch</description>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_header</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch Header</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+
+    /* =========================================
+       CONSTANTS
+    ========================================= */
+
+    var NOTIFICATION_TABLE =
+        'x_snc_campusmatch_campusmatch_notification';
+
+
+
+    /* =========================================
+       DEFAULT RESPONSE DATA
+    ========================================= */
+
+    data.success = false;
+
+    data.message = '';
+
+    data.users = [];
+
+    data.notifications = [];
+
+    data.notificationUnreadCount = 0;
+
+
+
+    /* =========================================
+       SERVER ACTIONS
+    ========================================= */
+
+    if (
+        input &&
+        input.action
+    ) {
+
+
+        /* =====================================
+           MARK NOTIFICATION AS READ
+        ===================================== */
+
+        if (
+            input.action ==
+            'mark_notification_read'
+        ) {
+
+            var notificationId =
+                (
+                    input.notification_id ||
+                    ''
+                )
+                .toString()
+                .trim();
+
+
+            if (!notificationId) {
+
+                data.message =
+                    'Notification was not provided.';
+
+                return;
+
+            }
+
+
+            if (
+                gs.getUserID() ==
+                'guest'
+            ) {
+
+                data.message =
+                    'Login required.';
+
+                return;
+
+            }
+
+
+            var notificationGR =
+                new GlideRecord(
+                    NOTIFICATION_TABLE
+                );
+
+
+            notificationGR.addQuery(
+                'sys_id',
+                notificationId
+            );
+
+
+            /*
+             * User can only update
+             * their own notification.
+             */
+
+            notificationGR.addQuery(
+                'recipient',
+                gs.getUserID()
+            );
+
+
+            notificationGR.setLimit(
+                1
+            );
+
+
+            notificationGR.query();
+
+
+            if (
+                notificationGR.next()
+            ) {
+
+                /*
+                 * IMPORTANT:
+                 * Actual field name is "read"
+                 */
+
+                notificationGR.setValue(
+                    'read',
+                    true
+                );
+
+
+                if (
+                    notificationGR.isValidField(
+                        'read_on'
+                    )
+                ) {
+
+                    notificationGR.setValue(
+                        'read_on',
+                        new GlideDateTime()
+                            .getValue()
+                    );
+
+                }
+
+
+                notificationGR.update();
+
+
+                data.success =
+                    true;
+
+
+                data.message =
+                    'Notification marked as read.';
+
+            }
+            else {
+
+                data.message =
+                    'Notification was not found.';
+
+            }
+
+
+            return;
+
+        }
+
+
+
+        /* =====================================
+           SEARCH USERS
+        ===================================== */
+
+        if (
+            input.action ==
+            'search_users'
+        ) {
+
+
+            if (
+                !gs.hasRole(
+                    'admin'
+                )
+            ) {
+
+                data.message =
+                    'Administrator access required.';
+
+                return;
+
+            }
+
+
+            var query =
+                (
+                    input.query ||
+                    ''
+                )
+                .toString()
+                .trim();
+
+
+            if (
+                query.length < 2
+            ) {
+
+                return;
+
+            }
+
+
+            var userGR =
+                new GlideRecord(
+                    'sys_user'
+                );
+
+
+            userGR.addActiveQuery();
+
+
+            var userQuery =
+                userGR.addQuery(
+                    'name',
+                    'CONTAINS',
+                    query
+                );
+
+
+            userQuery.addOrCondition(
+                'user_name',
+                'CONTAINS',
+                query
+            );
+
+
+            userQuery.addOrCondition(
+                'first_name',
+                'CONTAINS',
+                query
+            );
+
+
+            userQuery.addOrCondition(
+                'last_name',
+                'CONTAINS',
+                query
+            );
+
+
+            userGR.orderBy(
+                'name'
+            );
+
+
+            userGR.setLimit(
+                10
+            );
+
+
+            userGR.query();
+
+
+            while (
+                userGR.next()
+            ) {
+
+                var name =
+                    userGR.getDisplayValue();
+
+
+                var initials =
+                    '';
+
+
+                if (name) {
+
+                    var parts =
+                        name
+                            .trim()
+                            .split(
+                                /\s+/
+                            );
+
+
+                    if (
+                        parts.length === 1
+                    ) {
+
+                        initials =
+                            parts[0]
+                                .substring(
+                                    0,
+                                    2
+                                )
+                                .toUpperCase();
+
+                    }
+                    else {
+
+                        initials =
+                            (
+                                parts[0]
+                                    .charAt(
+                                        0
+                                    ) +
+
+                                parts[
+                                    parts.length -
+                                    1
+                                ]
+                                    .charAt(
+                                        0
+                                    )
+                            )
+                            .toUpperCase();
+
+                    }
+
+                }
+
+
+                data.users.push({
+
+                    sys_id:
+                        userGR
+                            .getUniqueValue(),
+
+                    name:
+                        name,
+
+                    user_name:
+                        userGR.getValue(
+                            'user_name'
+                        ),
+
+                    initials:
+                        initials
+
+                });
+
+            }
+
+
+            data.success =
+                true;
+
+
+            return;
+
+        }
+
+
+
+        /* =====================================
+           IMPERSONATE USER
+        ===================================== */
+
+        if (
+            input.action ==
+            'impersonate'
+        ) {
+
+
+            if (
+                !gs.hasRole(
+                    'admin'
+                )
+            ) {
+
+                data.message =
+                    'Administrator access required.';
+
+                return;
+
+            }
+
+
+            var targetUser =
+                (
+                    input.user_sys_id ||
+                    ''
+                )
+                .toString();
+
+
+            if (!targetUser) {
+
+                data.message =
+                    'User was not provided.';
+
+                return;
+
+            }
+
+
+            try {
+
+                var impersonator =
+                    new GlideImpersonate();
+
+
+                if (
+                    !impersonator
+                        .canImpersonate(
+                            targetUser
+                        )
+                ) {
+
+                    data.message =
+                        'This user cannot be impersonated.';
+
+                    return;
+
+                }
+
+
+                impersonator.impersonate(
+                    targetUser
+                );
+
+
+                data.success =
+                    true;
+
+
+                data.message =
+                    'Impersonation started.';
+
+
+                return;
+
+            }
+            catch (
+                impersonateError
+            ) {
+
+                data.message =
+                    impersonateError.message;
+
+
+                return;
+
+            }
+
+        }
+
+
+
+        /* =====================================
+           END IMPERSONATION
+        ===================================== */
+
+        if (
+            input.action ==
+            'end_impersonation'
+        ) {
+
+            try {
+
+                if (
+                    !gs.getSession()
+                        .isImpersonating()
+                ) {
+
+                    data.message =
+                        'No impersonation session is active.';
+
+                    return;
+
+                }
+
+
+                gs.getSession()
+                    .onlineUnimpersonate();
+
+
+                data.success =
+                    true;
+
+
+                data.message =
+                    'Impersonation ended.';
+
+
+                return;
+
+            }
+            catch (
+                endError
+            ) {
+
+                data.message =
+                    endError.message;
+
+
+                return;
+
+            }
+
+        }
+
+    }
+
+
+
+    /* =========================================
+       LOGIN STATE
+    ========================================= */
+
+    data.loggedIn =
+        gs.getUserID() !=
+        'guest';
+
+
+
+    /* =========================================
+       MOBILE APP DETECTION
+    ========================================= */
+
+    data.isMobileApp =
+        $sp.getParameter(
+            'cm_mobile'
+        ) == '1';
+
+
+
+    /* =========================================
+       USER DETAILS
+    ========================================= */
+
+    data.userName =
+        gs.getUserDisplayName();
+
+
+    data.initials =
+        '';
+
+
+    if (
+        data.userName
+    ) {
+
+        var userNameParts =
+            data.userName
+                .trim()
+                .split(
+                    /\s+/
+                );
+
+
+        if (
+            userNameParts.length ===
+            1
+        ) {
+
+            data.initials =
+                userNameParts[0]
+                    .substring(
+                        0,
+                        2
+                    )
+                    .toUpperCase();
+
+        }
+        else {
+
+            data.initials =
+                (
+                    userNameParts[0]
+                        .charAt(
+                            0
+                        ) +
+
+                    userNameParts[
+                        userNameParts.length -
+                        1
+                    ]
+                        .charAt(
+                            0
+                        )
+                )
+                .toUpperCase();
+
+        }
+
+    }
+
+
+
+    /* =========================================
+       STAFF ACCESS
+    ========================================= */
+
+    var access =
+        new CampusMatchAccess();
+
+
+    data.isStaff =
+        access.isStaff();
+
+
+
+    /* =========================================
+       ADMIN ACCESS
+    ========================================= */
+
+    /*
+     * Used by the Header HTML to show
+     * the Deadlines button only to admins.
+     */
+
+    data.isAdmin =
+        gs.hasRole(
+            'admin'
+        );
+
+
+
+    /* =========================================
+       STUDENT NOTIFICATIONS
+    ========================================= */
+
+    if (
+        data.loggedIn &&
+        !data.isStaff
+    ) {
+
+
+        /* =====================================
+           UNREAD COUNT
+        ===================================== */
+
+        var unreadGR =
+            new GlideAggregate(
+                NOTIFICATION_TABLE
+            );
+
+
+        unreadGR.addQuery(
+            'recipient',
+            gs.getUserID()
+        );
+
+
+        unreadGR.addQuery(
+            'audience',
+            'student'
+        );
+
+
+        /*
+         * IMPORTANT:
+         * Actual field name is "read"
+         */
+
+        unreadGR.addQuery(
+            'read',
+            false
+        );
+
+
+        unreadGR.addAggregate(
+            'COUNT'
+        );
+
+
+        unreadGR.query();
+
+
+        if (
+            unreadGR.next()
+        ) {
+
+            data.notificationUnreadCount =
+                parseInt(
+                    unreadGR
+                        .getAggregate(
+                            'COUNT'
+                        ),
+                    10
+                ) ||
+                0;
+
+        }
+
+
+
+        /* =====================================
+           LOAD RECENT NOTIFICATIONS
+        ===================================== */
+
+        var recentNotificationGR =
+            new GlideRecord(
+                NOTIFICATION_TABLE
+            );
+
+
+        recentNotificationGR.addQuery(
+            'recipient',
+            gs.getUserID()
+        );
+
+
+        recentNotificationGR.addQuery(
+            'audience',
+            'student'
+        );
+
+
+        recentNotificationGR.orderByDesc(
+            'sys_created_on'
+        );
+
+
+        recentNotificationGR.setLimit(
+            10
+        );
+
+
+        recentNotificationGR.query();
+
+
+        while (
+            recentNotificationGR.next()
+        ) {
+
+            data.notifications.push({
+
+                sys_id:
+                    recentNotificationGR
+                        .getUniqueValue(),
+
+                title:
+                    recentNotificationGR
+                        .getValue(
+                            'title'
+                        ) ||
+                    'CampusMatch update',
+
+                message:
+                    recentNotificationGR
+                        .getValue(
+                            'message'
+                        ) ||
+                    '',
+
+                targetUrl:
+                    recentNotificationGR
+                        .getValue(
+                            'target_url'
+                        ) ||
+                    '?id=campusmatch_dashboard',
+
+                notificationType:
+                    recentNotificationGR
+                        .getValue(
+                            'notification_type'
+                        ) ||
+                    '',
+
+                emailSubject:
+                    recentNotificationGR
+                        .getValue(
+                            'email_subject'
+                        ) ||
+                    '',
+
+
+                /*
+                 * IMPORTANT:
+                 * Actual field name is "read"
+                 */
+
+                isRead:
+                    recentNotificationGR
+                        .getValue(
+                            'read'
+                        ) ==
+                    '1',
+
+                created:
+                    recentNotificationGR
+                        .getDisplayValue(
+                            'sys_created_on'
+                        ) ||
+                    ''
+
+            });
+
+        }
+
+    }
+
+
+
+    /* =========================================
+       IMPERSONATION STATUS
+    ========================================= */
+
+    data.isImpersonating =
+        false;
+
+
+    try {
+
+        data.isImpersonating =
+            new GlideImpersonate()
+                .isImpersonating();
+
+    }
+    catch (e) {
+
+        data.isImpersonating =
+            gs.getSession()
+                .isImpersonating();
+
+    }
+
+
+
+    /* =========================================
+       ADMIN IMPERSONATION ACCESS
+    ========================================= */
+
+    data.canImpersonate =
+        gs.hasRole(
+            'admin'
+        ) &&
+        !data.isImpersonating;
+
+
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 09:40:31</sys_created_on>
+        <sys_id>4a3a06ab55d703107f4447f82ce7327c</sys_id>
+        <sys_mod_count>39</sys_mod_count>
+        <sys_name>CampusMatch Header</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_4a3a06ab55d703107f4447f82ce7327c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-10-01 11:03:11</sys_updated_on>
+        <template><![CDATA[<!-- =====================================================
+     NORMAL WEBSITE HEADER
+===================================================== -->
+
+<header
+  class="cm-navbar"
+  ng-if="!c.isAppView">
+
+  <div class="cm-nav-container">
+
+    <!-- CAMPUSMATCH LOGO -->
+
+    <a
+      class="cm-brand"
+      href="javascript:void(0)"
+      ng-click="c.goToPage($event, 'campusmatch_home_hero')"
+      aria-label="CampusMatch Home">
+
+      <img
+        class="cm-brand-logo"
+        src="https://res.cloudinary.com/dn9sdbv1o/image/upload/v1789810311/CampusMatch_Logo_m6xn50.png"
+        alt="CampusMatch">
+
+    </a>
+
+
+    <!-- DESKTOP NAVIGATION -->
+
+    <nav
+      class="cm-desktop-nav"
+      aria-label="CampusMatch Navigation">
+
+      <a
+        href="javascript:void(0)"
+        ng-click="c.goToPage($event, 'campusmatch_home_hero')">
+
+        Home
+
+      </a>
+
+
+      <a
+        href="javascript:void(0)"
+        ng-click="c.goToPage($event, 'campusmatch_explore')">
+
+        Explore
+
+      </a>
+
+
+      <a
+        href="javascript:void(0)"
+        ng-if="data.loggedIn"
+        ng-click="c.goToPage($event, 'campusmatch_dashboard')">
+
+        My Dashboard
+
+      </a>
+
+
+      <a
+        href="javascript:void(0)"
+        ng-click="c.goToPage($event, 'campusmatch_how_it_works')">
+
+        How It Works
+
+      </a>
+
+
+      <a
+        href="javascript:void(0)"
+        ng-if="!data.isStaff"
+        ng-click="c.goToPage($event, 'campusmatch_about')">
+
+        About
+
+      </a>
+
+
+      <a
+        href="javascript:void(0)"
+        ng-if="data.isStaff"
+        ng-click="c.goToPage($event, 'campusmatch_admin')">
+
+        Staff Portal
+
+      </a>
+
+
+      <!-- =================================================
+           ADMIN ONLY — DEADLINES
+      ================================================== -->
+
+      <a
+        href="javascript:void(0)"
+        ng-if="data.isAdmin"
+        ng-click="c.goToPage($event, 'campusmatch_deadlines')">
+
+        Deadlines
+
+      </a>
+
+    </nav>
+
+
+    <!-- =================================================
+         STUDENT NOTIFICATIONS
+    ================================================== -->
+
+    <div
+      class="cm-notification-wrap"
+      ng-if="
+        data.loggedIn &&
+        !data.isStaff
+      ">
+
+      <button
+        type="button"
+        class="cm-notification-button"
+        ng-click="c.toggleNotifications($event)"
+        aria-label="Notifications"
+        aria-expanded="{{c.notificationOpen}}">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true">
+
+          <path
+            d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9">
+          </path>
+
+          <path
+            d="M10 21h4">
+          </path>
+
+        </svg>
+
+
+        <!-- ORANGE UNREAD DOT -->
+
+        <span
+          class="cm-notification-indicator"
+          ng-if="data.notificationUnreadCount > 0">
+        </span>
+
+      </button>
+
+
+      <!-- NOTIFICATION DROPDOWN -->
+
+      <div
+        class="cm-notification-panel"
+        ng-if="c.notificationOpen">
+
+        <div class="cm-notification-panel-header">
+
+          <div>
+
+            <strong>
+              Notifications
+            </strong>
+
+            <span
+              ng-if="data.notificationUnreadCount > 0">
+
+              {{data.notificationUnreadCount}}
+              unread
+
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="cm-notification-list"
+          ng-if="data.notifications.length">
+
+          <button
+            type="button"
+            class="cm-notification-row"
+            ng-repeat="
+              notification in data.notifications
+              track by notification.sys_id
+            "
+            ng-class="{
+              'unread': !notification.isRead
+            }"
+            ng-click="
+              c.openNotification(
+                $event,
+                notification
+              )
+            ">
+
+            <span
+              class="cm-notification-dot">
+            </span>
+
+
+            <span
+              class="cm-notification-content">
+
+              <strong>
+                {{notification.title}}
+              </strong>
+
+              <span
+                class="cm-notification-message"
+                ng-if="notification.message">
+
+                {{notification.message}}
+
+              </span>
+
+              <small>
+                {{notification.created}}
+              </small>
+
+            </span>
+
+          </button>
+
+        </div>
+
+
+        <div
+          class="cm-notification-empty"
+          ng-if="
+            !data.notifications.length
+          ">
+
+          No notifications yet.
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- DESKTOP USER -->
+
+    <div
+      class="cm-user-area"
+      ng-if="data.loggedIn">
+
+      <div
+        class="cm-user-circle"
+        title="{{data.userName}}">
+
+        {{data.initials}}
+
+      </div>
+
+    </div>
+
+
+    <!-- WEBSITE TABLET / MOBILE HAMBURGER -->
+
+    <button
+      class="cm-menu-button"
+      type="button"
+      ng-click="c.toggleMenu()"
+      ng-class="{'active': c.menuOpen}"
+      aria-label="Open navigation menu"
+      aria-expanded="{{c.menuOpen}}">
+
+      <span></span>
+      <span></span>
+      <span></span>
+
+    </button>
+
+  </div>
+
+
+  <!-- WEBSITE TABLET / MOBILE MENU -->
+
+  <div
+    class="cm-mobile-menu"
+    ng-class="{'open': c.menuOpen}">
+
+    <a
+      href="javascript:void(0)"
+      ng-click="c.goToPage($event, 'campusmatch_home_hero')">
+
+      Home
+
+    </a>
+
+
+    <a
+      href="javascript:void(0)"
+      ng-click="c.goToPage($event, 'campusmatch_explore')">
+
+      Explore
+
+    </a>
+
+
+    <a
+      href="javascript:void(0)"
+      ng-if="data.loggedIn"
+      ng-click="c.goToPage($event, 'campusmatch_dashboard')">
+
+      My Dashboard
+
+    </a>
+
+
+    <a
+      href="javascript:void(0)"
+      ng-click="c.goToPage($event, 'campusmatch_how_it_works')">
+
+      How It Works
+
+    </a>
+
+
+    <a
+      href="javascript:void(0)"
+      ng-if="!data.isStaff"
+      ng-click="c.goToPage($event, 'campusmatch_about')">
+
+      About
+
+    </a>
+
+
+    <a
+      href="javascript:void(0)"
+      ng-if="data.isStaff"
+      ng-click="c.goToPage($event, 'campusmatch_admin')">
+
+      Staff Portal
+
+    </a>
+
+
+    <!-- =================================================
+         ADMIN ONLY — DEADLINES
+    ================================================== -->
+
+    <a
+      href="javascript:void(0)"
+      ng-if="data.isAdmin"
+      ng-click="c.goToPage($event, 'campusmatch_deadlines')">
+
+      Deadlines
+
+    </a>
+
+
+    <!-- WEBSITE MOBILE USER -->
+
+    <div
+      class="cm-mobile-user"
+      ng-if="data.loggedIn">
+
+      <div class="cm-user-circle">
+        {{data.initials}}
+      </div>
+
+      <div class="cm-mobile-user-details">
+
+        <div class="cm-mobile-user-name">
+          {{data.userName}}
+        </div>
+
+        <div class="cm-mobile-user-role">
+          {{data.isStaff ? 'Staff' : 'Student'}}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<!-- =====================================================
+     NOW MOBILE APP HEADER
+===================================================== -->
+
+<header
+  ng-if="c.isAppView"
+  class="cm-app-header">
+
+  <!-- APP LOGO -->
+
+  <a
+    class="cm-app-brand"
+    href="javascript:void(0)"
+    ng-click="c.goToPage($event, 'campusmatch_home_hero')"
+    aria-label="CampusMatch Home">
+
+    <img
+      class="cm-app-brand-logo"
+      src="https://res.cloudinary.com/dn9sdbv1o/image/upload/v1789810311/CampusMatch_Logo_m6xn50.png"
+      alt="CampusMatch">
+
+  </a>
+
+
+  <!-- APP STUDENT NOTIFICATIONS -->
+
+  <div
+    class="cm-notification-wrap cm-app-notification-wrap"
+    ng-if="
+      data.loggedIn &&
+      !data.isStaff
+    ">
+
+    <button
+      type="button"
+      class="cm-notification-button"
+      ng-click="c.toggleNotifications($event)"
+      aria-label="Notifications">
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true">
+
+        <path
+          d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9">
+        </path>
+
+        <path
+          d="M10 21h4">
+        </path>
+
+      </svg>
+
+
+      <!-- ORANGE UNREAD DOT -->
+
+      <span
+        class="cm-notification-indicator"
+        ng-if="data.notificationUnreadCount > 0">
+      </span>
+
+    </button>
+
+
+    <div
+      class="cm-notification-panel cm-app-notification-panel"
+      ng-if="c.notificationOpen">
+
+      <div class="cm-notification-panel-header">
+
+        <div>
+
+          <strong>
+            Notifications
+          </strong>
+
+          <span
+            ng-if="data.notificationUnreadCount > 0">
+
+            {{data.notificationUnreadCount}}
+            unread
+
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="cm-notification-list"
+        ng-if="data.notifications.length">
+
+        <button
+          type="button"
+          class="cm-notification-row"
+          ng-repeat="
+            notification in data.notifications
+            track by notification.sys_id
+          "
+          ng-class="{
+            'unread': !notification.isRead
+          }"
+          ng-click="
+            c.openNotification(
+              $event,
+              notification
+            )
+          ">
+
+          <span
+            class="cm-notification-dot">
+          </span>
+
+
+          <span
+            class="cm-notification-content">
+
+            <strong>
+              {{notification.title}}
+            </strong>
+
+            <span
+              class="cm-notification-message"
+              ng-if="notification.message">
+
+              {{notification.message}}
+
+            </span>
+
+            <small>
+              {{notification.created}}
+            </small>
+
+          </span>
+
+        </button>
+
+      </div>
+
+
+      <div
+        class="cm-notification-empty"
+        ng-if="
+          !data.notifications.length
+        ">
+
+        No notifications yet.
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- APP USER MENU -->
+
+  <div
+    ng-if="data.loggedIn"
+    class="cm-app-user-wrapper">
+
+    <button
+      type="button"
+      class="cm-app-user-circle"
+      ng-click="c.toggleUserMenu($event)"
+      title="{{data.userName}}"
+      aria-label="Open user menu">
+
+      {{data.initials}}
+
+    </button>
+
+
+    <div
+      class="cm-app-user-menu"
+      ng-if="c.userMenuOpen">
+
+      <div class="cm-app-user-menu-header">
+
+        <div class="cm-app-user-menu-name">
+          {{data.userName}}
+        </div>
+
+        <div class="cm-app-user-menu-role">
+
+          <span ng-if="data.isImpersonating">
+            Impersonated User
+          </span>
+
+          <span ng-if="!data.isImpersonating">
+            {{data.isStaff ? 'Staff / Admin' : 'Student'}}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="cm-app-user-menu-item"
+        ng-if="data.canImpersonate && !data.isImpersonating"
+        ng-click="c.showUserPicker($event)">
+
+        Switch User
+
+      </button>
+
+
+      <button
+        type="button"
+        class="cm-app-user-menu-item"
+        ng-if="data.isImpersonating"
+        ng-click="c.endImpersonation($event)">
+
+        End Impersonation
+
+      </button>
+
+
+      <div
+        class="cm-app-user-picker"
+        ng-if="c.userPickerOpen">
+
+        <div class="cm-app-user-search-wrap">
+
+          <input
+            type="text"
+            class="cm-app-user-search"
+            ng-model="c.userSearch"
+            ng-change="c.searchUsers()"
+            placeholder="Search user..."
+            autocomplete="off">
+
+        </div>
+
+
+        <div
+          class="cm-app-user-loading"
+          ng-if="c.userSearching">
+
+          Searching...
+
+        </div>
+
+
+        <button
+          type="button"
+          class="cm-app-user-result"
+          ng-repeat="user in c.userResults"
+          ng-click="c.impersonateUser($event, user)">
+
+          <div class="cm-app-user-result-avatar">
+            {{user.initials}}
+          </div>
+
+          <div class="cm-app-user-result-info">
+
+            <div class="cm-app-user-result-name">
+              {{user.name}}
+            </div>
+
+            <div class="cm-app-user-result-username">
+              {{user.user_name}}
+            </div>
+
+          </div>
+
+        </button>
+
+
+        <div
+          class="cm-app-user-empty"
+          ng-if="
+            !c.userSearching &&
+            c.userSearch.length >= 2 &&
+            c.userResults.length === 0
+          ">
+
+          No users found
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</header>]]></template>
+    </sp_widget>
+</record_update>

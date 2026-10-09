@@ -1,0 +1,7458 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function($scope, $window, snAttachmentHandler) {
+
+
+    var c = this;
+
+
+    /* ======================================================
+       GENERAL STATE
+    ====================================================== */
+
+    c.step = 1;
+
+    c.submitting = false;
+
+    c.errorMessage = '';
+
+    c.createdNumber = '';
+
+    c.createdSysId = '';
+
+    c.selectedImage = null;
+
+    c.selectedImageSize = '';
+
+    c.selectedImagePreview = '';
+
+    c.photoChoice = '';
+
+    c.locationSelected = false;
+
+
+    /* ======================================================
+       FORM
+    ====================================================== */
+
+    c.form = {
+
+        title: '',
+
+        category: '',
+
+        description: '',
+
+        date: '',
+
+        time: '',
+
+        locationX: '',
+
+        locationY: '',
+
+        locationZone: '',
+
+        brand: '',
+
+        color: '',
+
+        uniqueFeatures: '',
+
+        privateDetail1: '',
+
+        privateDetail2: '',
+
+        privateDetail3: ''
+
+    };
+
+
+    /* ======================================================
+       DATE / TIME
+       EXACT LOCAL VALUES + FUTURE RESTRICTION
+    ====================================================== */
+
+    function pad2(value) {
+
+        return value < 10
+            ? '0' + value
+            : value.toString();
+
+    }
+
+
+    /* ======================================================
+       GET EXACT LOCAL DATE
+       RETURNS YYYY-MM-DD
+    ====================================================== */
+
+    function getExactDate(value) {
+
+        if (!value) {
+
+            return '';
+
+        }
+
+
+        /*
+         * Angular date input may store a Date object.
+         *
+         * Use LOCAL values.
+         * Do NOT use UTC / toISOString().
+         */
+
+        if (
+            Object.prototype
+                .toString
+                .call(value) === '[object Date]' &&
+            !isNaN(
+                value.getTime()
+            )
+        ) {
+
+            return (
+                value.getFullYear() +
+                '-' +
+                pad2(
+                    value.getMonth() + 1
+                ) +
+                '-' +
+                pad2(
+                    value.getDate()
+                )
+            );
+
+        }
+
+
+        var raw =
+            value
+                .toString()
+                .trim();
+
+
+        /*
+         * Already correct format.
+         */
+
+        if (
+            /^\d{4}-\d{2}-\d{2}$/
+                .test(
+                    raw
+                )
+        ) {
+
+            return raw;
+
+        }
+
+
+        var parsed =
+            new Date(
+                raw
+            );
+
+
+        if (
+            !isNaN(
+                parsed.getTime()
+            )
+        ) {
+
+            return (
+                parsed.getFullYear() +
+                '-' +
+                pad2(
+                    parsed.getMonth() + 1
+                ) +
+                '-' +
+                pad2(
+                    parsed.getDate()
+                )
+            );
+
+        }
+
+
+        return '';
+
+    }
+
+
+    /* ======================================================
+       GET EXACT LOCAL TIME
+       RETURNS HH:mm
+    ====================================================== */
+
+    function getExactTime(value) {
+
+        if (!value) {
+
+            return '';
+
+        }
+
+
+        /*
+         * Angular time input may also store
+         * a Date object.
+         */
+
+        if (
+            Object.prototype
+                .toString
+                .call(value) === '[object Date]' &&
+            !isNaN(
+                value.getTime()
+            )
+        ) {
+
+            return (
+                pad2(
+                    value.getHours()
+                ) +
+                ':' +
+                pad2(
+                    value.getMinutes()
+                )
+            );
+
+        }
+
+
+        var raw =
+            value
+                .toString()
+                .trim();
+
+
+        /*
+         * HH:mm / HH:mm:ss
+         */
+
+        var direct =
+            raw.match(
+                /^(\d{2}):(\d{2})/
+            );
+
+
+        if (direct) {
+
+            return (
+                direct[1] +
+                ':' +
+                direct[2]
+            );
+
+        }
+
+
+        var parsed =
+            new Date(
+                raw
+            );
+
+
+        if (
+            !isNaN(
+                parsed.getTime()
+            )
+        ) {
+
+            return (
+                pad2(
+                    parsed.getHours()
+                ) +
+                ':' +
+                pad2(
+                    parsed.getMinutes()
+                )
+            );
+
+        }
+
+
+        return '';
+
+    }
+
+
+    /* ======================================================
+       CURRENT DATE / TIME
+    ====================================================== */
+
+    c.todayDate = '';
+
+    c.currentTime = '';
+
+
+    c.refreshDateTimeLimits =
+        function() {
+
+            var now =
+                new Date();
+
+
+            c.todayDate =
+                getExactDate(
+                    now
+                );
+
+
+            c.currentTime =
+                getExactTime(
+                    now
+                );
+
+        };
+
+
+    /*
+     * When a past date is selected,
+     * any time is allowed.
+     *
+     * When today is selected,
+     * max time = current time.
+     */
+
+    c.getMaxTimeForSelectedDate =
+        function() {
+
+            var selectedDate =
+                getExactDate(
+                    c.form.date
+                );
+
+
+            if (
+                selectedDate ===
+                    c.todayDate
+            ) {
+
+                return c.currentTime;
+
+            }
+
+
+            return '';
+
+        };
+
+
+    /* ======================================================
+       DATE CHANGED
+    ====================================================== */
+
+    c.onReportedDateChange =
+        function() {
+
+            c.refreshDateTimeLimits();
+
+
+            var selectedDate =
+                getExactDate(
+                    c.form.date
+                );
+
+
+            var selectedTime =
+                getExactTime(
+                    c.form.time
+                );
+
+
+            /*
+             * Example:
+             *
+             * User selected 11 PM yesterday,
+             * then changes date to today at 3 PM.
+             *
+             * 11 PM becomes invalid, so remove it.
+             */
+
+            if (
+                selectedDate ===
+                    c.todayDate &&
+                selectedTime &&
+                selectedTime >
+                    c.currentTime
+            ) {
+
+                c.form.time =
+                    null;
+
+
+                var timeInput =
+                    $window.document
+                        .getElementById(
+                            'campusmatchReportedTime'
+                        );
+
+
+                if (timeInput) {
+
+                    timeInput.value =
+                        '';
+
+                }
+
+
+                c.errorMessage =
+                    'Future time is not allowed for today.';
+
+            }
+
+        };
+
+
+    /* ======================================================
+       TIME CHANGED
+       BLOCK FUTURE TIME WHEN DATE = TODAY
+    ====================================================== */
+
+    c.onReportedTimeChange =
+        function() {
+
+            c.refreshDateTimeLimits();
+
+
+            var selectedDate =
+                getExactDate(
+                    c.form.date
+                );
+
+
+            var selectedTime =
+                getExactTime(
+                    c.form.time
+                );
+
+
+            /*
+             * Past dates may use any time.
+             *
+             * Today may only use current time
+             * or an earlier time.
+             */
+
+            if (
+                selectedDate ===
+                    c.todayDate &&
+                selectedTime &&
+                selectedTime >
+                    c.currentTime
+            ) {
+
+                c.form.time =
+                    null;
+
+
+                var timeInput =
+                    $window.document
+                        .getElementById(
+                            'campusmatchReportedTime'
+                        );
+
+
+                if (timeInput) {
+
+                    timeInput.value =
+                        '';
+
+                }
+
+
+                c.errorMessage =
+                    'Future time is not allowed for today.';
+
+
+                return;
+
+            }
+
+
+            /*
+             * Clear only this specific error
+             * after a valid time is entered.
+             */
+
+            if (
+                c.errorMessage ===
+                    'Future time is not allowed for today.'
+            ) {
+
+                c.errorMessage =
+                    '';
+
+            }
+
+        };
+
+
+    /* ======================================================
+       VALIDATE DATE / TIME
+    ====================================================== */
+
+    c.validateReportedDateTime =
+        function() {
+
+            c.refreshDateTimeLimits();
+
+
+            var selectedDate =
+                getExactDate(
+                    c.form.date
+                );
+
+
+            var selectedTime =
+                getExactTime(
+                    c.form.time
+                );
+
+
+            /* ----------------------------------------------
+               DATE REQUIRED
+            ---------------------------------------------- */
+
+            if (!selectedDate) {
+
+                c.errorMessage =
+                    c.reportType === 'found'
+                        ? 'Please select the date the item was found.'
+                        : 'Please select the date the item was lost.';
+
+
+                return false;
+
+            }
+
+
+            /* ----------------------------------------------
+               TIME REQUIRED
+            ---------------------------------------------- */
+
+            if (!selectedTime) {
+
+                c.errorMessage =
+                    'Please select the approximate time.';
+
+
+                return false;
+
+            }
+
+
+            /* ----------------------------------------------
+               FUTURE DATE
+            ---------------------------------------------- */
+
+            if (
+                selectedDate >
+                    c.todayDate
+            ) {
+
+                c.errorMessage =
+                    'Future dates are not allowed.';
+
+
+                return false;
+
+            }
+
+
+            /* ----------------------------------------------
+               TODAY + FUTURE TIME
+            ---------------------------------------------- */
+
+            if (
+                selectedDate ===
+                    c.todayDate &&
+                selectedTime &&
+                selectedTime >
+                    c.currentTime
+            ) {
+
+                c.errorMessage =
+                    'Future time is not allowed for today.';
+
+
+                return false;
+
+            }
+
+
+            return true;
+
+        };
+
+
+    /* ======================================================
+       REVIEW DISPLAY VALUES
+    ====================================================== */
+
+    c.getDisplayDate =
+        function() {
+
+            return (
+                getExactDate(
+                    c.form.date
+                ) ||
+                '—'
+            );
+
+        };
+
+
+    c.getDisplayTime =
+        function() {
+
+            return (
+                getExactTime(
+                    c.form.time
+                ) ||
+                '—'
+            );
+
+        };
+
+
+    /*
+     * Initial date/time limits.
+     */
+
+    c.refreshDateTimeLimits();
+
+
+    /* ======================================================
+       REPORT TYPE FROM URL
+    ====================================================== */
+
+    var params =
+        new URLSearchParams(
+            $window.location.search
+        );
+
+
+    var type =
+        params.get(
+            'type'
+        );
+
+
+    if (
+        type === 'found'
+    ) {
+
+        c.reportType =
+            'found';
+
+    }
+    else {
+
+        c.reportType =
+            'lost';
+
+    }
+
+
+    /* ======================================================
+       LOCATION PICKER EVENT
+    ====================================================== */
+
+    var locationListener =
+        $scope.$on(
+
+            'campusmatch.location.selected',
+
+            function(
+                event,
+                location
+            ) {
+
+                $scope.$evalAsync(
+                    function() {
+
+                        c.form.locationX =
+                            location.x;
+
+
+                        c.form.locationY =
+                            location.y;
+
+
+                        c.form.locationZone =
+                            location.zone;
+
+
+                        c.locationSelected =
+                            true;
+
+                    }
+                );
+
+            }
+
+        );
+
+
+    /* ======================================================
+       LOCATION CLEARED EVENT
+    ====================================================== */
+
+    var locationClearListener =
+        $scope.$on(
+
+            'campusmatch.location.cleared',
+
+            function() {
+
+                $scope.$evalAsync(
+                    function() {
+
+                        c.form.locationX =
+                            '';
+
+
+                        c.form.locationY =
+                            '';
+
+
+                        c.form.locationZone =
+                            '';
+
+
+                        c.locationSelected =
+                            false;
+
+                    }
+                );
+
+            }
+
+        );
+
+
+    /* ======================================================
+       DESTROY LISTENERS
+    ====================================================== */
+
+    $scope.$on(
+
+        '$destroy',
+
+        function() {
+
+            locationListener();
+
+            locationClearListener();
+
+        }
+
+    );
+
+
+    /* ======================================================
+       LOST / FOUND SWITCH
+    ====================================================== */
+
+    c.setType =
+        function(type) {
+
+            c.reportType =
+                type;
+
+
+            c.step =
+                1;
+
+
+            c.errorMessage =
+                '';
+
+        };
+
+
+    /* ======================================================
+       VALIDATE CURRENT STEP
+    ====================================================== */
+
+    c.validateCurrentStep =
+        function() {
+
+            c.errorMessage =
+                '';
+
+
+            /* ==============================================
+               STEP 1
+            ============================================== */
+
+            if (
+                c.step === 1
+            ) {
+
+                if (
+                    !c.form.title ||
+                    !c.form.title.trim()
+                ) {
+
+                    c.errorMessage =
+                        'Please enter an item title.';
+
+
+                    return false;
+
+                }
+
+
+                if (
+                    !c.form.category
+                ) {
+
+                    c.errorMessage =
+                        'Please select a category.';
+
+
+                    return false;
+
+                }
+
+
+                /*
+                 * DATE / TIME VALIDATION
+                 */
+
+                if (
+                    !c.validateReportedDateTime()
+                ) {
+
+                    return false;
+
+                }
+
+            }
+
+
+            /* ==============================================
+               STEP 3 — PHOTO
+            ============================================== */
+
+            if (
+                c.step === 3
+            ) {
+
+                if (
+                    !c.photoChoice
+                ) {
+
+                    c.errorMessage =
+                        'Please tell us whether you have a photo of the item.';
+
+
+                    return false;
+
+                }
+
+
+                if (
+                    c.photoChoice ===
+                        'yes' &&
+                    !c.selectedImage
+                ) {
+
+                    c.errorMessage =
+                        'Please choose a photo before continuing.';
+
+
+                    return false;
+
+                }
+
+
+                if (
+                    c.photoChoice ===
+                        'no'
+                ) {
+
+                    if (
+                        !c.form.color ||
+                        !c.form.color.trim()
+                    ) {
+
+                        c.errorMessage =
+                            'Please enter the item color.';
+
+
+                        return false;
+
+                    }
+
+
+                    if (
+                        !c.form.uniqueFeatures ||
+                        !c.form.uniqueFeatures
+                            .trim()
+                    ) {
+
+                        c.errorMessage =
+                            'Please describe at least one unique feature of the item.';
+
+
+                        return false;
+
+                    }
+
+                }
+
+            }
+
+
+            /* ==============================================
+               FOUND PRIVATE DETAILS
+            ============================================== */
+
+            if (
+                c.reportType ===
+                    'found' &&
+                c.step === 4
+            ) {
+
+                if (
+                    !c.form.privateDetail1 ||
+                    !c.form.privateDetail1
+                        .trim() ||
+                    !c.form.privateDetail2 ||
+                    !c.form.privateDetail2
+                        .trim()
+                ) {
+
+                    c.errorMessage =
+                        'Please provide at least two private verification details.';
+
+
+                    return false;
+
+                }
+
+            }
+
+
+            return true;
+
+        };
+
+
+    /* ======================================================
+       NEXT STEP
+    ====================================================== */
+
+    c.next =
+        function() {
+
+            if (
+                !c.validateCurrentStep()
+            ) {
+
+                return;
+
+            }
+
+
+            c.errorMessage =
+                '';
+
+
+            c.step +=
+                1;
+
+
+            $window.scrollTo(
+                0,
+                0
+            );
+
+        };
+
+
+    /* ======================================================
+       PREVIOUS STEP
+    ====================================================== */
+
+    c.previous =
+        function() {
+
+            c.errorMessage =
+                '';
+
+
+            if (
+                c.step > 1
+            ) {
+
+                c.step -=
+                    1;
+
+            }
+
+
+            $window.scrollTo(
+                0,
+                0
+            );
+
+        };
+
+
+    /* ======================================================
+       PHOTO OPTION
+    ====================================================== */
+
+    c.choosePhotoOption =
+        function(choice) {
+
+            c.errorMessage =
+                '';
+
+
+            c.photoChoice =
+                choice;
+
+
+            /*
+             * YES:
+             * clear old manually entered visual details.
+             */
+
+            if (
+                choice === 'yes'
+            ) {
+
+                c.form.brand =
+                    '';
+
+                c.form.color =
+                    '';
+
+                c.form.uniqueFeatures =
+                    '';
+
+            }
+
+
+            /*
+             * NO:
+             * remove previously selected image.
+             */
+
+            if (
+                choice === 'no'
+            ) {
+
+                c.removeImage();
+
+                c.photoChoice =
+                    'no';
+
+            }
+
+        };
+
+
+    /* ======================================================
+       SELECT IMAGE
+    ====================================================== */
+
+    c.selectImage =
+        function(files) {
+
+            c.errorMessage =
+                '';
+
+
+            if (
+                !files ||
+                !files.length
+            ) {
+
+                return;
+
+            }
+
+
+            var file =
+                files[0];
+
+
+            var allowedTypes = [
+
+                'image/jpeg',
+
+                'image/png'
+
+            ];
+
+
+            if (
+                allowedTypes.indexOf(
+                    file.type
+                ) === -1
+            ) {
+
+                c.selectedImage =
+                    null;
+
+
+                c.selectedImageSize =
+                    '';
+
+
+                c.selectedImagePreview =
+                    '';
+
+
+                c.errorMessage =
+                    'Please upload a JPG or PNG image.';
+
+
+                return;
+
+            }
+
+
+            var maxSize =
+                5 *
+                1024 *
+                1024;
+
+
+            if (
+                file.size >
+                    maxSize
+            ) {
+
+                c.selectedImage =
+                    null;
+
+
+                c.selectedImageSize =
+                    '';
+
+
+                c.selectedImagePreview =
+                    '';
+
+
+                c.errorMessage =
+                    'Image must be smaller than 5 MB.';
+
+
+                return;
+
+            }
+
+
+            c.selectedImage =
+                file;
+
+
+            c.selectedImageSize =
+                (
+                    file.size /
+                    (
+                        1024 *
+                        1024
+                    )
+                )
+                .toFixed(
+                    2
+                ) +
+                ' MB';
+
+
+            /* ==============================================
+               IMAGE PREVIEW
+            ============================================== */
+
+            var reader =
+                new FileReader();
+
+
+            reader.onload =
+                function(event) {
+
+                    $scope.$evalAsync(
+                        function() {
+
+                            c.selectedImagePreview =
+                                event.target.result;
+
+                        }
+                    );
+
+                };
+
+
+            reader.readAsDataURL(
+                file
+            );
+
+        };
+
+
+    /* ======================================================
+       REMOVE IMAGE
+    ====================================================== */
+
+    c.removeImage =
+        function() {
+
+            c.selectedImage =
+                null;
+
+
+            c.selectedImageSize =
+                '';
+
+
+            c.selectedImagePreview =
+                '';
+
+
+            c.errorMessage =
+                '';
+
+
+            var input =
+                document.getElementById(
+                    'campusmatchImage'
+                );
+
+
+            if (input) {
+
+                input.value =
+                    '';
+
+            }
+
+        };
+
+
+    /* ======================================================
+       CATEGORY LABEL
+    ====================================================== */
+
+    c.getCategoryLabel =
+        function() {
+
+            var labels = {
+
+                electronics:
+                    'Electronics',
+
+                bags:
+                    'Bags',
+
+                books:
+                    'Books',
+
+                clothing:
+                    'Clothing',
+
+                accessories:
+                    'Accessories',
+
+                id_cards:
+                    'ID / Cards',
+
+                keys:
+                    'Keys',
+
+                documents:
+                    'Documents',
+
+                other:
+                    'Other'
+
+            };
+
+
+            return (
+                labels[
+                    c.form.category
+                ] ||
+                '—'
+            );
+
+        };
+
+
+    /* ======================================================
+       RUN MATCHING
+    ====================================================== */
+
+    c.runMatching =
+        function(itemSysId) {
+
+            c.server.get({
+
+                action:
+                    'runMatching',
+
+                item_sys_id:
+                    itemSysId
+
+            }).then(
+
+                function(response) {
+
+                    if (
+                        !response ||
+                        !response.data ||
+                        !response.data.success
+                    ) {
+
+                        console.log(
+                            'CampusMatch matching warning:',
+                            response &&
+                            response.data
+                                ?
+                                response.data.message
+                                :
+                                'Matching request failed.'
+                        );
+
+                    }
+
+
+                    c.finishSubmission();
+
+                },
+
+                function(error) {
+
+                    console.log(
+                        'CampusMatch matching request failed:',
+                        error
+                    );
+
+
+                    c.finishSubmission();
+
+                }
+
+            );
+
+        };
+
+
+    /* ======================================================
+       GET ATTACHMENT SYS ID
+    ====================================================== */
+
+    c.getAttachmentSysId =
+        function(response) {
+
+            if (
+                !response
+            ) {
+
+                return '';
+
+            }
+
+
+            if (
+                response.sys_id
+            ) {
+
+                return response.sys_id;
+
+            }
+
+
+            if (
+                response.data &&
+                response.data.sys_id
+            ) {
+
+                return response.data.sys_id;
+
+            }
+
+
+            if (
+                response.result &&
+                response.result.sys_id
+            ) {
+
+                return response.result.sys_id;
+
+            }
+
+
+            if (
+                response.data &&
+                response.data.result &&
+                response.data.result.sys_id
+            ) {
+
+                return response
+                    .data
+                    .result
+                    .sys_id;
+
+            }
+
+
+            if (
+                response.length &&
+                response[0] &&
+                response[0].sys_id
+            ) {
+
+                return response[0]
+                    .sys_id;
+
+            }
+
+
+            return '';
+
+        };
+
+
+    /* ======================================================
+       CONVERT IMAGE
+    ====================================================== */
+
+    c.convertUploadedImage =
+        function(
+            itemSysId,
+            attachmentSysId
+        ) {
+
+            var fileName =
+                (
+                    c.selectedImage &&
+                    c.selectedImage.name
+                )
+                    ?
+                    c.selectedImage.name
+                    :
+                    '';
+
+
+            c.server.get({
+
+                action:
+                    'convertImageAttachment',
+
+                item_sys_id:
+                    itemSysId,
+
+                attachment_sys_id:
+                    attachmentSysId ||
+                    '',
+
+                file_name:
+                    fileName
+
+            }).then(
+
+                function(
+                    convertResponse
+                ) {
+
+                    if (
+                        !convertResponse ||
+                        !convertResponse.data ||
+                        !convertResponse
+                            .data
+                            .success
+                    ) {
+
+                        c.submitting =
+                            false;
+
+
+                        c.errorMessage =
+                            (
+                                convertResponse &&
+                                convertResponse.data &&
+                                convertResponse
+                                    .data
+                                    .message
+                            )
+                                ?
+                                convertResponse
+                                    .data
+                                    .message
+                                :
+                                'The report was created, but the image could not be processed.';
+
+
+                        return;
+
+                    }
+
+
+                    c.finishSubmission();
+
+                },
+
+                function() {
+
+                    c.submitting =
+                        false;
+
+
+                    c.errorMessage =
+                        'The report was created, but the image could not be processed.';
+
+                }
+
+            );
+
+        };
+
+
+    /* ======================================================
+       UPLOAD IMAGE
+    ====================================================== */
+
+    c.uploadImage =
+        function(itemSysId) {
+
+            if (
+                !c.selectedImage
+            ) {
+
+                c.runMatching(
+                    itemSysId
+                );
+
+
+                return;
+
+            }
+
+
+            var attachmentHandler =
+                snAttachmentHandler
+                    .create(
+
+                        'x_snc_campusmatch_campusmatch_item',
+
+                        itemSysId
+
+                    );
+
+
+            attachmentHandler
+                .uploadAttachment(
+                    c.selectedImage
+                )
+                .then(
+
+                    function(response) {
+
+                        var attachmentSysId =
+                            c.getAttachmentSysId(
+                                response
+                            );
+
+
+                        console.log(
+                            'CampusMatch attachment upload response:',
+                            response
+                        );
+
+
+                        console.log(
+                            'CampusMatch attachment sys_id:',
+                            attachmentSysId ||
+                            '(not exposed - server fallback will locate it)'
+                        );
+
+
+                        c.convertUploadedImage(
+                            itemSysId,
+                            attachmentSysId
+                        );
+
+                    },
+
+                    function(error) {
+
+                        c.submitting =
+                            false;
+
+
+                        c.errorMessage =
+                            'The report was created, but the photo upload failed.';
+
+
+                        console.log(
+                            'CampusMatch photo upload error:',
+                            error
+                        );
+
+                    }
+
+                );
+
+        };
+
+
+    /* ======================================================
+       FINISH SUBMISSION
+    ====================================================== */
+
+    c.finishSubmission =
+        function() {
+
+            c.submitting =
+                false;
+
+
+            c.errorMessage =
+                '';
+
+
+            c.step =
+                'success';
+
+
+            $window.scrollTo(
+                0,
+                0
+            );
+
+        };
+
+
+    /* ======================================================
+       SUBMIT REPORT
+    ====================================================== */
+
+    c.submitReport =
+        function() {
+
+            c.errorMessage =
+                '';
+
+
+            if (
+                c.submitting
+            ) {
+
+                return;
+
+            }
+
+
+            if (
+                !c.form.title ||
+                !c.form.title.trim()
+            ) {
+
+                c.errorMessage =
+                    'Please enter a title.';
+
+
+                return;
+
+            }
+
+
+            if (
+                !c.form.category
+            ) {
+
+                c.errorMessage =
+                    'Please select a category.';
+
+
+                return;
+
+            }
+
+
+            /*
+             * Revalidate immediately before submission.
+             */
+
+            if (
+                !c.validateReportedDateTime()
+            ) {
+
+                return;
+
+            }
+
+
+            /* ==================================================
+               LOCATION VALIDATION
+            ================================================== */
+
+            var missingX =
+                c.form.locationX ===
+                    '' ||
+                c.form.locationX ===
+                    null ||
+                typeof c.form.locationX ===
+                    'undefined';
+
+
+            var missingY =
+                c.form.locationY ===
+                    '' ||
+                c.form.locationY ===
+                    null ||
+                typeof c.form.locationY ===
+                    'undefined';
+
+
+            if (
+                missingX ||
+                missingY ||
+                !c.form.locationZone
+            ) {
+
+                c.errorMessage =
+                    'Please select the item location on the campus map.';
+
+
+                return;
+
+            }
+
+
+            /* ==================================================
+               PHOTO VALIDATION
+            ================================================== */
+
+            if (
+                !c.photoChoice
+            ) {
+
+                c.errorMessage =
+                    'Please tell us whether you have a photo of the item.';
+
+
+                return;
+
+            }
+
+
+            if (
+                c.photoChoice ===
+                    'yes' &&
+                !c.selectedImage
+            ) {
+
+                c.errorMessage =
+                    'Please choose a photo before submitting.';
+
+
+                return;
+
+            }
+
+
+            if (
+                c.photoChoice ===
+                    'no'
+            ) {
+
+                if (
+                    !c.form.color ||
+                    !c.form.color.trim()
+                ) {
+
+                    c.errorMessage =
+                        'Please enter the item color.';
+
+
+                    return;
+
+                }
+
+
+                if (
+                    !c.form.uniqueFeatures ||
+                    !c.form.uniqueFeatures
+                        .trim()
+                ) {
+
+                    c.errorMessage =
+                        'Please describe at least one unique feature of the item.';
+
+
+                    return;
+
+                }
+
+            }
+
+
+            /* ==================================================
+               FOUND PRIVATE DETAILS VALIDATION
+            ================================================== */
+
+            if (
+                c.reportType ===
+                    'found'
+            ) {
+
+                if (
+                    !c.form.privateDetail1 ||
+                    !c.form.privateDetail1
+                        .trim()
+                ) {
+
+                    c.errorMessage =
+                        'Please enter Private Verification Detail 1.';
+
+
+                    return;
+
+                }
+
+
+                if (
+                    !c.form.privateDetail2 ||
+                    !c.form.privateDetail2
+                        .trim()
+                ) {
+
+                    c.errorMessage =
+                        'Please enter Private Verification Detail 2.';
+
+
+                    return;
+
+                }
+
+            }
+
+
+            c.submitting =
+                true;
+
+
+            /* ==================================================
+               CREATE REPORT
+            ================================================== */
+
+            c.server.get({
+
+                action:
+                    'createReport',
+
+                report_type:
+                    c.reportType,
+
+                title:
+                    c.form.title,
+
+                category:
+                    c.form.category,
+
+                description:
+                    c.form.description,
+
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * Send exact local strings.
+                 *
+                 * Do NOT send the raw Angular Date object.
+                 */
+
+                reported_date:
+                    getExactDate(
+                        c.form.date
+                    ),
+
+                reported_time:
+                    getExactTime(
+                        c.form.time
+                    ),
+
+
+                location_x:
+                    c.form.locationX,
+
+                location_y:
+                    c.form.locationY,
+
+                location_zone:
+                    c.form.locationZone,
+
+                photo_mode:
+                    c.photoChoice,
+
+                brand:
+                    c.form.brand,
+
+                color:
+                    c.form.color,
+
+                unique_features:
+                    c.form.uniqueFeatures,
+
+                private_1:
+                    c.form.privateDetail1,
+
+                private_2:
+                    c.form.privateDetail2,
+
+                private_3:
+                    c.form.privateDetail3
+
+            }).then(
+
+                function(response) {
+
+                    if (
+                        !response ||
+                        !response.data ||
+                        !response.data.success
+                    ) {
+
+                        c.submitting =
+                            false;
+
+
+                        c.errorMessage =
+                            (
+                                response &&
+                                response.data &&
+                                response.data.message
+                            )
+                                ?
+                                response.data.message
+                                :
+                                'Unable to create report.';
+
+
+                        return;
+
+                    }
+
+
+                    c.createdSysId =
+                        response.data.sys_id;
+
+
+                    c.createdNumber =
+                        response.data.number;
+
+
+                    if (
+                        c.photoChoice ===
+                            'yes' &&
+                        c.selectedImage
+                    ) {
+
+                        c.uploadImage(
+                            c.createdSysId
+                        );
+
+                    }
+                    else {
+
+                        c.runMatching(
+                            c.createdSysId
+                        );
+
+                    }
+
+                },
+
+                function() {
+
+                    c.submitting =
+                        false;
+
+
+                    c.errorMessage =
+                        'Unable to create report. Please try again.';
+
+                }
+
+            );
+
+        };
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ==========================================================&#13;
+   CAMPUSMATCH REPORT ITEM&#13;
+   WEBSITE + NOW MOBILE APP&#13;
+   FULL-BLEED SAFE VERSION&#13;
+========================================================== */&#13;
+&#13;
+.cm-report-page {&#13;
+  position: relative;&#13;
+  display: block;&#13;
+&#13;
+  /* FULL WIDTH OUTSIDE SERVICENOW WRAPPER */&#13;
+  width: 100vw !important;&#13;
+  max-width: 100vw !important;&#13;
+&#13;
+  margin-left: calc(50% - 50vw) !important;&#13;
+  margin-right: calc(50% - 50vw) !important;&#13;
+&#13;
+  margin-top: 0 !important;&#13;
+  margin-bottom: 0 !important;&#13;
+&#13;
+  min-height: 100vh;&#13;
+  min-height: 100svh;&#13;
+&#13;
+  padding:&#13;
+    56px&#13;
+    20px&#13;
+    90px;&#13;
+&#13;
+  background:&#13;
+    linear-gradient(&#13;
+      180deg,&#13;
+      #FBF8EF 0%,&#13;
+      #F5F7F0 100%&#13;
+    );&#13;
+&#13;
+  /*&#13;
+     Covers ServiceNow external top/bottom white spacing&#13;
+     without moving this widget or touching Header.&#13;
+  */&#13;
+  box-shadow:&#13;
+    0 -60px 0 #FBF8EF,&#13;
+    0 60px 0 #F5F7F0;&#13;
+&#13;
+  font-family:&#13;
+    "DM Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  box-sizing: border-box !important;&#13;
+&#13;
+  overflow-x: hidden;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SAFE BOX SIZING&#13;
+========================================================== */&#13;
+&#13;
+.cm-report-page,&#13;
+.cm-report-page *,&#13;
+.cm-report-page *::before,&#13;
+.cm-report-page *::after {&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CONTAINER&#13;
+========================================================== */&#13;
+&#13;
+.cm-report-container {&#13;
+  position: relative;&#13;
+&#13;
+  width: 100%;&#13;
+&#13;
+  max-width: 780px;&#13;
+&#13;
+  margin: 0 auto;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   HEADER&#13;
+========================================================== */&#13;
+&#13;
+.cm-report-header {&#13;
+  text-align: center;&#13;
+&#13;
+  margin-bottom: 28px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-eyebrow {&#13;
+  display: inline-flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  padding:&#13;
+    8px&#13;
+    16px;&#13;
+&#13;
+  margin-bottom: 16px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-header h1 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    10px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 38px;&#13;
+&#13;
+  font-weight: 700;&#13;
+&#13;
+  line-height: 1.12;&#13;
+&#13;
+  letter-spacing: -1px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-header p {&#13;
+  max-width: 520px;&#13;
+&#13;
+  margin: 0 auto;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 16px;&#13;
+&#13;
+  line-height: 1.6;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   LOST / FOUND SWITCH&#13;
+========================================================== */&#13;
+&#13;
+.cm-type-switch {&#13;
+  width: fit-content;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    34px;&#13;
+&#13;
+  padding: 5px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  gap: 5px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #E7EFE8;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-type-switch button {&#13;
+  min-width: 135px;&#13;
+&#13;
+  padding:&#13;
+    11px&#13;
+    20px;&#13;
+&#13;
+  border: 0;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: transparent;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-weight: 700;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  transition:&#13;
+    background .2s ease,&#13;
+    color .2s ease,&#13;
+    box-shadow .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-type-switch button.active {&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 7px 18px rgba(16,78,69,.14);&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   PROGRESS&#13;
+========================================================== */&#13;
+&#13;
+.cm-progress {&#13;
+  width: 100%;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  margin-bottom: 32px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-progress-item {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 7px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-progress-dot {&#13;
+  width: 32px;&#13;
+&#13;
+  height: 32px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #77868A;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-progress-label {&#13;
+  color: #77868A;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-progress-item.active .cm-progress-dot {&#13;
+  background: #104E45;&#13;
+&#13;
+  border-color: #104E45;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-progress-item.active .cm-progress-label {&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-progress-item.done .cm-progress-dot {&#13;
+  background: #249D78;&#13;
+&#13;
+  border-color: #249D78;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-progress-line {&#13;
+  width: 30px;&#13;
+&#13;
+  height: 2px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    8px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  background: #D2DED8;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CARD&#13;
+========================================================== */&#13;
+&#13;
+.cm-report-card {&#13;
+  width: 100%;&#13;
+&#13;
+  padding: 38px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 26px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 14px 38px rgba(16,78,69,.08);&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   STEP HEADER&#13;
+========================================================== */&#13;
+&#13;
+.cm-step-heading {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: flex-start;&#13;
+&#13;
+  gap: 15px;&#13;
+&#13;
+  margin-bottom: 30px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-number {&#13;
+  width: 44px;&#13;
+&#13;
+  height: 44px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 14px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-heading h2 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    5px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 22px;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-heading p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 14px;&#13;
+&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   FIELDS&#13;
+========================================================== */&#13;
+&#13;
+.cm-field {&#13;
+  margin-bottom: 22px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-field label {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 8px;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 14px;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-field label &gt; span {&#13;
+  color: #B5502F;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-field .cm-optional {&#13;
+  margin-left: 6px;&#13;
+&#13;
+  color: #77868A;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  font-weight: 500;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-field input,&#13;
+.cm-field select,&#13;
+.cm-field textarea {&#13;
+  width: 100%;&#13;
+&#13;
+  max-width: 100%;&#13;
+&#13;
+  padding:&#13;
+    14px&#13;
+    16px;&#13;
+&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 15px;&#13;
+&#13;
+  outline: none;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 14px;&#13;
+&#13;
+  transition:&#13;
+    border .2s ease,&#13;
+    box-shadow .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-field textarea {&#13;
+  min-height: 105px;&#13;
+&#13;
+  resize: vertical;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-field input:focus,&#13;
+.cm-field select:focus,&#13;
+.cm-field textarea:focus {&#13;
+  border-color: #249D78;&#13;
+&#13;
+  box-shadow:&#13;
+    0 0 0 4px rgba(36,157,120,.10);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-field-hint {&#13;
+  margin-top: 6px;&#13;
+&#13;
+  color: #7B898D;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-two-column {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    minmax(0,1fr)&#13;
+    minmax(0,1fr);&#13;
+&#13;
+  gap: 16px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MAP PLACEHOLDER&#13;
+========================================================== */&#13;
+&#13;
+.cm-map-placeholder {&#13;
+  min-height: 310px;&#13;
+&#13;
+  padding:&#13;
+    38px&#13;
+    20px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  flex-direction: column;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  margin-bottom: 20px;&#13;
+&#13;
+  border: 2px dashed #BCD3C8;&#13;
+&#13;
+  border-radius: 22px;&#13;
+&#13;
+  background: #F3F8F0;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-map-icon {&#13;
+  width: 64px;&#13;
+&#13;
+  height: 64px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  margin-bottom: 12px;&#13;
+&#13;
+  border-radius: 20px;&#13;
+&#13;
+  background: #E1EFE5;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-map-icon svg {&#13;
+  width: 34px;&#13;
+&#13;
+  height: 34px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-map-placeholder h3 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    5px;&#13;
+&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-map-placeholder p {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    9px;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-map-placeholder &gt; span {&#13;
+  padding:&#13;
+    5px&#13;
+    10px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #249D78;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   LOCATION&#13;
+========================================================== */&#13;
+&#13;
+.cm-map-wrapper {&#13;
+  width: 100%;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  padding: 14px;&#13;
+&#13;
+  margin-bottom: 15px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 20px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 5px 18px rgba(16,78,69,.05);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-selected-location {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 18px;&#13;
+&#13;
+  padding:&#13;
+    15px&#13;
+    17px;&#13;
+&#13;
+  margin-bottom: 15px;&#13;
+&#13;
+  border-radius: 15px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-selected-label {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 2px;&#13;
+&#13;
+  color: #65777B;&#13;
+&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-selected-location strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  word-break: break-word;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-coordinate-text {&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-location-note {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 9px;&#13;
+&#13;
+  padding:&#13;
+    13px&#13;
+    15px;&#13;
+&#13;
+  border-radius: 14px;&#13;
+&#13;
+  background: #FAF3E4;&#13;
+&#13;
+  color: #7D662D;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  line-height: 1.45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-location-note svg {&#13;
+  width: 17px;&#13;
+&#13;
+  height: 17px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   UPLOAD&#13;
+========================================================== */&#13;
+&#13;
+.cm-upload-zone {&#13;
+  padding:&#13;
+    45px&#13;
+    25px;&#13;
+&#13;
+  margin-bottom: 20px;&#13;
+&#13;
+  border: 2px dashed #BCD3C8;&#13;
+&#13;
+  border-radius: 22px;&#13;
+&#13;
+  background: #F3F8F0;&#13;
+&#13;
+  text-align: center;&#13;
+&#13;
+  transition:&#13;
+    border .2s ease,&#13;
+    background .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-upload-zone:hover {&#13;
+  border-color: #249D78;&#13;
+&#13;
+  background: #EAF4EA;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-upload-icon {&#13;
+  width: 60px;&#13;
+&#13;
+  height: 60px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    13px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 19px;&#13;
+&#13;
+  background: #E0EFE5;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-upload-icon svg {&#13;
+  width: 31px;&#13;
+&#13;
+  height: 31px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-upload-zone h3 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    4px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 17px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-upload-zone p {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    16px;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   PHOTO UPLOAD BUTTON&#13;
+========================================================== */&#13;
+&#13;
+.cm-photo-upload-btn {&#13;
+  display: inline-flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  padding:&#13;
+    11px&#13;
+    18px;&#13;
+&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  font-weight: 800;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  transition:&#13;
+    border-color .2s ease,&#13;
+    background .2s ease,&#13;
+    transform .2s ease,&#13;
+    box-shadow .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-photo-upload-btn:hover {&#13;
+  border-color: #249D78;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  transform: translateY(-1px);&#13;
+&#13;
+  box-shadow:&#13;
+    0 5px 14px rgba(16,78,69,.08);&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SELECTED PHOTO&#13;
+========================================================== */&#13;
+&#13;
+.cm-selected-photo {&#13;
+  margin-top: -5px;&#13;
+&#13;
+  margin-bottom: 20px;&#13;
+&#13;
+  padding:&#13;
+    12px&#13;
+    14px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 10px;&#13;
+&#13;
+  border-radius: 12px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-selected-photo strong {&#13;
+  min-width: 0;&#13;
+&#13;
+  flex: 1;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  text-overflow: ellipsis;&#13;
+&#13;
+  white-space: nowrap;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-selected-photo span {&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-selected-photo button {&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  padding:&#13;
+    5px&#13;
+    8px;&#13;
+&#13;
+  border: 0;&#13;
+&#13;
+  border-radius: 8px;&#13;
+&#13;
+  background: transparent;&#13;
+&#13;
+  color: #A44832;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 10px;&#13;
+&#13;
+  font-weight: 800;&#13;
+&#13;
+  cursor: pointer;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-selected-photo button:hover {&#13;
+  background: #FBEAE7;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   OLD CLASSES — SAFE TO KEEP&#13;
+========================================================== */&#13;
+&#13;
+.cm-file-name {&#13;
+  color: #249D78 !important;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-hidden-file {&#13;
+  display: none;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   AI NOTE&#13;
+========================================================== */&#13;
+&#13;
+.cm-ai-note {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: flex-start;&#13;
+&#13;
+  gap: 13px;&#13;
+&#13;
+  padding: 15px;&#13;
+&#13;
+  border-radius: 16px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ai-badge {&#13;
+  min-width: 40px;&#13;
+&#13;
+  width: 40px;&#13;
+&#13;
+  height: 40px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 13px;&#13;
+&#13;
+  background: #15564B;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ai-note strong {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 3px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-ai-note p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-skip-note {&#13;
+  margin-top: 12px;&#13;
+&#13;
+  color: #77868A;&#13;
+&#13;
+  text-align: center;&#13;
+&#13;
+  font-size: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   PRIVACY&#13;
+========================================================== */&#13;
+&#13;
+.cm-privacy-banner {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: flex-start;&#13;
+&#13;
+  gap: 12px;&#13;
+&#13;
+  padding: 16px;&#13;
+&#13;
+  margin-bottom: 25px;&#13;
+&#13;
+  border-radius: 16px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-banner svg {&#13;
+  width: 22px;&#13;
+&#13;
+  height: 22px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-banner strong {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 2px;&#13;
+&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-banner p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #63777A;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   REVIEW&#13;
+========================================================== */&#13;
+&#13;
+.cm-review-row {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    155px&#13;
+    minmax(0,1fr);&#13;
+&#13;
+  gap: 20px;&#13;
+&#13;
+  padding:&#13;
+    14px&#13;
+    0;&#13;
+&#13;
+  border-bottom: 1px solid #EDF2EE;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-row &gt; span {&#13;
+  color: #758488;&#13;
+&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-row strong {&#13;
+  min-width: 0;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  font-weight: 700;&#13;
+&#13;
+  word-break: break-word;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-private-review {&#13;
+  padding: 17px;&#13;
+&#13;
+  margin-top: 22px;&#13;
+&#13;
+  border-radius: 18px;&#13;
+&#13;
+  background: #F4F8F2;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-private-review-title {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 8px;&#13;
+&#13;
+  padding-bottom: 9px;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-private-review-title svg {&#13;
+  width: 18px;&#13;
+&#13;
+  height: 18px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   BUTTONS&#13;
+========================================================== */&#13;
+&#13;
+.cm-form-actions {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 14px;&#13;
+&#13;
+  margin-top: 32px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-form-actions.cm-right {&#13;
+  justify-content: flex-end;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-btn {&#13;
+  min-height: 48px;&#13;
+&#13;
+  padding:&#13;
+    12px&#13;
+    22px;&#13;
+&#13;
+  display: inline-flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  gap: 8px;&#13;
+&#13;
+  border: none;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 14px;&#13;
+&#13;
+  font-weight: 700;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  transition:&#13;
+    transform .2s ease,&#13;
+    box-shadow .2s ease,&#13;
+    background .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-btn-primary {&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF !important;&#13;
+&#13;
+  box-shadow:&#13;
+    0 7px 18px rgba(16,78,69,.14);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-btn-primary:hover {&#13;
+  transform: translateY(-1px);&#13;
+&#13;
+  background: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-btn-primary:disabled {&#13;
+  opacity: .55;&#13;
+&#13;
+  cursor: not-allowed;&#13;
+&#13;
+  transform: none;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-btn-secondary {&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #104E45 !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   ERROR&#13;
+========================================================== */&#13;
+&#13;
+.cm-error {&#13;
+  padding:&#13;
+    13px&#13;
+    15px;&#13;
+&#13;
+  margin-top: 20px;&#13;
+&#13;
+  border-radius: 13px;&#13;
+&#13;
+  background: #FBEAE7;&#13;
+&#13;
+  color: #A2432E;&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  font-weight: 600;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-form-error {&#13;
+  margin-bottom: 14px;&#13;
+&#13;
+  padding:&#13;
+    11px&#13;
+    14px;&#13;
+&#13;
+  border-radius: 12px;&#13;
+&#13;
+  background: #FBEAE7;&#13;
+&#13;
+  color: #A44832;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SUCCESS&#13;
+========================================================== */&#13;
+&#13;
+.cm-success {&#13;
+  padding:&#13;
+    30px&#13;
+    5px;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-success-icon {&#13;
+  width: 76px;&#13;
+&#13;
+  height: 76px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    19px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-success-icon svg {&#13;
+  width: 34px;&#13;
+&#13;
+  height: 34px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-success-eyebrow {&#13;
+  display: inline-block;&#13;
+&#13;
+  margin-bottom: 8px;&#13;
+&#13;
+  color: #249D78;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-transform: uppercase;&#13;
+&#13;
+  letter-spacing: .8px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-success h2 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    11px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 28px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-success &gt; p {&#13;
+  max-width: 500px;&#13;
+&#13;
+  margin: 0 auto;&#13;
+&#13;
+  color: #617477;&#13;
+&#13;
+  line-height: 1.65;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-number {&#13;
+  width: fit-content;&#13;
+&#13;
+  margin:&#13;
+    23px&#13;
+    auto;&#13;
+&#13;
+  padding:&#13;
+    10px&#13;
+    17px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #627477;&#13;
+&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-report-number strong {&#13;
+  margin-left: 5px;&#13;
+&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-dashboard-btn {&#13;
+  margin-top: 25px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   TABLET&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 760px) {&#13;
+&#13;
+  .cm-report-page {&#13;
+    padding:&#13;
+      40px&#13;
+      18px&#13;
+      70px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #F5F7F0;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-card {&#13;
+    padding: 30px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-progress-label {&#13;
+    display: none;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-progress-line {&#13;
+    width: 35px;&#13;
+&#13;
+    margin:&#13;
+      0&#13;
+      5px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MOBILE&#13;
+   WEBSITE MOBILE + NOW MOBILE APP&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 560px) {&#13;
+&#13;
+  .cm-report-page {&#13;
+    min-height: 100svh;&#13;
+&#13;
+    padding:&#13;
+      30px&#13;
+      14px&#13;
+      60px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #F5F7F0;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-header {&#13;
+    margin-bottom: 24px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-header h1 {&#13;
+    font-size: 30px;&#13;
+&#13;
+    line-height: 1.12;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-header p {&#13;
+    font-size: 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-eyebrow {&#13;
+    font-size: 12px;&#13;
+&#13;
+    padding:&#13;
+      7px&#13;
+      13px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-type-switch {&#13;
+    width: 100%;&#13;
+&#13;
+    max-width: 100%;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-type-switch button {&#13;
+    min-width: 0;&#13;
+&#13;
+    flex: 1;&#13;
+&#13;
+    padding:&#13;
+      11px&#13;
+      8px;&#13;
+&#13;
+    font-size: 13px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-progress {&#13;
+    overflow: hidden;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-progress-dot {&#13;
+    width: 29px;&#13;
+&#13;
+    height: 29px;&#13;
+&#13;
+    font-size: 11px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-progress-line {&#13;
+    width: 22px;&#13;
+&#13;
+    margin:&#13;
+      0&#13;
+      4px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-card {&#13;
+    padding:&#13;
+      23px&#13;
+      19px;&#13;
+&#13;
+    border-radius: 22px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-two-column {&#13;
+    grid-template-columns: 1fr;&#13;
+&#13;
+    gap: 0;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-step-heading {&#13;
+    gap: 11px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-step-number {&#13;
+    width: 39px;&#13;
+&#13;
+    height: 39px;&#13;
+&#13;
+    font-size: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-step-heading h2 {&#13;
+    font-size: 19px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-step-heading p {&#13;
+    font-size: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-field input,&#13;
+  .cm-field select,&#13;
+  .cm-field textarea {&#13;
+    font-size: 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-map-placeholder {&#13;
+    min-height: 255px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-map-wrapper {&#13;
+    padding: 10px;&#13;
+&#13;
+    border-radius: 17px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-selected-location {&#13;
+    align-items: flex-start;&#13;
+&#13;
+    flex-direction: column;&#13;
+&#13;
+    gap: 7px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-coordinate-text {&#13;
+    flex-shrink: 1;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-upload-zone {&#13;
+    padding:&#13;
+      35px&#13;
+      18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-selected-photo {&#13;
+    align-items: flex-start;&#13;
+&#13;
+    flex-wrap: wrap;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-selected-photo strong {&#13;
+    width: 100%;&#13;
+&#13;
+    flex-basis: 100%;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-selected-photo span {&#13;
+    flex: 1;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-review-row {&#13;
+    grid-template-columns:&#13;
+      115px&#13;
+      minmax(0,1fr);&#13;
+&#13;
+    gap: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-form-actions {&#13;
+    gap: 10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-form-actions .cm-btn {&#13;
+    flex: 1;&#13;
+&#13;
+    padding:&#13;
+      11px&#13;
+      13px;&#13;
+&#13;
+    font-size: 13px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SMALL PHONE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 380px) {&#13;
+&#13;
+  .cm-report-page {&#13;
+    padding:&#13;
+      26px&#13;
+      12px&#13;
+      55px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-header h1 {&#13;
+    font-size: 27px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-report-card {&#13;
+    padding:&#13;
+      20px&#13;
+      16px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-progress-line {&#13;
+    width: 15px;&#13;
+&#13;
+    margin:&#13;
+      0&#13;
+      3px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-progress-dot {&#13;
+    width: 27px;&#13;
+&#13;
+    height: 27px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-review-row {&#13;
+    grid-template-columns:&#13;
+      95px&#13;
+      minmax(0,1fr);&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-selected-photo {&#13;
+    padding:&#13;
+      11px&#13;
+      12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-form-actions .cm-btn {&#13;
+    padding:&#13;
+      10px&#13;
+      9px;&#13;
+&#13;
+    font-size: 12px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   PHOTO AVAILABILITY CHOICE&#13;
+========================================================== */&#13;
+&#13;
+.cm-photo-choice {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    repeat(2, minmax(0, 1fr));&#13;
+&#13;
+  gap: 14px;&#13;
+&#13;
+  margin-bottom: 25px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-photo-choice button {&#13;
+  min-height: 135px;&#13;
+&#13;
+  padding: 20px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  flex-direction: column;&#13;
+&#13;
+  align-items: flex-start;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  gap: 6px;&#13;
+&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 18px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  text-align: left;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  transition:&#13;
+    border-color .2s ease,&#13;
+    background .2s ease,&#13;
+    transform .2s ease,&#13;
+    box-shadow .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-photo-choice button:hover {&#13;
+  transform: translateY(-2px);&#13;
+&#13;
+  border-color: #249D78;&#13;
+&#13;
+  box-shadow:&#13;
+    0 7px 18px rgba(16,78,69,.08);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-photo-choice button.active {&#13;
+  border-color: #168C70;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  box-shadow:&#13;
+    0 0 0 3px rgba(36,157,120,.09);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-photo-choice-icon {&#13;
+  width: 38px;&#13;
+&#13;
+  height: 38px;&#13;
+&#13;
+  margin-bottom: 4px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 12px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-photo-choice button.active&#13;
+.cm-photo-choice-icon {&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #168C70;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-photo-choice-icon svg {&#13;
+  width: 20px;&#13;
+&#13;
+  height: 20px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-photo-choice strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 14px;&#13;
+&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-photo-choice span {&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MANUAL ATTRIBUTES&#13;
+========================================================== */&#13;
+&#13;
+.cm-manual-attributes {&#13;
+  margin-top: 6px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-manual-intro {&#13;
+  margin-bottom: 24px;&#13;
+&#13;
+  padding: 16px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 16px;&#13;
+&#13;
+  background: #F5F8F3;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-manual-intro strong {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 4px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 14px;&#13;
+&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-manual-intro p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  line-height: 1.55;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   PHOTO CHOICE — MOBILE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 560px) {&#13;
+&#13;
+  .cm-photo-choice {&#13;
+    grid-template-columns: 1fr;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-photo-choice button {&#13;
+    min-height: 110px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   REVIEW IMAGE PREVIEW&#13;
+   STEP 4&#13;
+========================================================== */&#13;
+&#13;
+.cm-review-photo-section {&#13;
+  margin-top: 14px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-photo-label {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 8px;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-photo-card {&#13;
+  width: 100%;&#13;
+&#13;
+  max-width: 430px;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 18px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 6px 18px rgba(16,78,69,.06);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-photo-image {&#13;
+  display: block;&#13;
+&#13;
+  width: 100%;&#13;
+&#13;
+  height: 240px;&#13;
+&#13;
+  object-fit: cover;&#13;
+&#13;
+  object-position: center;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-photo-info {&#13;
+  padding:&#13;
+    12px&#13;
+    14px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-photo-info strong {&#13;
+  min-width: 0;&#13;
+&#13;
+  flex: 1;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-overflow: ellipsis;&#13;
+&#13;
+  white-space: nowrap;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-photo-info span {&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-no-photo {&#13;
+  width: 100%;&#13;
+&#13;
+  max-width: 430px;&#13;
+&#13;
+  padding: 15px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 12px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 16px;&#13;
+&#13;
+  background: #F5F8F3;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-no-photo-icon {&#13;
+  width: 42px;&#13;
+&#13;
+  height: 42px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 13px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-no-photo-icon svg {&#13;
+  width: 22px;&#13;
+&#13;
+  height: 22px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-no-photo strong {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 3px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-review-no-photo p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 10px;&#13;
+&#13;
+  line-height: 1.45;&#13;
+}&#13;
+&#13;
+&#13;
+@media (max-width: 560px) {&#13;
+&#13;
+  .cm-review-photo-card,&#13;
+  .cm-review-no-photo {&#13;
+    max-width: none;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-review-photo-image {&#13;
+    height: 200px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-review-photo-info {&#13;
+    align-items: flex-start;&#13;
+&#13;
+    flex-direction: column;&#13;
+&#13;
+    gap: 4px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+@media (max-width: 380px) {&#13;
+&#13;
+  .cm-review-photo-image {&#13;
+    height: 175px;&#13;
+  }&#13;
+&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>Multi-step Lost / Found reporting form for CampusMatch</description>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_report_item</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch Report Item</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+
+    /* ======================================================
+       TABLE
+    ====================================================== */
+
+    var ITEM_TABLE =
+        'x_snc_campusmatch_campusmatch_item';
+
+
+    /* ======================================================
+       LOCATION PICKER
+       LOAD ONLY WHEN PAGE FIRST OPENS
+    ====================================================== */
+
+    if (!input) {
+
+        data.locationPicker =
+            $sp.getWidget(
+                'campusmatch_location_picker'
+            );
+
+    }
+
+
+    /* ======================================================
+       DEFAULT OUTPUT
+    ====================================================== */
+
+    data.success = false;
+
+    data.message = '';
+
+    data.sys_id = '';
+
+    data.number = '';
+
+
+    /* ======================================================
+       CENTRALIZED ACCESS HELPER
+    ====================================================== */
+
+    var access =
+        new CampusMatchAccess();
+
+
+    /* ======================================================
+       STRING HELPER
+    ====================================================== */
+
+    function cleanString(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+
+            return '';
+
+        }
+
+        return value
+            .toString()
+            .trim();
+
+    }
+
+
+    /* ======================================================
+       ISO → CURRENT USER LOCAL VALUE
+    ====================================================== */
+
+    function isoToUserLocalInternal(value) {
+
+        var raw =
+            cleanString(
+                value
+            );
+
+
+        if (!raw) {
+
+            return '';
+
+        }
+
+
+        try {
+
+            var normalized =
+                raw
+                    .replace(
+                        'T',
+                        ' '
+                    )
+                    .replace(
+                        /\.\d+Z$/,
+                        ''
+                    )
+                    .replace(
+                        /Z$/,
+                        ''
+                    );
+
+
+            var gdt =
+                new GlideDateTime();
+
+
+            gdt.setValue(
+                normalized
+            );
+
+
+            return gdt
+                .getDisplayValueInternal();
+
+        }
+        catch (ex) {
+
+            gs.error(
+                'CampusMatch ISO conversion failed for [' +
+                raw +
+                ']: ' +
+                ex.message
+            );
+
+
+            return '';
+
+        }
+
+    }
+
+
+    /* ======================================================
+       EXTRACT USER DATE
+    ====================================================== */
+
+    function extractReportedDate(value) {
+
+        var raw =
+            cleanString(
+                value
+            );
+
+
+        if (!raw) {
+
+            return '';
+
+        }
+
+
+        if (
+            /^\d{4}-\d{2}-\d{2}$/
+                .test(
+                    raw
+                )
+        ) {
+
+            return raw;
+
+        }
+
+
+        if (
+            raw.indexOf(
+                'T'
+            ) >= 0
+        ) {
+
+            var localValue =
+                isoToUserLocalInternal(
+                    raw
+                );
+
+
+            if (!localValue) {
+
+                return '';
+
+            }
+
+
+            return localValue.substring(
+                0,
+                10
+            );
+
+        }
+
+
+        if (
+            raw.length >= 10
+        ) {
+
+            return raw.substring(
+                0,
+                10
+            );
+
+        }
+
+
+        return '';
+
+    }
+
+
+    /* ======================================================
+       EXTRACT USER TIME
+    ====================================================== */
+
+    function extractReportedTime(value) {
+
+        var raw =
+            cleanString(
+                value
+            );
+
+
+        if (!raw) {
+
+            return '';
+
+        }
+
+
+        if (
+            /^\d{2}:\d{2}$/
+                .test(
+                    raw
+                )
+        ) {
+
+            return raw +
+                ':00';
+
+        }
+
+
+        if (
+            /^\d{2}:\d{2}:\d{2}$/
+                .test(
+                    raw
+                )
+        ) {
+
+            return raw;
+
+        }
+
+
+        if (
+            /^\d{2}:\d{2}:\d{2}\.\d+$/
+                .test(
+                    raw
+                )
+        ) {
+
+            return raw.substring(
+                0,
+                8
+            );
+
+        }
+
+
+        if (
+            raw.indexOf(
+                'T'
+            ) >= 0
+        ) {
+
+            var localValue =
+                isoToUserLocalInternal(
+                    raw
+                );
+
+
+            if (
+                !localValue ||
+                localValue.length < 19
+            ) {
+
+                return '';
+
+            }
+
+
+            return localValue.substring(
+                11,
+                19
+            );
+
+        }
+
+
+        if (
+            raw.indexOf(
+                ' '
+            ) >= 0 &&
+            raw.length >= 19
+        ) {
+
+            return raw.substring(
+                11,
+                19
+            );
+
+        }
+
+
+        return '';
+
+    }
+
+
+    /* ======================================================
+       BUILD REPORTED DATE/TIME
+       
+       FORM VALUE = INDIA STANDARD TIME
+       DATABASE VALUE = UTC
+       
+       IST = UTC + 05:30
+       Therefore subtract 330 minutes.
+    ====================================================== */
+
+    function buildReportedDateTime(
+        reportedDate,
+        reportedTime
+    ) {
+
+        var datePart =
+            extractReportedDate(
+                reportedDate
+            );
+
+
+        if (!datePart) {
+
+            return '';
+
+        }
+
+
+        var timePart =
+            extractReportedTime(
+                reportedTime
+            );
+
+
+        if (!timePart) {
+
+            timePart =
+                '00:00:00';
+
+        }
+
+
+        if (
+            /^\d{2}:\d{2}$/
+                .test(
+                    timePart
+                )
+        ) {
+
+            timePart =
+                timePart +
+                ':00';
+
+        }
+
+
+        var userDateTime =
+            datePart +
+            ' ' +
+            timePart;
+
+
+        try {
+
+            /*
+             * ==================================================
+             * IMPORTANT
+             *
+             * The CampusMatch form value is already INDIA
+             * LOCAL TIME.
+             *
+             * Example:
+             *
+             * 2026-10-02 18:10:00 IST
+             *
+             * First we tell ServiceNow:
+             *
+             * "Treat this exact string as UTC."
+             *
+             * Then we subtract 5 hours 30 minutes.
+             *
+             * Result:
+             *
+             * 18:10 - 05:30
+             * =
+             * 12:40 UTC
+             *
+             * This avoids Packages.java timezone APIs,
+             * which were causing the previous conversion
+             * to fail inside the scoped CampusMatch app.
+             * ==================================================
+             */
+
+
+            var gdt =
+                new GlideDateTime();
+
+
+            /* ==============================================
+               SET THE FORM VALUE AS A UTC BASE VALUE
+            ============================================== */
+
+            gdt.setValueUTC(
+                userDateTime,
+                'yyyy-MM-dd HH:mm:ss'
+            );
+
+
+            /* ==============================================
+               IST → UTC
+               
+               5 hours 30 minutes
+               =
+               330 minutes
+               =
+               19,800,000 milliseconds
+            ============================================== */
+
+            gdt.add(
+                -19800000
+            );
+
+
+            /* ==============================================
+               RETURN DATABASE UTC VALUE
+            ============================================== */
+
+            var utcValue =
+                gdt.getValue();
+
+
+            /*
+             * DEBUG LOG
+             *
+             * Example:
+             *
+             * Input:
+             * 2026-10-02 18:10:00
+             *
+             * Output:
+             * 2026-10-02 12:40:00
+             */
+
+            gs.info(
+                'CampusMatch DEBUG - IST=[' +
+                userDateTime +
+                '] UTC=[' +
+                utcValue +
+                ']'
+            );
+
+
+            return utcValue;
+
+        }
+        catch (ex) {
+
+            gs.error(
+                'CampusMatch Reported Date/Time conversion failed. ' +
+                'Input=[' +
+                userDateTime +
+                '] Error=[' +
+                ex.message +
+                ']'
+            );
+
+
+            return '';
+
+        }
+
+    }
+
+
+    /* ======================================================
+       CHECK FUTURE REPORTED DATE / TIME
+    ====================================================== */
+
+    function isFutureReportedDateTime(
+        reportedDateTimeValue
+    ) {
+
+        var raw =
+            cleanString(
+                reportedDateTimeValue
+            );
+
+
+        if (!raw) {
+
+            return false;
+
+        }
+
+
+        try {
+
+            var selected =
+                new GlideDateTime();
+
+
+            selected.setValue(
+                raw
+            );
+
+
+            var now =
+                new GlideDateTime();
+
+
+            return (
+                selected.getNumericValue() >
+                now.getNumericValue()
+            );
+
+        }
+        catch (ex) {
+
+            gs.error(
+                'CampusMatch future date/time validation failed [' +
+                raw +
+                ']: ' +
+                ex.message
+            );
+
+
+            /*
+             * Fail safely.
+             * If validation cannot be performed,
+             * block the report.
+             */
+
+            return true;
+
+        }
+
+    }
+
+
+    /* ======================================================
+       HELPER — FIND VALID FIELD
+    ====================================================== */
+
+    function findField(
+        gr,
+        possibleNames
+    ) {
+
+        for (
+            var i = 0;
+            i < possibleNames.length;
+            i++
+        ) {
+
+            if (
+                gr.isValidField(
+                    possibleNames[i]
+                )
+            ) {
+
+                return possibleNames[i];
+
+            }
+
+        }
+
+
+        return '';
+
+    }
+
+
+    /* ======================================================
+       CONVERT UPLOADED IMAGE ATTACHMENT
+    ====================================================== */
+
+    if (
+        input &&
+        input.action ===
+            'convertImageAttachment'
+    ) {
+
+        var itemSysId =
+            cleanString(
+                input.item_sys_id
+            );
+
+
+        var attachmentSysId =
+            cleanString(
+                input.attachment_sys_id
+            );
+
+
+        var uploadedFileName =
+            cleanString(
+                input.file_name
+            );
+
+
+        /* =========================================
+           ITEM ID IS ALWAYS REQUIRED
+        ========================================== */
+
+        if (!itemSysId) {
+
+            data.success = false;
+
+            data.message =
+                'CampusMatch Item information is missing.';
+
+            return;
+
+        }
+
+
+        /* =========================================
+           LOAD CAMPUSMATCH ITEM
+        ========================================== */
+
+        var imageItem =
+            new GlideRecord(
+                ITEM_TABLE
+            );
+
+
+        if (
+            !imageItem.get(
+                itemSysId
+            )
+        ) {
+
+            data.success = false;
+
+            data.message =
+                'CampusMatch Item could not be found.';
+
+            return;
+
+        }
+
+
+        /* =========================================
+           SECURITY
+           OWNER OR ADMIN/STAFF ONLY
+        ========================================== */
+
+        if (
+            !access.ownsItem(
+                imageItem
+            ) &&
+            !access.isStaff()
+        ) {
+
+            data.success = false;
+
+            data.message =
+                'You cannot upload an image to this report.';
+
+            return;
+
+        }
+
+
+        /* =========================================
+           GLOBAL ATTACHMENT HELPER
+        ========================================== */
+
+        var helper =
+            new global
+                .CampusMatchAttachmentHelper();
+
+
+        var conversionResult;
+
+
+        /* =========================================
+           NORMAL CASE
+           snAttachmentHandler returned sys_id.
+        ========================================== */
+
+        if (attachmentSysId) {
+
+            conversionResult =
+                helper.convertToUserImage(
+                    attachmentSysId,
+                    itemSysId
+                );
+
+        }
+
+
+        /* =========================================
+           NORMAL-USER FALLBACK
+
+           Upload succeeded but response did not
+           expose attachment sys_id.
+
+           Find attachment using:
+           Item + filename.
+        ========================================== */
+
+        else {
+
+            if (!uploadedFileName) {
+
+                data.success = false;
+
+                data.message =
+                    'Uploaded image information is missing.';
+
+                return;
+
+            }
+
+
+            conversionResult =
+                helper
+                    .findAndConvertToUserImage(
+                        itemSysId,
+                        uploadedFileName
+                    );
+
+        }
+
+
+        /* =========================================
+           CONVERSION FAILED
+        ========================================== */
+
+        if (
+            !conversionResult ||
+            !conversionResult.success
+        ) {
+
+            data.success = false;
+
+            data.message =
+                (
+                    conversionResult &&
+                    conversionResult.message
+                )
+                    ?
+                    conversionResult.message
+                    :
+                    'The uploaded image could not be converted.';
+
+
+            return;
+
+        }
+
+
+        /*
+         * Normal attachment
+         *      ↓
+         * USER_IMAGE representation
+         *      ↓
+         * existing attachment Business Rule
+         *      ↓
+         * AI Ready = true
+         *      ↓
+         * AI processing
+         *      ↓
+         * AI Processed = true
+         *      ↓
+         * Match Orchestrator
+         */
+
+
+        data.success = true;
+
+
+        data.message =
+            'Image attached successfully.';
+
+
+        data.attachment_sys_id =
+            conversionResult
+                .attachment_sys_id ||
+            attachmentSysId ||
+            '';
+
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       RUN MATCHING FOR NO-IMAGE REPORT
+    ====================================================== */
+
+    if (
+        input &&
+        input.action ===
+            'runMatching'
+    ) {
+
+        var matchingItemId =
+            cleanString(
+                input.item_sys_id
+            );
+
+
+        if (!matchingItemId) {
+
+            data.success = false;
+
+            data.message =
+                'CampusMatch Item ID is missing.';
+
+            return;
+
+        }
+
+
+        var matchingItem =
+            new GlideRecord(
+                ITEM_TABLE
+            );
+
+
+        if (
+            !matchingItem.get(
+                matchingItemId
+            )
+        ) {
+
+            data.success = false;
+
+            data.message =
+                'CampusMatch Item could not be found.';
+
+            return;
+
+        }
+
+
+        if (
+            !access.ownsItem(
+                matchingItem
+            ) &&
+            !access.isStaff()
+        ) {
+
+            data.success = false;
+
+            data.message =
+                'You cannot start matching for this report.';
+
+            return;
+
+        }
+
+
+        try {
+
+            var orchestrator =
+                new CampusMatchMatchOrchestrator();
+
+
+            orchestrator.processItem(
+                matchingItem
+            );
+
+
+            data.success = true;
+
+
+            data.message =
+                'Matching completed successfully.';
+
+        }
+        catch (ex) {
+
+            data.success = false;
+
+
+            data.message =
+                'The report was created, but matching could not be started.';
+
+
+            gs.error(
+                'CampusMatch matching failed for Item ' +
+                matchingItemId +
+                ': ' +
+                ex.message
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       ONLY RUN CREATE LOGIC WHEN USER SUBMITS
+    ====================================================== */
+
+    if (
+        !input ||
+        input.action !==
+            'createReport'
+    ) {
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       BASIC VALIDATION
+    ====================================================== */
+
+    var reportType =
+        cleanString(
+            input.report_type
+        )
+        .toLowerCase();
+
+
+    var title =
+        cleanString(
+            input.title
+        );
+
+
+    var category =
+        cleanString(
+            input.category
+        );
+
+
+    var description =
+        cleanString(
+            input.description
+        );
+
+
+    /* ======================================================
+       PHOTO / MANUAL ATTRIBUTE MODE
+       NEW
+    ====================================================== */
+
+    var photoMode =
+        cleanString(
+            input.photo_mode
+        )
+        .toLowerCase();
+
+
+    var brand =
+        cleanString(
+            input.brand
+        );
+
+
+    var color =
+        cleanString(
+            input.color
+        );
+
+
+    var uniqueFeatures =
+        cleanString(
+            input.unique_features
+        );
+
+
+    /* ======================================================
+       BASIC FIELD VALIDATION
+    ====================================================== */
+
+    if (
+        reportType !==
+            'lost' &&
+        reportType !==
+            'found'
+    ) {
+
+        data.message =
+            'Please select Lost or Found.';
+
+        return;
+
+    }
+
+
+    if (!title) {
+
+        data.message =
+            'Title is required.';
+
+        return;
+
+    }
+
+
+    if (!category) {
+
+        data.message =
+            'Category is required.';
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       PHOTO MODE VALIDATION
+       NEW
+    ====================================================== */
+
+    if (
+        photoMode !==
+            'yes' &&
+        photoMode !==
+            'no'
+    ) {
+
+        data.message =
+            'Please specify whether a photo is available.';
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       NO PHOTO → MANUAL ATTRIBUTES REQUIRED
+       NEW
+
+       BRAND = OPTIONAL
+       COLOR = REQUIRED
+       UNIQUE FEATURES = REQUIRED
+    ====================================================== */
+
+    if (
+        photoMode ===
+            'no'
+    ) {
+
+        if (!color) {
+
+            data.message =
+                'Color is required when no photo is available.';
+
+            return;
+
+        }
+
+
+        if (!uniqueFeatures) {
+
+            data.message =
+                'Unique features are required when no photo is available.';
+
+            return;
+
+        }
+
+    }
+
+
+    /* ======================================================
+       CREATE ITEM
+    ====================================================== */
+
+    var item =
+        new GlideRecord(
+            ITEM_TABLE
+        );
+
+
+    item.initialize();
+
+
+    /* ======================================================
+       CORE FIELDS
+    ====================================================== */
+
+    item.setValue(
+        'report_type',
+        reportType
+    );
+
+
+    item.setValue(
+        'title',
+        title
+    );
+
+
+    item.setValue(
+        'category',
+        category
+    );
+
+
+    item.setValue(
+        'description',
+        description
+    );
+
+
+    item.setValue(
+        'reporter',
+        access.getUserId()
+    );
+
+
+    item.setValue(
+        'status',
+        'active'
+    );
+
+
+    /* ======================================================
+       LOCATION
+    ====================================================== */
+
+    if (
+        input.location_x !==
+            undefined &&
+        input.location_x !==
+            null &&
+        input.location_x !==
+            ''
+    ) {
+
+        item.setValue(
+            'location_x',
+            input.location_x
+        );
+
+    }
+
+
+    if (
+        input.location_y !==
+            undefined &&
+        input.location_y !==
+            null &&
+        input.location_y !==
+            ''
+    ) {
+
+        item.setValue(
+            'location_y',
+            input.location_y
+        );
+
+    }
+
+
+    if (input.location_zone) {
+
+        item.setValue(
+            'location_zone',
+            input.location_zone
+        );
+
+    }
+
+
+    /* ======================================================
+       REPORTED DATE / TIME
+    ====================================================== */
+
+
+    /* ======================================================
+       DATE IS REQUIRED
+    ====================================================== */
+
+    if (!input.reported_date) {
+
+        data.message =
+            reportType === 'found'
+                ? 'Date Found is required.'
+                : 'Date Lost is required.';
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       TIME IS REQUIRED
+    ====================================================== */
+
+    if (!input.reported_time) {
+
+        data.message =
+            'Approximate Time is required.';
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       DEBUG — INPUT VALUES
+    ====================================================== */
+
+    gs.info(
+        'CampusMatch DEBUG - reported_date=[' +
+        input.reported_date +
+        '] reported_time=[' +
+        input.reported_time +
+        ']'
+    );
+
+
+    var reportedDateTimeValue =
+        buildReportedDateTime(
+            input.reported_date,
+            input.reported_time
+        );
+
+
+    if (!reportedDateTimeValue) {
+
+        data.message =
+            'The reported date or time could not be processed.';
+
+        return;
+
+    }
+
+
+    /*
+     * SERVER-SIDE FUTURE DATE/TIME PROTECTION
+     *
+     * Even if somebody bypasses the HTML max
+     * restriction, CampusMatch will reject it.
+     */
+
+    if (
+        isFutureReportedDateTime(
+            reportedDateTimeValue
+        )
+    ) {
+
+        data.message =
+            'Future date or time is not allowed. Please select the current date/time or an earlier value.';
+
+        return;
+
+    }
+
+
+    item.setValue(
+        'reported_date_time',
+        reportedDateTimeValue
+    );
+
+
+    /* ======================================================
+       NO-PHOTO MANUAL VISUAL ATTRIBUTES
+       NEW
+    ====================================================== */
+
+    if (
+        photoMode ===
+            'no'
+    ) {
+
+        /* ==============================================
+           BRAND
+           OPTIONAL
+        ============================================== */
+
+        if (
+            item.isValidField(
+                'brand'
+            ) &&
+            brand
+        ) {
+
+            item.setValue(
+                'brand',
+                brand
+            );
+
+        }
+
+
+        /* ==============================================
+           COLOR
+        ============================================== */
+
+        if (
+            item.isValidField(
+                'color'
+            )
+        ) {
+
+            item.setValue(
+                'color',
+                color
+            );
+
+        }
+
+
+        /* ==============================================
+           UNIQUE FEATURES
+        ============================================== */
+
+        if (
+            item.isValidField(
+                'unique_features'
+            )
+        ) {
+
+            item.setValue(
+                'unique_features',
+                uniqueFeatures
+            );
+
+        }
+
+
+        /* ==============================================
+           BUILD MANUAL ATTRIBUTE TEXT
+        ============================================== */
+
+        var manualAttributeParts =
+            [];
+
+
+        if (brand) {
+
+            manualAttributeParts.push(
+                'Brand: ' +
+                brand
+            );
+
+        }
+
+
+        if (color) {
+
+            manualAttributeParts.push(
+                'Color: ' +
+                color
+            );
+
+        }
+
+
+        if (uniqueFeatures) {
+
+            manualAttributeParts.push(
+                'Unique features: ' +
+                uniqueFeatures
+            );
+
+        }
+
+
+        var manualAttributeText =
+            manualAttributeParts.join(
+                '. '
+            );
+
+
+        /* ==============================================
+           STORE IN AI ATTRIBUTE TEXT
+
+           This lets the existing matching pipeline
+           compare manually entered visual information.
+        ============================================== */
+
+        if (
+            item.isValidField(
+                'ai_attribute_text'
+            )
+        ) {
+
+            item.setValue(
+                'ai_attribute_text',
+                manualAttributeText
+            );
+
+        }
+
+    }
+
+
+    /* ======================================================
+       FOUND-ONLY PRIVATE DETAILS
+    ====================================================== */
+
+    if (
+        reportType ===
+            'found'
+    ) {
+
+        var private1 =
+            cleanString(
+                input.private_1
+            );
+
+
+        var private2 =
+            cleanString(
+                input.private_2
+            );
+
+
+        var private3 =
+            cleanString(
+                input.private_3
+            );
+
+
+        if (
+            !private1 ||
+            !private2
+        ) {
+
+            data.message =
+                'Please provide the first two private verification details.';
+
+            return;
+
+        }
+
+
+        var privateField1 =
+            findField(
+                item,
+                [
+                    'private_verification_detail_1',
+                    'u_private_verification_detail_1',
+                    'private_detail_1',
+                    'u_private_detail_1',
+                    'verification_detail_1',
+                    'u_verification_detail_1'
+                ]
+            );
+
+
+        var privateField2 =
+            findField(
+                item,
+                [
+                    'private_verification_detail_2',
+                    'u_private_verification_detail_2',
+                    'private_detail_2',
+                    'u_private_detail_2',
+                    'verification_detail_2',
+                    'u_verification_detail_2'
+                ]
+            );
+
+
+        var privateField3 =
+            findField(
+                item,
+                [
+                    'private_verification_detail_3',
+                    'u_private_verification_detail_3',
+                    'private_detail_3',
+                    'u_private_detail_3',
+                    'verification_detail_3',
+                    'u_verification_detail_3'
+                ]
+            );
+
+
+        if (
+            !privateField1 ||
+            !privateField2
+        ) {
+
+            data.message =
+                'Private verification fields could not be found on CampusMatch Item.';
+
+            return;
+
+        }
+
+
+        item.setValue(
+            privateField1,
+            private1
+        );
+
+
+        item.setValue(
+            privateField2,
+            private2
+        );
+
+
+        if (
+            privateField3 &&
+            private3
+        ) {
+
+            item.setValue(
+                privateField3,
+                private3
+            );
+
+        }
+
+    }
+
+
+    /* ======================================================
+       INSERT
+    ====================================================== */
+
+    var sysId =
+        item.insert();
+
+
+    if (!sysId) {
+
+        data.message =
+            'CampusMatch could not create the report.';
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       RETURN CREATED RECORD
+    ====================================================== */
+
+    item.get(
+        sysId
+    );
+
+
+    data.success =
+        true;
+
+
+    data.sys_id =
+        sysId;
+
+
+    data.number =
+        item.getDisplayValue(
+            'number'
+        );
+
+
+    data.message =
+        'Report created successfully.';
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 09:58:46</sys_created_on>
+        <sys_id>347ecae7551b03107f4447f82ce73283</sys_id>
+        <sys_mod_count>50</sys_mod_count>
+        <sys_name>CampusMatch Report Item</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_347ecae7551b03107f4447f82ce73283</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-10-02 13:02:15</sys_updated_on>
+        <template><![CDATA[<div class="cm-report-page">
+
+  <div class="cm-report-container">
+
+
+    <!-- =====================================
+         PAGE HEADER
+    ====================================== -->
+
+    <div class="cm-report-header">
+
+      <span class="cm-report-eyebrow">
+        {{c.reportType === 'found'
+            ? '✦ Help it find its owner'
+            : '✦ Let’s help you find it'}}
+      </span>
+
+      <h1>
+        {{c.reportType === 'found'
+            ? 'Report a Found Item'
+            : 'Report a Lost Item'}}
+      </h1>
+
+      <p>
+        {{c.reportType === 'found'
+            ? 'A few details can help reconnect this item with its owner.'
+            : 'Tell us what you remember. CampusMatch will take it from here.'}}
+      </p>
+
+    </div>
+
+
+
+    <!-- =====================================
+         LOST / FOUND SWITCH
+    ====================================== -->
+
+    <div class="cm-type-switch">
+
+      <button
+        type="button"
+        ng-class="{'active': c.reportType === 'lost'}"
+        ng-click="c.setType('lost')">
+
+        Lost Item
+
+      </button>
+
+
+      <button
+        type="button"
+        ng-class="{'active': c.reportType === 'found'}"
+        ng-click="c.setType('found')">
+
+        Found Item
+
+      </button>
+
+    </div>
+
+
+
+    <!-- =====================================
+         PROGRESS
+    ====================================== -->
+
+    <div class="cm-progress">
+
+
+      <!-- STEP 1 -->
+
+      <div
+        class="cm-progress-item"
+        ng-class="{
+          'active': c.step === 1,
+          'done': c.step > 1
+        }">
+
+        <span class="cm-progress-dot">
+          1
+        </span>
+
+        <span class="cm-progress-label">
+          Details
+        </span>
+
+      </div>
+
+
+      <div class="cm-progress-line"></div>
+
+
+
+      <!-- STEP 2 -->
+
+      <div
+        class="cm-progress-item"
+        ng-class="{
+          'active': c.step === 2,
+          'done': c.step > 2
+        }">
+
+        <span class="cm-progress-dot">
+          2
+        </span>
+
+        <span class="cm-progress-label">
+          Location
+        </span>
+
+      </div>
+
+
+      <div class="cm-progress-line"></div>
+
+
+
+      <!-- STEP 3 -->
+
+      <div
+        class="cm-progress-item"
+        ng-class="{
+          'active': c.step === 3,
+          'done': c.step > 3
+        }">
+
+        <span class="cm-progress-dot">
+          3
+        </span>
+
+        <span class="cm-progress-label">
+          Photo
+        </span>
+
+      </div>
+
+
+
+      <!-- FOUND ONLY LINE -->
+
+      <div
+        class="cm-progress-line"
+        ng-if="c.reportType === 'found'">
+      </div>
+
+
+
+      <!-- FOUND ONLY STEP 4 -->
+
+      <div
+        class="cm-progress-item"
+        ng-if="c.reportType === 'found'"
+        ng-class="{
+          'active': c.step === 4,
+          'done': c.step > 4
+        }">
+
+        <span class="cm-progress-dot">
+          4
+        </span>
+
+        <span class="cm-progress-label">
+          Verification
+        </span>
+
+      </div>
+
+
+
+      <div class="cm-progress-line"></div>
+
+
+
+      <!-- REVIEW -->
+
+      <div
+        class="cm-progress-item"
+        ng-class="{
+          'active':
+            (c.reportType === 'lost' && c.step === 4) ||
+            (c.reportType === 'found' && c.step === 5)
+        }">
+
+        <span class="cm-progress-dot">
+          {{c.reportType === 'found' ? '5' : '4'}}
+        </span>
+
+        <span class="cm-progress-label">
+          Review
+        </span>
+
+      </div>
+
+
+    </div>
+
+
+
+    <!-- =====================================
+         CARD
+    ====================================== -->
+
+    <div class="cm-report-card">
+
+
+
+      <!-- =====================================
+           STEP 1 — DETAILS
+      ====================================== -->
+
+      <div
+        ng-if="c.step === 1"
+        class="cm-form-step">
+
+
+        <div class="cm-step-heading">
+
+          <span class="cm-step-number">
+            01
+          </span>
+
+          <div>
+
+            <h2>
+              Tell us about the item
+            </h2>
+
+            <p>
+              Add the basic information you remember.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ITEM TITLE -->
+
+        <div class="cm-field">
+
+          <label>
+            Item Title
+            <span>*</span>
+          </label>
+
+          <input
+            type="text"
+            ng-model="c.form.title"
+            placeholder="e.g. Black backpack">
+
+        </div>
+
+
+
+        <!-- CATEGORY -->
+
+        <div class="cm-field">
+
+          <label>
+            Category
+            <span>*</span>
+          </label>
+
+          <select ng-model="c.form.category">
+
+            <option value="">
+              Select a category
+            </option>
+
+            <option value="electronics">
+              Electronics
+            </option>
+
+            <option value="bags">
+              Bags
+            </option>
+
+            <option value="books">
+              Books
+            </option>
+
+            <option value="clothing">
+              Clothing
+            </option>
+
+            <option value="accessories">
+              Accessories
+            </option>
+
+            <option value="id_cards">
+              ID / Cards
+            </option>
+
+            <option value="keys">
+              Keys
+            </option>
+
+            <option value="documents">
+              Documents
+            </option>
+
+            <option value="other">
+              Other
+            </option>
+
+          </select>
+
+        </div>
+
+
+
+        <!-- DESCRIPTION -->
+
+        <div class="cm-field">
+
+          <label>
+            Description
+          </label>
+
+          <textarea
+            ng-model="c.form.description"
+            placeholder="Describe anything you remember about the item...">
+          </textarea>
+
+          <div class="cm-field-hint">
+            You don't need perfect details — describe it naturally.
+          </div>
+
+        </div>
+
+
+
+        <!-- DATE / TIME -->
+
+        <div class="cm-two-column">
+
+
+          <div class="cm-field">
+
+            <label>
+              {{c.reportType === 'found'
+                  ? 'Date Found'
+                  : 'Date Lost'}}
+              <span>*</span>
+            </label>
+
+            <input
+              type="date"
+              ng-model="c.form.date"
+              ng-attr-max="{{c.todayDate}}"
+              ng-focus="c.refreshDateTimeLimits()"
+              ng-change="c.onReportedDateChange()"
+              required>
+
+          </div>
+
+
+
+          <div class="cm-field">
+
+            <label>
+              Approximate Time
+              <span>*</span>
+            </label>
+
+            <input
+              id="campusmatchReportedTime"
+              type="time"
+              ng-model="c.form.time"
+              ng-model-options="{allowInvalid: true}"
+              ng-attr-max="{{c.getMaxTimeForSelectedDate()}}"
+              ng-focus="c.refreshDateTimeLimits()"
+              ng-change="c.onReportedTimeChange()"
+              required>
+
+          </div>
+
+
+        </div>
+
+
+        <div
+          class="cm-error"
+          ng-if="c.errorMessage">
+
+          {{c.errorMessage}}
+
+        </div>
+
+
+
+        <div class="cm-form-actions cm-right">
+
+          <button
+            type="button"
+            class="cm-btn cm-btn-primary"
+            ng-click="c.next()">
+
+            Continue
+
+            <span>→</span>
+
+          </button>
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =====================================
+           STEP 2 — CAMPUS LOCATION
+      ====================================== -->
+
+      <div
+        ng-if="c.step === 2"
+        class="cm-form-step">
+
+
+        <div class="cm-step-heading">
+
+          <span class="cm-step-number">
+            02
+          </span>
+
+          <div>
+
+            <h2>
+              {{c.reportType === 'found'
+                  ? 'Where did you find it?'
+                  : 'Where did you last see it?'}}
+            </h2>
+
+            <p>
+              Tap the closest point on the campus map.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- EXISTING CAMPUS LOCATION PICKER -->
+
+        <div class="cm-map-wrapper">
+
+          <sp-widget
+            ng-if="data.locationPicker"
+            widget="data.locationPicker">
+          </sp-widget>
+
+        </div>
+
+
+
+        <!-- SELECTED LOCATION -->
+
+        <div
+          class="cm-selected-location"
+          ng-if="c.form.locationZone">
+
+          <div>
+
+            <span class="cm-selected-label">
+              Selected location
+            </span>
+
+            <strong>
+              {{c.form.locationZone}}
+            </strong>
+
+          </div>
+
+
+          <div class="cm-coordinate-text">
+
+            X {{c.form.locationX}}
+            ·
+            Y {{c.form.locationY}}
+
+          </div>
+
+        </div>
+
+
+
+        <!-- LOCATION NOTE -->
+
+        <div class="cm-location-note">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2">
+
+            <circle
+              cx="12"
+              cy="12"
+              r="9">
+            </circle>
+
+            <path d="M12 8v5"></path>
+
+            <path d="M12 16h.01"></path>
+
+          </svg>
+
+          <span>
+            Only an approximate campus location is required.
+          </span>
+
+        </div>
+
+
+
+        <div class="cm-form-actions">
+
+          <button
+            type="button"
+            class="cm-btn cm-btn-secondary"
+            ng-click="c.previous()">
+
+            ← Back
+
+          </button>
+
+
+          <button
+            type="button"
+            class="cm-btn cm-btn-primary"
+            ng-click="c.next()">
+
+            Continue →
+
+          </button>
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =====================================
+           STEP 3 — PHOTO / VISUAL DETAILS
+      ====================================== -->
+
+      <div
+        ng-if="c.step === 3"
+        class="cm-form-step">
+
+
+        <div class="cm-step-heading">
+
+          <span class="cm-step-number">
+            03
+          </span>
+
+          <div>
+
+            <h2>
+              Do you have a photo of the item?
+            </h2>
+
+            <p>
+              A photo helps CampusMatch understand visual details,
+              but you can still report the item without one.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- =====================================
+             PHOTO YES / NO CHOICE
+        ====================================== -->
+
+        <div class="cm-photo-choice">
+
+
+          <!-- YES -->
+
+          <button
+            type="button"
+            ng-class="{
+              'active': c.photoChoice === 'yes'
+            }"
+            ng-click="c.choosePhotoOption('yes')">
+
+
+            <div class="cm-photo-choice-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <rect
+                  x="3"
+                  y="5"
+                  width="18"
+                  height="15"
+                  rx="3">
+                </rect>
+
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="3">
+                </circle>
+
+                <path d="M8 5l1-2h6l1 2"></path>
+
+              </svg>
+
+            </div>
+
+
+            <strong>
+              Yes, I have a photo
+            </strong>
+
+            <span>
+              Upload it for AI-assisted visual attribute extraction.
+            </span>
+
+
+          </button>
+
+
+
+          <!-- NO -->
+
+          <button
+            type="button"
+            ng-class="{
+              'active': c.photoChoice === 'no'
+            }"
+            ng-click="c.choosePhotoOption('no')">
+
+
+            <div class="cm-photo-choice-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <rect
+                  x="4"
+                  y="5"
+                  width="16"
+                  height="14"
+                  rx="2">
+                </rect>
+
+                <path d="M7 15l3-3 2 2 3-4 2 2"></path>
+
+                <path d="M3 3l18 18"></path>
+
+              </svg>
+
+            </div>
+
+
+            <strong>
+              No photo available
+            </strong>
+
+            <span>
+              Enter the item's visual details manually instead.
+            </span>
+
+
+          </button>
+
+
+        </div>
+
+
+
+        <!-- =====================================
+             YES → IMAGE UPLOAD
+        ====================================== -->
+
+        <div ng-if="c.photoChoice === 'yes'">
+
+
+          <!-- IMAGE UPLOAD AREA -->
+
+          <div class="cm-upload-zone">
+
+
+            <div class="cm-upload-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round">
+
+                <path d="M12 16V4"></path>
+
+                <path d="m6 10 6-6 6 6"></path>
+
+                <path d="M4 20h16"></path>
+
+              </svg>
+
+            </div>
+
+
+
+            <h3>
+              Upload item photo
+            </h3>
+
+
+            <p ng-if="!c.selectedImage">
+              Choose a clear JPG or PNG image
+            </p>
+
+
+
+            <!-- HIDDEN INPUT -->
+
+            <input
+              id="campusmatchImage"
+              type="file"
+              accept="image/jpeg,image/png"
+              ng-file-select="c.selectImage($files)"
+              style="display:none;">
+
+
+
+            <!-- PHOTO BUTTON -->
+
+            <label
+              for="campusmatchImage"
+              class="cm-photo-upload-btn">
+
+              {{c.selectedImage
+                  ? 'Change Photo'
+                  : 'Choose Photo'}}
+
+            </label>
+
+
+          </div>
+
+
+
+          <!-- SELECTED PHOTO -->
+
+          <div
+            class="cm-selected-photo"
+            ng-if="c.selectedImage">
+
+
+            <strong>
+              {{c.selectedImage.name}}
+            </strong>
+
+
+            <span>
+              {{c.selectedImageSize}}
+            </span>
+
+
+            <button
+              type="button"
+              ng-click="c.removeImage()">
+
+              Remove
+
+            </button>
+
+
+          </div>
+
+
+
+          <!-- AI NOTE -->
+
+          <div class="cm-ai-note">
+
+
+            <div class="cm-ai-badge">
+              AI
+            </div>
+
+
+            <div>
+
+              <strong>
+                CampusMatch reads the photo for you
+              </strong>
+
+              <p>
+                Brand, colour and unique visual features can be
+                extracted automatically.
+              </p>
+
+            </div>
+
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- =====================================
+             NO → MANUAL VISUAL DETAILS
+        ====================================== -->
+
+        <div
+          class="cm-manual-attributes"
+          ng-if="c.photoChoice === 'no'">
+
+
+          <div class="cm-manual-intro">
+
+            <strong>
+              No photo? No problem.
+            </strong>
+
+            <p>
+              Add a few visual details so CampusMatch can still
+              compare this item with possible matches.
+            </p>
+
+          </div>
+
+
+
+          <!-- BRAND -->
+
+          <div class="cm-field">
+
+            <label>
+
+              Brand
+
+              <span class="cm-optional">
+                Optional
+              </span>
+
+            </label>
+
+
+            <input
+              type="text"
+              ng-model="c.form.brand"
+              placeholder="e.g. Milton, HP, Classmate">
+
+
+            <div class="cm-field-hint">
+              Leave this blank if the brand is unknown or not visible.
+            </div>
+
+          </div>
+
+
+
+          <!-- COLOR -->
+
+          <div class="cm-field">
+
+            <label>
+              Color
+              <span>*</span>
+            </label>
+
+            <input
+              type="text"
+              ng-model="c.form.color"
+              placeholder="e.g. Black, silver, dark green">
+
+          </div>
+
+
+
+          <!-- UNIQUE FEATURES -->
+
+          <div class="cm-field">
+
+            <label>
+              Unique Features
+              <span>*</span>
+            </label>
+
+
+            <textarea
+              ng-model="c.form.uniqueFeatures"
+              placeholder="e.g. Small panda sticker near the lid, scratch near the bottom, one zipper pull missing">
+            </textarea>
+
+
+            <div class="cm-field-hint">
+              Mention stickers, scratches, marks, attachments,
+              shape, pattern or any distinctive visible feature.
+            </div>
+
+
+          </div>
+
+
+
+          <!-- MANUAL ATTRIBUTE NOTE -->
+
+          <div class="cm-ai-note">
+
+
+            <div class="cm-ai-badge">
+              AI
+            </div>
+
+
+            <div>
+
+              <strong>
+                These details help CampusMatch compare the item
+              </strong>
+
+              <p>
+                Your description will be converted into visual
+                attributes for similarity matching.
+              </p>
+
+            </div>
+
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- =====================================
+             STEP 3 ERROR
+        ====================================== -->
+
+        <div
+          class="cm-error"
+          ng-if="c.errorMessage">
+
+          {{c.errorMessage}}
+
+        </div>
+
+
+
+        <!-- ACTIONS -->
+
+        <div class="cm-form-actions">
+
+
+          <button
+            type="button"
+            class="cm-btn cm-btn-secondary"
+            ng-click="c.previous()">
+
+            ← Back
+
+          </button>
+
+
+          <button
+            type="button"
+            class="cm-btn cm-btn-primary"
+            ng-click="c.next()">
+
+            Continue →
+
+          </button>
+
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =====================================
+           FOUND ONLY STEP 4 — PRIVATE DETAILS
+      ====================================== -->
+
+      <div
+        ng-if="c.reportType === 'found' && c.step === 4"
+        class="cm-form-step">
+
+
+        <div class="cm-step-heading">
+
+          <span class="cm-step-number">
+            04
+          </span>
+
+          <div>
+
+            <h2>
+              Help us verify the real owner
+            </h2>
+
+            <p>
+              Add details that someone who genuinely owns this
+              item should know.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- PRIVACY BANNER -->
+
+        <div class="cm-privacy-banner">
+
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2">
+
+            <rect
+              x="3"
+              y="11"
+              width="18"
+              height="10"
+              rx="2">
+            </rect>
+
+            <path
+              d="M7 11V7a5 5 0 0 1 10 0v4">
+            </path>
+
+          </svg>
+
+
+          <div>
+
+            <strong>
+              These answers stay private
+            </strong>
+
+            <p>
+              They are never displayed on public item listings.
+            </p>
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- PRIVATE DETAIL 1 -->
+
+        <div class="cm-field">
+
+          <label>
+            Private Detail 1
+            <span>*</span>
+          </label>
+
+          <textarea
+            ng-model="c.form.privateDetail1"
+            placeholder="e.g. small silver star keychain attached to the side">
+          </textarea>
+
+          <div class="cm-field-hint">
+            A distinctive mark, attachment, damage or hidden feature works well.
+          </div>
+
+        </div>
+
+
+
+        <!-- PRIVATE DETAIL 2 -->
+
+        <div class="cm-field">
+
+          <label>
+            Private Detail 2
+            <span>*</span>
+          </label>
+
+          <textarea
+            ng-model="c.form.privateDetail2"
+            placeholder="e.g. initials written inside the inner pocket">
+          </textarea>
+
+        </div>
+
+
+
+        <!-- PRIVATE DETAIL 3 -->
+
+        <div class="cm-field">
+
+          <label>
+
+            Private Detail 3
+
+            <span class="cm-optional">
+              Optional
+            </span>
+
+          </label>
+
+          <textarea
+            ng-model="c.form.privateDetail3"
+            placeholder="Add another private identifying detail">
+          </textarea>
+
+        </div>
+
+
+
+        <div class="cm-form-actions">
+
+
+          <button
+            type="button"
+            class="cm-btn cm-btn-secondary"
+            ng-click="c.previous()">
+
+            ← Back
+
+          </button>
+
+
+          <button
+            type="button"
+            class="cm-btn cm-btn-primary"
+            ng-click="c.next()">
+
+            Review Report →
+
+          </button>
+
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =====================================
+           REVIEW
+      ====================================== -->
+
+      <div
+        ng-if="
+          (c.reportType === 'lost' && c.step === 4) ||
+          (c.reportType === 'found' && c.step === 5)
+        "
+        class="cm-form-step">
+
+
+        <div class="cm-step-heading">
+
+          <span class="cm-step-number">
+            {{c.reportType === 'found' ? '05' : '04'}}
+          </span>
+
+          <div>
+
+            <h2>
+              Review your report
+            </h2>
+
+            <p>
+              Make sure everything looks right before submitting.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- TYPE -->
+
+        <div class="cm-review-row">
+
+          <span>
+            Report Type
+          </span>
+
+          <strong>
+            {{c.reportType === 'found'
+                ? 'Found'
+                : 'Lost'}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- TITLE -->
+
+        <div class="cm-review-row">
+
+          <span>
+            Item Title
+          </span>
+
+          <strong>
+            {{c.form.title || '—'}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- CATEGORY -->
+
+        <div class="cm-review-row">
+
+          <span>
+            Category
+          </span>
+
+          <strong>
+            {{c.getCategoryLabel()}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- DESCRIPTION -->
+
+        <div class="cm-review-row">
+
+          <span>
+            Description
+          </span>
+
+          <strong>
+            {{c.form.description || '—'}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- DATE -->
+
+        <div class="cm-review-row">
+
+          <span>
+            Date
+          </span>
+
+          <strong>
+            {{c.getDisplayDate()}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- TIME -->
+
+        <div class="cm-review-row">
+
+          <span>
+            Time
+          </span>
+
+          <strong>
+            {{c.getDisplayTime()}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- LOCATION -->
+
+        <div class="cm-review-row">
+
+          <span>
+            Campus Location
+          </span>
+
+          <strong>
+            {{c.form.locationZone || 'Not selected yet'}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- COORDINATES -->
+
+        <div class="cm-review-row">
+
+          <span>
+            Map Coordinates
+          </span>
+
+          <strong>
+            X {{c.form.locationX}}
+            ·
+            Y {{c.form.locationY}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- =====================================
+             VISUAL DETAILS SOURCE
+        ====================================== -->
+
+        <div class="cm-review-row">
+
+          <span>
+            Visual Details
+          </span>
+
+          <strong>
+            {{c.photoChoice === 'yes'
+                ? 'Photo uploaded'
+                : 'Entered manually'}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- =====================================
+             PHOTO PREVIEW
+        ====================================== -->
+
+        <div
+          class="cm-review-photo-section"
+          ng-if="c.photoChoice === 'yes'">
+
+
+          <span class="cm-review-photo-label">
+            Photo
+          </span>
+
+
+          <!-- ACTUAL IMAGE -->
+
+          <div
+            class="cm-review-photo-card"
+            ng-if="c.selectedImage && c.selectedImagePreview">
+
+
+            <img
+              ng-src="{{c.selectedImagePreview}}"
+              alt="Selected item preview"
+              class="cm-review-photo-image">
+
+
+            <div class="cm-review-photo-info">
+
+              <strong>
+                {{c.selectedImage.name}}
+              </strong>
+
+              <span>
+                {{c.selectedImageSize}}
+              </span>
+
+            </div>
+
+
+          </div>
+
+
+
+          <!-- FALLBACK -->
+
+          <div
+            class="cm-review-no-photo"
+            ng-if="!c.selectedImage || !c.selectedImagePreview">
+
+
+            <div class="cm-review-no-photo-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7">
+
+                <rect
+                  x="5"
+                  y="6"
+                  width="14"
+                  height="14"
+                  rx="3">
+                </rect>
+
+                <path
+                  d="M8 6V5a4 4 0 0 1 8 0v1">
+                </path>
+
+              </svg>
+
+            </div>
+
+
+            <div>
+
+              <strong>
+                No photo uploaded
+              </strong>
+
+              <p>
+                Go back to the Photo step and choose an image.
+              </p>
+
+            </div>
+
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- MANUAL BRAND -->
+
+        <div
+          class="cm-review-row"
+          ng-if="c.photoChoice === 'no'">
+
+          <span>
+            Brand
+          </span>
+
+          <strong>
+            {{c.form.brand || 'Unknown'}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- MANUAL COLOR -->
+
+        <div
+          class="cm-review-row"
+          ng-if="c.photoChoice === 'no'">
+
+          <span>
+            Color
+          </span>
+
+          <strong>
+            {{c.form.color || '—'}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- MANUAL UNIQUE FEATURES -->
+
+        <div
+          class="cm-review-row"
+          ng-if="c.photoChoice === 'no'">
+
+          <span>
+            Unique Features
+          </span>
+
+          <strong>
+            {{c.form.uniqueFeatures || '—'}}
+          </strong>
+
+        </div>
+
+
+
+        <!-- =====================================
+             FOUND PRIVATE DETAILS
+        ====================================== -->
+
+        <div
+          ng-if="c.reportType === 'found'"
+          class="cm-private-review">
+
+
+          <div class="cm-private-review-title">
+
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2">
+
+              <rect
+                x="3"
+                y="11"
+                width="18"
+                height="10"
+                rx="2">
+              </rect>
+
+              <path
+                d="M7 11V7a5 5 0 0 1 10 0v4">
+              </path>
+
+            </svg>
+
+
+            Private verification details
+
+
+          </div>
+
+
+
+          <div class="cm-review-row">
+
+            <span>
+              Detail 1
+            </span>
+
+            <strong>
+              {{c.form.privateDetail1 || '—'}}
+            </strong>
+
+          </div>
+
+
+
+          <div class="cm-review-row">
+
+            <span>
+              Detail 2
+            </span>
+
+            <strong>
+              {{c.form.privateDetail2 || '—'}}
+            </strong>
+
+          </div>
+
+
+
+          <div class="cm-review-row">
+
+            <span>
+              Detail 3
+            </span>
+
+            <strong>
+              {{c.form.privateDetail3 || '—'}}
+            </strong>
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- ERROR MESSAGE -->
+
+        <div
+          class="cm-error"
+          ng-if="c.errorMessage">
+
+          {{c.errorMessage}}
+
+        </div>
+
+
+
+        <!-- REVIEW ACTIONS -->
+
+        <div class="cm-form-actions">
+
+
+          <button
+            type="button"
+            class="cm-btn cm-btn-secondary"
+            ng-click="c.previous()">
+
+            ← Back
+
+          </button>
+
+
+          <button
+            type="button"
+            class="cm-btn cm-btn-primary"
+            ng-disabled="c.submitting"
+            ng-click="c.submitReport()">
+
+            {{c.submitting
+                ? 'Submitting...'
+                : 'Submit Report'}}
+
+          </button>
+
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- =====================================
+           SUCCESS
+      ====================================== -->
+
+      <div
+        ng-if="c.step === 'success'"
+        class="cm-success">
+
+
+        <div class="cm-success-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round">
+
+            <path
+              d="M20 6 9 17l-5-5">
+            </path>
+
+          </svg>
+
+        </div>
+
+
+
+        <span class="cm-success-eyebrow">
+          Report submitted
+        </span>
+
+
+
+        <h2>
+          {{c.reportType === 'found'
+              ? 'Thank you for helping!'
+              : 'We’ll start looking for matches.'}}
+        </h2>
+
+
+
+        <p>
+
+          CampusMatch will compare this report with relevant
+
+          {{c.reportType === 'found'
+              ? 'lost'
+              : 'found'}}
+
+          items and update you when there is meaningful match activity.
+
+        </p>
+
+
+
+        <div
+          class="cm-report-number"
+          ng-if="c.createdNumber">
+
+          Report
+
+          <strong>
+            {{c.createdNumber}}
+          </strong>
+
+        </div>
+
+
+
+        <a
+          href="?id=campusmatch_dashboard"
+          class="cm-btn cm-btn-primary cm-dashboard-btn">
+
+          Go to My Dashboard →
+
+        </a>
+
+
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+</div>]]></template>
+    </sp_widget>
+</record_update>

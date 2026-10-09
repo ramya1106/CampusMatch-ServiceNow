@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_embedded_help_role">
+    <sys_embedded_help_role action="INSERT_OR_UPDATE">
+        <order>1000</order>
+        <role display_value="x_snc_campusmatch.campusmatch_notification_user" name="x_snc_campusmatch.campusmatch_notification_user">581dd1fed5e703107f4491472fd3dfaa</role>
+        <sys_class_name>sys_embedded_help_role</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-29 08:41:58</sys_created_on>
+        <sys_id>5c1dd9fed5e703107f4491472fd3dfbf</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>581dd1fed5e703107f4491472fd3dfaa</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_embedded_help_role_5c1dd9fed5e703107f4491472fd3dfbf</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-29 08:41:58</sys_updated_on>
+    </sys_embedded_help_role>
+</record_update>

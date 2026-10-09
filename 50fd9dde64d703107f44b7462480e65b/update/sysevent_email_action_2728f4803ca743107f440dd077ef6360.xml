@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sysevent_email_action">
+    <sysevent_email_action action="INSERT_OR_UPDATE">
+        <action_insert>false</action_insert>
+        <action_update>true</action_update>
+        <active>true</active>
+        <advanced_condition/>
+        <affected_field_on_event/>
+        <category display_value="Uncategorized" name="Uncategorized">c97d83137f4432005f58108c3ffa917a</category>
+        <collection>x_snc_campusmatch_campusmatch_claim</collection>
+        <condition table="x_snc_campusmatch_campusmatch_claim">u_verification_resultCHANGESTOreview^EQ<item display_value="Review" endquery="false" field="u_verification_result" goto="false" newquery="false" operator="CHANGESTO" or="false" value="review"/>
+            <item endquery="true" field="" goto="false" newquery="false" operator="=" or="false" value=""/>
+        </condition>
+        <content_type>text/html</content_type>
+        <default_digest>false</default_digest>
+        <default_interval/>
+        <description/>
+        <digest_from/>
+        <digest_html/>
+        <digest_reply_to/>
+        <digest_separator_html><![CDATA[<p>&nbsp;</p>
+<hr>
+<p>&nbsp;</p>]]></digest_separator_html>
+        <digest_separator_text><![CDATA[\n--------------------------------------------------------------------------------\n]]></digest_separator_text>
+        <digest_subject/>
+        <digest_template/>
+        <digest_text/>
+        <digest_type>single</digest_type>
+        <digestable>false</digestable>
+        <enable_dynamic_translation>false</enable_dynamic_translation>
+        <event_name>activate.life.cycle.migration</event_name>
+        <event_parm_1>false</event_parm_1>
+        <event_parm_2>false</event_parm_2>
+        <exclude_delegates>false</exclude_delegates>
+        <force_delivery>false</force_delivery>
+        <from/>
+        <generation_type>engine</generation_type>
+        <importance/>
+        <include_attachments>false</include_attachments>
+        <item>event.parm1</item>
+        <item_table/>
+        <mandatory>false</mandatory>
+        <message/>
+        <message_html><![CDATA[<div style="margin: 0; padding: 0; background-color: #fbf8ef; font-family: 'DM Sans','Segoe UI',Arial,sans-serif; color: #102e34;">
+<table style="width: 100%; margin: 0; padding: 0; background-color: #fbf8ef;" role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="padding: 32px 16px 40px 16px; background-color: #fbf8ef;" align="center"><!-- CAMPUSMATCH LOGO -->
+<table style="width: 100%; max-width: 540px;" role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="padding: 4px 20px 28px 20px;" align="center"><img style="display: block; width: 190px; max-width: 100%; height: auto; margin: 0 auto; border: 0;" src="https://res.cloudinary.com/dn9sdbv1o/image/upload/v1789810311/CampusMatch_Logo_m6xn50.png" alt="CampusMatch" width="190"></td>
+</tr>
+</tbody>
+</table>
+<!-- MAIN NOTIFICATION CARD -->
+<table style="width: 100%; max-width: 540px; background-color: #ffffff; border: 1px solid #D2DED8; border-radius: 20px; overflow: hidden;" role="presentation" border="0" width="540" cellspacing="0" cellpadding="0">
+<tbody><!-- BODY -->
+<tr>
+<td style="padding: 30px 30px 26px 30px; background-color: #ffffff; font-family: 'DM Sans','Segoe UI',Arial,sans-serif; color: #102e34; font-size: 15px; line-height: 1.7;"><!-- STATUS BADGE -->
+<table style="margin: 0 0 18px 0;" role="presentation" border="0" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="background-color: #edf5e9; color: #168c70; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; padding: 6px 11px; border-radius: 18px;">REVIEW REQUIRED</td>
+</tr>
+</tbody>
+</table>
+<!-- HEADING -->
+<h1 style="margin: 0 0 17px 0; font-family: 'Plus Jakarta Sans','Segoe UI',Arial,sans-serif; font-size: 24px; line-height: 1.3; font-weight: bold; color: #104e45;">Verification submitted</h1>
+<!-- GREETING -->
+<p style="margin: 0 0 16px 0; color: #102e34;">Hello <strong>${u_claimant.name}</strong>,</p>
+<!-- MAIN MESSAGE -->
+<p style="margin: 0 0 14px 0; color: #506267;">Your ownership verification has been submitted successfully.</p>
+<p style="margin: 0 0 24px 0; color: #506267;">The claim requires a short review by campus staff before a decision can be made.</p>
+<!-- CLAIM CARD -->
+<table style="width: 100%; background-color: #edf5e9; border: 1px solid #D2DED8; border-radius: 12px; margin-bottom: 20px;" role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="padding: 16px 18px;">
+<div style="margin-bottom: 5px; font-size: 11px; font-weight: 600; color: #506267; text-transform: uppercase; letter-spacing: 0.5px;">Claim</div>
+<div style="font-family: 'Plus Jakarta Sans','Segoe UI',Arial,sans-serif; font-size: 17px; font-weight: bold; color: #104e45;">${number}</div>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- NEXT STEP -->
+<table style="width: 100%; background-color: #fbf8ef; border: 1px solid #D2DED8; border-left: 4px solid #249D78; border-radius: 10px;" role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td style="padding: 14px 16px; color: #506267; font-size: 13px; line-height: 1.65;"><strong style="color: #104e45;"> What happens next? </strong> <br>You will receive another CampusMatch update after the review is completed.</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+<!-- FOOTER -->
+<tr>
+<td style="background-color: #edf5e9; border-top: 1px solid #D2DED8; padding: 18px 24px; font-family: 'DM Sans','Segoe UI',Arial,sans-serif; font-size: 11px; line-height: 1.7; color: #506267;" align="center"><strong style="font-family: 'Plus Jakarta Sans','Segoe UI',Arial,sans-serif; color: #104e45; font-size: 12px;"> CampusMatch </strong> <br>Smarter campus lost &amp; found. <br><br>This is an automated CampusMatch notification.</td>
+</tr>
+</tbody>
+</table>
+<!-- END MAIN CARD --></td>
+</tr>
+</tbody>
+</table>
+</div>]]></message_html>
+        <message_list/>
+        <message_text/>
+        <name>CampusMatch - Claim Under Review</name>
+        <omit_watermark>false</omit_watermark>
+        <order>100</order>
+        <push_message_only>false</push_message_only>
+        <recipient_fields>claimant</recipient_fields>
+        <recipient_groups/>
+        <recipient_users/>
+        <reply_to/>
+        <send_self>true</send_self>
+        <sms_alternate/>
+        <style/>
+        <subject>CampusMatch: Your claim requires staff review</subject>
+        <subscribable>false</subscribable>
+        <sys_class_name>sysevent_email_action</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-20 16:58:48</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>2728f4803ca743107f440dd077ef6360</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>CampusMatch - Claim Under Review</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sysevent_email_action_2728f4803ca743107f440dd077ef6360</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-25 14:09:09</sys_updated_on>
+        <sys_version>2</sys_version>
+        <template display_value="Unsubscribe and Preferences">7ed0481f3b0b2200c869c2c703efc487</template>
+        <type>email</type>
+        <weight>0</weight>
+    </sysevent_email_action>
+</record_update>

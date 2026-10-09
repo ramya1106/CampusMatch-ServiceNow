@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_security_acl">
+    <sys_security_acl action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <admin_overrides>true</admin_overrides>
+        <advanced>false</advanced>
+        <applies_to/>
+        <condition/>
+        <controlled_by_refs/>
+        <decision_type>allow</decision_type>
+        <description/>
+        <local_or_existing>Existing</local_or_existing>
+        <name>campusmatch_ownership_question_generator.fa37d850716303107f4447ef815abe85</name>
+        <operation display_value="execute">execute</operation>
+        <script/>
+        <security_attribute display_value="UserIsAuthenticated">239bdf0c47d23110ba46ff58936d4330</security_attribute>
+        <sys_class_name>sys_security_acl</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-21 09:12:02</sys_created_on>
+        <sys_id>f637d850716303107f4447ef815abea0</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>campusmatch_ownership_question_generator.fa37d850716303107f4447ef815abe85</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_security_acl_f637d850716303107f4447ef815abea0</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-21 09:12:31</sys_updated_on>
+        <type display_value="gen_ai_skill">0d986410ffdd2210c0e9ffffffffffc9</type>
+    </sys_security_acl>
+</record_update>

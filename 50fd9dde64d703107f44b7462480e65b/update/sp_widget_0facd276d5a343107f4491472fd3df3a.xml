@@ -1,0 +1,1247 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function(
+    $scope,
+    $http,
+    $window,
+    $location,
+    spUtil
+) {
+
+    var c = this;
+
+
+    /*
+     * =========================================================
+     * STATE
+     * =========================================================
+     */
+
+    c.username = "";
+    c.password = "";
+
+    c.showPassword = false;
+    c.loggingIn = false;
+
+    c.errorMessage = "";
+
+
+    /*
+     * =========================================================
+     * SHOW / HIDE PASSWORD
+     * =========================================================
+     */
+
+    c.togglePassword = function() {
+
+        c.showPassword = !c.showPassword;
+
+    };
+
+
+    /*
+     * =========================================================
+     * LOGIN
+     * =========================================================
+     */
+
+    c.login = function() {
+
+        c.errorMessage = "";
+
+
+        /*
+         * Basic validation
+         */
+
+        if (!c.username || !c.password) {
+
+            c.errorMessage =
+                "Please enter your username and password.";
+
+            return;
+
+        }
+
+
+        c.loggingIn = true;
+
+
+        /*
+         * =====================================================
+         * SERVICENOW NATIVE LOGIN PROCESSOR
+         * =====================================================
+         */
+
+        var loginUrl =
+            spUtil.getURL({
+                sysparm_type: "view_form.login"
+            });
+
+
+        $http({
+
+            method: "POST",
+
+            url: loginUrl,
+
+            headers: {
+
+                "Content-Type":
+                    "application/x-www-form-urlencoded"
+
+            },
+
+            data: $.param({
+
+                sysparm_type:
+                    "login",
+
+                "ni.nolog.user_password":
+                    true,
+
+                remember_me:
+                    false,
+
+                user_name:
+                    c.username,
+
+                user_password:
+                    c.password,
+
+                get_redirect_url:
+                    true,
+
+                /*
+                 * Since this IS our actual login page,
+                 * do not try to return to the login URL.
+                 */
+
+                sysparm_goto_url:
+                    null
+
+            })
+
+        }).then(function(response) {
+
+
+            c.loggingIn = false;
+
+
+            /*
+             * =================================================
+             * INVALID RESPONSE
+             * =================================================
+             */
+
+            if (!response || !response.data) {
+
+                c.errorMessage =
+                    "There was an error processing your request.";
+
+                return;
+
+            }
+
+
+            /*
+             * =================================================
+             * MFA REQUIRED
+             * =================================================
+             *
+             * Username/password are correct.
+             * Continue into ServiceNow MFA.
+             */
+
+            if (
+                response.data.status ===
+                "mfa_code_required"
+            ) {
+
+                $window.location.href =
+                    "/validate_multifactor_auth_code.do";
+
+                return;
+
+            }
+
+
+            /*
+             * =================================================
+             * LOGIN SUCCESS
+             * =================================================
+             */
+
+            if (
+                response.data.status ===
+                "success"
+            ) {
+
+                /*
+                 * If ServiceNow gives us a valid redirect,
+                 * use it unless it points back to login.
+                 */
+
+                if (
+                    response.data.redirect_url &&
+                    response.data.redirect_url.indexOf(
+                        "campusmatch_login"
+                    ) === -1
+                ) {
+
+                    $window.location.href =
+                        response.data.redirect_url;
+
+                    return;
+
+                }
+
+
+                /*
+                 * CampusMatch fallback home.
+                 */
+
+                $window.location.href =
+                    "/campusmatch?id=campusmatch_home_hero";
+
+                return;
+
+            }
+
+
+            /*
+             * =================================================
+             * OTHER SERVICENOW REDIRECT
+             * =================================================
+             */
+
+            if (
+                response.data.redirect_url &&
+                response.data.redirect_url.indexOf(
+                    "campusmatch_login"
+                ) === -1
+            ) {
+
+                $window.location.href =
+                    response.data.redirect_url;
+
+                return;
+
+            }
+
+
+            /*
+             * =================================================
+             * LOGIN FAILED
+             * =================================================
+             */
+
+            c.errorMessage =
+                response.data.message ||
+                "Invalid username or password.";
+
+            c.password = "";
+
+
+        }).catch(function() {
+
+
+            c.loggingIn = false;
+
+            c.errorMessage =
+                "Unable to sign in. Please try again.";
+
+
+        });
+
+    };
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ==========================================================
+   CAMPUSMATCH LOGIN PAGE
+========================================================== */
+
+.cm-login-page {
+    width: 100% !important;
+    min-height: 100vh;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 !important;
+
+    padding: 12px 18px;
+
+    background: #FBF8EF;
+
+    font-family:
+        'DM Sans',
+        'Segoe UI',
+        Arial,
+        sans-serif;
+
+    color: #102E34;
+}
+
+
+.cm-login-page,
+.cm-login-page *,
+.cm-login-page *::before,
+.cm-login-page *::after {
+    box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   MAIN SHELL
+========================================================== */
+
+.cm-login-shell {
+    width: 100%;
+
+    max-width: 760px;
+
+    height: 620px;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.03fr)
+        minmax(300px, 0.97fr);
+
+    overflow: hidden;
+
+    background: #FFFFFF;
+
+    border: 1px solid #D2DED8;
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 14px 36px
+        rgba(16, 46, 52, 0.11);
+}
+
+
+/* ==========================================================
+   DESKTOP VISUAL
+========================================================== */
+
+.cm-login-visual {
+    position: relative;
+
+    height: 620px;
+
+    overflow: hidden;
+
+    background: #EAF3EE;
+}
+
+
+.cm-login-visual-image {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
+}
+
+
+/* ==========================================================
+   LOGIN PANEL
+========================================================== */
+
+.cm-login-panel {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    height: 620px;
+
+    padding:
+        20px
+        26px;
+
+    background: #FFFFFF;
+}
+
+
+.cm-login-card {
+    width: 100%;
+
+    max-width: 285px;
+}
+
+
+/* ==========================================================
+   LOGO
+========================================================== */
+
+.cm-login-logo-wrap {
+    margin-bottom: 12px;
+}
+
+
+.cm-login-logo {
+    display: block;
+
+    width: 118px;
+    height: auto;
+}
+
+
+/* ==========================================================
+   MOBILE VISUAL
+========================================================== */
+
+.cm-login-mobile-visual {
+    display: none;
+
+    width: 100%;
+
+    margin:
+        0
+        0
+        14px;
+
+    overflow: hidden;
+
+    border-radius: 12px;
+}
+
+
+.cm-login-mobile-visual img {
+    display: block;
+
+    width: 100%;
+    height: auto;
+}
+
+
+/* ==========================================================
+   HEADING
+========================================================== */
+
+.cm-login-heading {
+    margin-bottom: 14px;
+}
+
+
+.cm-login-eyebrow {
+    display: inline-block;
+
+    margin-bottom: 4px;
+
+    color: #168C70;
+
+    font-size: 8px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.05em;
+
+    text-transform: uppercase;
+}
+
+
+.cm-login-heading h1 {
+    margin:
+        0
+        0
+        5px;
+
+    font-family:
+        'Plus Jakarta Sans',
+        'Segoe UI',
+        Arial,
+        sans-serif;
+
+    color: #102E34;
+
+    font-size: 20px;
+
+    line-height: 1.15;
+
+    font-weight: 800;
+}
+
+
+.cm-login-heading p {
+    margin: 0;
+
+    color: #506267;
+
+    font-size: 9px;
+
+    line-height: 1.4;
+}
+
+
+/* ==========================================================
+   MESSAGE
+========================================================== */
+
+.cm-login-message {
+    width: 100%;
+
+    margin-bottom: 10px;
+
+    padding:
+        7px
+        9px;
+
+    border-radius: 8px;
+
+    font-size: 9px;
+
+    line-height: 1.35;
+}
+
+
+.cm-login-message-error {
+    color: #8A4038;
+
+    background: #FFF4F2;
+
+    border: 1px solid #EFCEC8;
+}
+
+
+/* ==========================================================
+   FORM
+========================================================== */
+
+.cm-login-form {
+    width: 100%;
+}
+
+
+.cm-field-group {
+    margin-bottom: 10px;
+}
+
+
+.cm-field-group label {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: #102E34;
+
+    font-size: 9px;
+
+    font-weight: 700;
+}
+
+
+/* ==========================================================
+   INPUT WRAPPER
+========================================================== */
+
+.cm-input-wrap {
+    position: relative;
+
+    width: 100%;
+}
+
+
+/* ==========================================================
+   INPUT ICON
+========================================================== */
+
+.cm-input-icon {
+    position: absolute;
+
+    top: 50%;
+    left: 11px;
+
+    transform:
+        translateY(-50%);
+
+    color: #6C7F83;
+
+    font-size: 11px;
+
+    pointer-events: none;
+}
+
+
+/* ==========================================================
+   INPUT
+========================================================== */
+
+.cm-input {
+    width: 100%;
+
+    min-height: 36px;
+
+    padding:
+        7px
+        34px
+        7px
+        31px;
+
+    border:
+        1.5px solid
+        #D2DED8;
+
+    border-radius: 9px;
+
+    outline: none;
+
+    background: #FFFFFF;
+
+    color: #102E34;
+
+    font-family: inherit;
+
+    font-size: 10px;
+}
+
+
+.cm-input:focus {
+    border-color: #249D78;
+
+    box-shadow:
+        0 0 0 2px
+        rgba(36, 157, 120, 0.10);
+}
+
+
+.cm-input::placeholder {
+    color: #99A7A9;
+}
+
+
+/* ==========================================================
+   PASSWORD TOGGLE
+========================================================== */
+
+.cm-password-toggle {
+    position: absolute;
+
+    top: 50%;
+    right: 8px;
+
+    transform:
+        translateY(-50%);
+
+    width: 26px;
+    height: 26px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #687B7F;
+
+    cursor: pointer;
+
+    font-size: 10px;
+}
+
+
+/* ==========================================================
+   LOGIN BUTTON
+========================================================== */
+
+.cm-login-button {
+    width: 100%;
+
+    min-height: 36px;
+
+    margin-top: 3px;
+
+    padding:
+        7px
+        12px;
+
+    border: 0;
+
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #15564B,
+            #168C70
+        );
+
+    color: #FFFFFF;
+
+    font-family: inherit;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 6px 14px
+        rgba(21, 86, 75, 0.16);
+}
+
+
+.cm-login-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+
+.cm-login-button:disabled {
+    opacity: 0.65;
+
+    cursor: not-allowed;
+}
+
+
+/* ==========================================================
+   FOOTER
+========================================================== */
+
+.cm-login-footer {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 4px;
+
+    margin-top: 10px;
+
+    color: #6F8083;
+
+    font-size: 7px;
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 900px) {
+
+    .cm-login-page {
+        min-height: 100vh;
+
+        padding: 14px;
+    }
+
+
+    .cm-login-shell {
+        max-width: 500px;
+
+        height: auto;
+
+        grid-template-columns: 1fr;
+
+        border-radius: 16px;
+    }
+
+
+    .cm-login-visual-desktop {
+        display: none;
+    }
+
+
+    .cm-login-panel {
+        height: auto;
+
+        padding:
+            22px
+            22px;
+    }
+
+
+    .cm-login-card {
+        max-width: 360px;
+    }
+
+
+    .cm-login-mobile-visual {
+        display: block;
+    }
+
+}
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 520px) {
+
+    .cm-login-page {
+        width: 100% !important;
+
+        min-height: 100vh;
+
+        display: block;
+
+        margin: 0 !important;
+        padding: 10px !important;
+
+        background: #FBF8EF;
+    }
+
+
+    .cm-login-shell {
+        width: 100%;
+
+        max-width: none;
+
+        min-height: 100vh;
+
+        display: block;
+
+        margin: 0;
+
+        border: 0;
+
+        border-radius: 0;
+
+        box-shadow: none;
+
+        background: #FBF8EF;
+    }
+
+
+    .cm-login-panel {
+        width: 100%;
+
+        min-height: 100vh;
+
+        height: auto;
+
+        display: block;
+
+        padding:
+            18px
+            16px
+            22px;
+
+        background: #FBF8EF;
+    }
+
+
+    .cm-login-card {
+        width: 100%;
+
+        max-width: none;
+
+        margin: 0 auto;
+    }
+
+
+    .cm-login-logo-wrap {
+        margin-bottom: 14px;
+    }
+
+
+    .cm-login-logo {
+        width: 136px;
+    }
+
+
+    .cm-login-mobile-visual {
+        display: block;
+
+        width: 100%;
+
+        margin:
+            0
+            0
+            18px;
+
+        border-radius: 13px;
+    }
+
+
+    .cm-login-mobile-visual img {
+        display: block;
+
+        width: 100%;
+        height: auto;
+    }
+
+
+    .cm-login-heading {
+        margin-bottom: 18px;
+    }
+
+
+    .cm-login-eyebrow {
+        font-size: 10px;
+    }
+
+
+    .cm-login-heading h1 {
+        font-size: 24px;
+
+        line-height: 1.18;
+    }
+
+
+    .cm-login-heading p {
+        font-size: 12px;
+
+        line-height: 1.5;
+    }
+
+
+    .cm-field-group {
+        margin-bottom: 14px;
+    }
+
+
+    .cm-field-group label {
+        font-size: 11px;
+
+        margin-bottom: 6px;
+    }
+
+
+    .cm-input {
+        min-height: 48px;
+
+        font-size: 12px;
+
+        padding:
+            10px
+            38px
+            10px
+            34px;
+
+        border-radius: 11px;
+    }
+
+
+    .cm-input-icon {
+        font-size: 13px;
+    }
+
+
+    .cm-password-toggle {
+        width: 30px;
+        height: 30px;
+
+        font-size: 12px;
+    }
+
+
+    .cm-login-button {
+        min-height: 48px;
+
+        margin-top: 5px;
+
+        font-size: 12px;
+
+        border-radius: 11px;
+    }
+
+
+    .cm-login-footer {
+        margin-top: 14px;
+
+        font-size: 9px;
+    }
+
+}
+
+/* ==========================================================
+   EXTRA SMALL MOBILE
+========================================================== */
+
+@media (max-width: 360px) {
+
+    .cm-login-panel {
+        padding:
+            14px
+            12px
+            18px;
+    }
+
+
+    .cm-login-logo {
+        width: 112px;
+    }
+
+
+    .cm-login-heading h1 {
+        font-size: 18px;
+    }
+
+
+    .cm-login-heading p {
+        font-size: 9px;
+    }
+
+
+    .cm-input {
+        min-height: 36px;
+    }
+
+
+    .cm-login-button {
+        min-height: 36px;
+    }
+
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_login</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CampusMatch Login</name>
+        <option_schema/>
+        <public>true</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-29 13:19:52</sys_created_on>
+        <sys_id>0facd276d5a343107f4491472fd3df3a</sys_id>
+        <sys_mod_count>43</sys_mod_count>
+        <sys_name>CampusMatch Login</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_0facd276d5a343107f4491472fd3df3a</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-29 19:44:24</sys_updated_on>
+        <template><![CDATA[<section class="cm-login-page">
+
+    <div class="cm-login-shell">
+
+        <!-- =====================================================
+             DESKTOP / LAPTOP VISUAL
+        ====================================================== -->
+
+        <div class="cm-login-visual cm-login-visual-desktop">
+
+            <img
+                class="cm-login-visual-image"
+                src="https://res.cloudinary.com/dn9sdbv1o/image/upload/v1790687266/Login_Laptop_kvufrq.png"
+                alt="CampusMatch login"
+            />
+
+        </div>
+
+
+        <!-- =====================================================
+             LOGIN PANEL
+        ====================================================== -->
+
+        <div class="cm-login-panel">
+
+            <div class="cm-login-card">
+
+                <!-- LOGO -->
+
+                <div class="cm-login-logo-wrap">
+
+                    <img
+                        class="cm-login-logo"
+                        src="https://res.cloudinary.com/dn9sdbv1o/image/upload/v1789810311/CampusMatch_Logo_m6xn50.png"
+                        alt="CampusMatch"
+                    />
+
+                </div>
+
+
+                <!-- MOBILE VISUAL -->
+
+                <div class="cm-login-mobile-visual">
+
+                    <img
+                        src="https://res.cloudinary.com/dn9sdbv1o/image/upload/v1790687266/Login_Mobile_f6hxru.png"
+                        alt="CampusMatch mobile login"
+                    />
+
+                </div>
+
+
+                <!-- HEADING -->
+
+                <div class="cm-login-heading">
+
+                    <span class="cm-login-eyebrow">
+                        Welcome Back
+                    </span>
+
+                    <h1>
+                        Login to CampusMatch
+                    </h1>
+
+                    <p>
+                        Sign in to report, find and recover lost items securely.
+                    </p>
+
+                </div>
+
+
+                <!-- ERROR MESSAGE -->
+
+                <div
+                    class="cm-login-message cm-login-message-error"
+                    ng-if="c.errorMessage">
+
+                    {{c.errorMessage}}
+
+                </div>
+
+
+                <!-- =====================================================
+                     DEMO LOGIN FORM
+                     These values are NOT submitted.
+                ====================================================== -->
+
+                <form
+                    class="cm-login-form"
+                    ng-submit="c.login()"
+                    novalidate>
+
+
+                    <!-- USERNAME -->
+
+                    <div class="cm-field-group">
+
+                        <label for="cmUsername">
+                            Username
+                        </label>
+
+                        <div class="cm-input-wrap">
+
+                            <span class="glyphicon glyphicon-user cm-input-icon"></span>
+
+                            <input
+                                id="cmUsername"
+                                type="text"
+                                class="cm-input"
+                                ng-model="c.username"
+                                placeholder="Enter your username"
+                                autocomplete="off"
+                                required
+                            />
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PASSWORD -->
+
+                    <div class="cm-field-group">
+
+                        <label for="cmPassword">
+                            Password
+                        </label>
+
+                        <div class="cm-input-wrap">
+
+                            <span class="glyphicon glyphicon-lock cm-input-icon"></span>
+
+                            <input
+                                id="cmPassword"
+                                ng-attr-type="{{c.showPassword ? 'text' : 'password'}}"
+                                class="cm-input cm-password-input"
+                                ng-model="c.password"
+                                placeholder="Enter your password"
+                                autocomplete="off"
+                                required
+                            />
+
+                            <button
+                                type="button"
+                                class="cm-password-toggle"
+                                ng-click="c.togglePassword()"
+                                aria-label="Show or hide password">
+
+                                <span
+                                    class="glyphicon"
+                                    ng-class="{
+                                        'glyphicon-eye-open': !c.showPassword,
+                                        'glyphicon-eye-close': c.showPassword
+                                    }">
+                                </span>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- LOGIN BUTTON -->
+
+                    <button
+    type="submit"
+    class="cm-login-button"
+    ng-disabled="c.loggingIn">
+
+    <span ng-if="!c.loggingIn">
+        Login
+    </span>
+
+    <span ng-if="c.loggingIn">
+        Signing in...
+    </span>
+
+</button>
+
+                </form>
+
+
+                <!-- FOOTER -->
+
+                <div class="cm-login-footer">
+
+                    <span class="glyphicon glyphicon-lock"></span>
+
+                    <span>
+                        Secure access powered by ServiceNow
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>]]></template>
+    </sp_widget>
+    <sys_es_latest_script action="INSERT_OR_UPDATE">
+        <id>0facd276d5a343107f4491472fd3df3a</id>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-29 13:19:52</sys_created_on>
+        <sys_id>0facd276d5a343107f4491472fd3df3f</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-29 13:19:52</sys_updated_on>
+        <table>sp_widget</table>
+        <use_es_latest>true</use_es_latest>
+    </sys_es_latest_script>
+</record_update>

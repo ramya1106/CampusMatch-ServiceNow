@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sn_nowassist_skill_config">
+    <sn_nowassist_skill_config action="INSERT_OR_UPDATE">
+        <active>false</active>
+        <description><![CDATA[Generates a short privacy-safe public listing title for a CampusMatch lost or found item without exposing ownership-verification details.]]></description>
+        <edited_in_nask>false</edited_in_nask>
+        <in_product_active>false</in_product_active>
+        <in_product_roles/>
+        <internal_name>campusmatch_privacy_safe_public_title.570006d6645f03107f44b7462480e6d2</internal_name>
+        <is_template>false</is_template>
+        <name>CampusMatch Privacy Safe Public Title</name>
+        <nap_skill_applicability/>
+        <order>100</order>
+        <parent/>
+        <skill_family display_value="Other">a5efaf1c93764210aa5730f16489186d</skill_family>
+        <skill_id>b20006d6645f03107f44b7462480e665</skill_id>
+        <skill_table>sys_one_extend_capability</skill_table>
+        <state>0</state>
+        <success_message/>
+        <sys_class_name>sn_nowassist_skill_config</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-15 11:42:09</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_id>570006d6645f03107f44b7462480e6d2</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>CampusMatch Privacy Safe Public Title</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sn_nowassist_skill_config_570006d6645f03107f44b7462480e6d2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-15 11:42:10</sys_updated_on>
+    </sn_nowassist_skill_config>
+    <sys_translated_text action="delete_multiple" query="documentkey=570006d6645f03107f44b7462480e6d2"/>
+</record_update>

@@ -1,0 +1,4110 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function($window) {
+
+    var c = this;
+
+
+    /* =====================================================
+       DEFAULT TAB
+    ===================================================== */
+
+    c.activeTab = 'reports';
+
+
+
+    /* =====================================================
+       REPORT LOAD MORE SETTINGS
+    ===================================================== */
+
+    c.reportLimit = 10;
+
+
+
+    /* =====================================================
+       CHANGE TAB
+    ===================================================== */
+
+    c.setTab = function(tab) {
+
+        c.activeTab = tab;
+
+
+        /*
+         Reset reports whenever coming back
+         */
+        if(tab === 'reports') {
+
+            c.reportLimit = 10;
+
+        }
+
+    };
+
+
+
+    /* =====================================================
+       RECENT REPORTS - VISIBLE RECORDS
+    ===================================================== */
+
+    c.visibleReports = function() {
+
+
+        var reports =
+            c.data.recentReports || [];
+
+
+        return reports.slice(
+            0,
+            c.reportLimit
+        );
+
+    };
+
+
+
+    /* =====================================================
+       SHOW / HIDE LOAD MORE BUTTON
+    ===================================================== */
+
+    c.showLoadMore = function() {
+
+
+        var total =
+            (c.data.recentReports || []).length;
+
+
+        return (
+            c.activeTab === 'reports' &&
+            c.reportLimit < total
+        );
+
+    };
+
+
+
+    /* =====================================================
+       LOAD MORE REPORTS
+    ===================================================== */
+
+    c.loadMoreReports = function() {
+
+        c.reportLimit += 10;
+
+    };
+
+
+
+    /* =====================================================
+       SECURITY DESK - MARK ITEM RECEIVED
+    ===================================================== */
+
+    c.markReceived = function(item) {
+
+
+        if(
+            !item ||
+            !item.sys_id
+        ) {
+
+            return;
+
+        }
+
+
+
+        if(
+            !confirm(
+                'Confirm that the physical item has been handed to the Security Desk?'
+            )
+        ) {
+
+            return;
+
+        }
+
+
+
+        item.receiving = true;
+
+
+
+        c.server.get({
+
+            action:
+                'markReceived',
+
+            item_id:
+                item.sys_id
+
+
+        }).then(
+
+            function(response) {
+
+
+                c.data =
+                    response.data;
+
+
+                item.receiving =
+                    false;
+
+
+            },
+
+
+            function() {
+
+
+                item.receiving =
+                    false;
+
+
+            }
+
+        );
+
+
+    };
+
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ============================================================
+   CAMPUSMATCH ADMIN DASHBOARD
+   WEBSITE + NOW MOBILE APP
+   FULL-BLEED SAFE VERSION
+============================================================ */
+
+.cm-admin-page {
+  position: relative;
+  display: block;
+
+  width: 100vw !important;
+  max-width: 100vw !important;
+
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+
+  min-height: 100vh;
+  min-height: 100svh;
+
+  padding: 52px 20px 90px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #FBF8EF 0%,
+      #F5F7F0 100%
+    ) !important;
+
+  box-shadow:
+    0 -60px 0 #FBF8EF,
+    0 60px 0 #F5F7F0;
+
+  font-family:
+    "DM Sans",
+    "Segoe UI",
+    sans-serif;
+
+  color: #102E34;
+
+  box-sizing: border-box !important;
+
+  overflow-x: hidden;
+}
+
+
+.cm-admin-page,
+.cm-admin-page *,
+.cm-admin-page *::before,
+.cm-admin-page *::after {
+  box-sizing: border-box;
+}
+
+
+.cm-admin-container {
+  position: relative;
+
+  width: 100%;
+  max-width: 1250px;
+
+  margin: 0 auto;
+}
+
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+.cm-admin-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 30px;
+
+  margin-bottom: 34px;
+}
+
+
+.cm-admin-eyebrow {
+  display: inline-flex;
+
+  padding: 8px 15px;
+  margin-bottom: 14px;
+
+  border-radius: 999px;
+
+  background: #EDF5E9;
+
+  color: #15564B;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+.cm-admin-header h1 {
+  margin: 0 0 7px;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 39px;
+  font-weight: 700;
+
+  letter-spacing: -1px;
+}
+
+
+.cm-admin-header p {
+  max-width: 680px;
+
+  margin: 0;
+
+  color: #617477;
+
+  font-size: 14px;
+}
+
+
+.cm-explore-button {
+  padding: 12px 18px;
+
+  flex-shrink: 0;
+
+  border-radius: 999px;
+
+  background: #104E45;
+
+  color: #FFFFFF !important;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  text-decoration: none !important;
+}
+
+
+/* ============================================================
+   STATS
+============================================================ */
+
+.cm-admin-stats {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0,1fr));
+
+  gap: 14px;
+
+  margin-bottom: 32px;
+}
+
+
+.cm-admin-stat {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 18px;
+
+  border: 1px solid #D2DED8;
+  border-radius: 19px;
+
+  background: #FFFFFF;
+
+  box-shadow:
+    0 4px 16px rgba(16,78,69,.05);
+}
+
+
+.cm-stat-icon {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 14px;
+}
+
+
+.cm-stat-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+
+.cm-stat-total {
+  background: #EDF2EE;
+  color: #506267;
+}
+
+
+.cm-stat-lost {
+  background: #FBEAE7;
+  color: #B5502F;
+}
+
+
+.cm-stat-found {
+  background: #EDF5E9;
+  color: #15564B;
+}
+
+
+.cm-stat-match {
+  background: #E9F1FF;
+  color: #2B5FA8;
+}
+
+
+.cm-stat-review {
+  background: #FDF3DC;
+  color: #94701D;
+}
+
+
+.cm-stat-resolved {
+  background: #E4F4EA;
+  color: #168C70;
+}
+
+
+.cm-admin-stat &gt; div:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.cm-admin-stat strong {
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 23px;
+}
+
+
+.cm-admin-stat span {
+  color: #718185;
+
+  font-size: 10px;
+}
+
+
+/* ============================================================
+   TABS
+============================================================ */
+
+.cm-admin-tabs {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 22px;
+
+  overflow-x: auto;
+
+  padding-bottom: 3px;
+}
+
+
+.cm-admin-tabs button {
+  min-height: 40px;
+
+  padding: 9px 16px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  flex-shrink: 0;
+
+  border: 1.5px solid #D2DED8;
+
+  border-radius: 999px;
+
+  background: #FFFFFF;
+
+  color: #617477;
+
+  font-family: inherit;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+
+.cm-admin-tabs button.active {
+  border-color: #104E45;
+
+  background: #104E45;
+
+  color: #FFFFFF;
+}
+
+
+.cm-admin-tabs button &gt; span {
+  min-width: 19px;
+  height: 19px;
+
+  padding: 0 5px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+
+  background: #E7B74A;
+
+  color: #573F00;
+
+  font-size: 9px;
+}
+
+
+/* ============================================================
+   PANEL
+============================================================ */
+
+.cm-admin-panel {
+  min-height: 350px;
+}
+
+
+.cm-panel-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  margin-bottom: 17px;
+}
+
+
+.cm-panel-header h2 {
+  margin: 0 0 4px;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 21px;
+}
+
+
+.cm-panel-header p {
+  margin: 0;
+
+  color: #7A898D;
+
+  font-size: 11px;
+}
+
+
+/* ============================================================
+   TABLE
+============================================================ */
+
+.cm-table-wrapper {
+  overflow: hidden;
+
+  border: 1px solid #D2DED8;
+
+  border-radius: 20px;
+
+  background: #FFFFFF;
+
+  box-shadow:
+    0 5px 18px rgba(16,78,69,.05);
+}
+
+
+.cm-table-scroll {
+  overflow-x: auto;
+}
+
+
+.cm-admin-table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+
+/* TABLE HEADER TEXT - SLIGHTLY BIGGER */
+
+.cm-admin-table th {
+  padding: 13px 16px;
+
+  background: #EDF5E9;
+
+  border-bottom: 1px solid #D2DED8;
+
+  color: #647679;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  text-align: left;
+
+  text-transform: uppercase;
+
+  letter-spacing: .35px;
+
+  white-space: nowrap;
+}
+
+
+/* TABLE RECORD TEXT - SLIGHTLY BIGGER */
+
+.cm-admin-table td {
+  padding: 14px 16px;
+
+  border-bottom: 1px solid #EDF2EE;
+
+  color: #506267;
+
+  font-size: 12px;
+
+  vertical-align: middle;
+}
+
+
+.cm-admin-table tr:last-child td {
+  border-bottom: 0;
+}
+
+
+.cm-admin-table tr:hover td {
+  background: #FBFDFA;
+}
+
+
+/* REVIEW / ACTION LINKS - SLIGHTLY BIGGER */
+
+.cm-admin-table a {
+  color: #168C70 !important;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  text-decoration: none !important;
+
+  white-space: nowrap;
+}
+
+
+/* ITEM NAME - SLIGHTLY BIGGER */
+
+.cm-item-name {
+  display: block;
+
+  max-width: 190px;
+
+  overflow: hidden;
+
+  color: #102E34;
+
+  font-size: 13px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* ITEM RECORD ID - SLIGHTLY BIGGER */
+
+.cm-admin-table small {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #879397;
+
+  font-size: 10px;
+}
+
+
+/* ============================================================
+   BADGES
+============================================================ */
+
+.cm-type-badge,
+.cm-table-status,
+.cm-pass-badge,
+.cm-resolved-badge {
+  display: inline-flex;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+
+.cm-type-badge.lost {
+  background: #FBEAE7;
+  color: #B5502F;
+}
+
+
+.cm-type-badge.found {
+  background: #EDF5E9;
+  color: #15564B;
+}
+
+
+.cm-table-status {
+  background: #FDF3DC;
+  color: #8D6A1E;
+}
+
+
+.cm-pass-badge {
+  background: #E4F4EA;
+  color: #168C70;
+}
+
+
+.cm-resolved-badge {
+  background: #EDF5E9;
+  color: #15564B;
+}
+
+
+/* ============================================================
+   CLAIM REVIEW CARDS
+============================================================ */
+
+.cm-review-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+
+  gap: 17px;
+}
+
+
+.cm-review-card {
+  padding: 21px;
+
+  border: 1px solid #D2DED8;
+
+  border-radius: 19px;
+
+  background: #FFFFFF;
+
+  box-shadow:
+    0 4px 16px rgba(16,78,69,.05);
+}
+
+
+.cm-review-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 17px;
+}
+
+
+.cm-review-label {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #7A898D;
+
+  font-size: 9px;
+}
+
+
+.cm-review-card h3 {
+  margin: 0;
+
+  color: #104E45;
+
+  font-size: 15px;
+}
+
+
+.cm-review-required {
+  flex-shrink: 0;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  background: #FDF3DC;
+
+  color: #8D6A1E;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+
+.cm-review-facts {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap: 8px;
+
+  margin-bottom: 17px;
+}
+
+
+.cm-review-facts div {
+  padding: 10px;
+
+  border-radius: 11px;
+
+  background: #F5F8F3;
+}
+
+
+.cm-review-facts span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #7B898D;
+
+  font-size: 8px;
+}
+
+
+.cm-review-facts strong {
+  color: #104E45;
+
+  font-size: 10px;
+}
+
+
+.cm-review-card &gt; a {
+  color: #168C70 !important;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  text-decoration: none !important;
+}
+
+
+/* ============================================================
+   DISAMBIGUATION
+============================================================ */
+
+.cm-info-banner {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  padding: 14px 16px;
+
+  margin-bottom: 17px;
+
+  border-radius: 14px;
+
+  background: #FDF3DC;
+
+  color: #765B1C;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+
+.cm-info-banner svg {
+  width: 18px;
+  height: 18px;
+
+  flex-shrink: 0;
+}
+
+
+.cm-ambiguity-card {
+  padding: 23px;
+
+  margin-bottom: 18px;
+
+  border: 1px solid #D2DED8;
+
+  border-radius: 21px;
+
+  background: #FFFFFF;
+
+  box-shadow:
+    0 5px 17px rgba(16,78,69,.05);
+}
+
+
+.cm-ambiguity-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 18px;
+}
+
+
+.cm-ambiguity-header &gt; div &gt; span {
+  color: #7A898D;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+}
+
+
+.cm-ambiguity-header h3 {
+  margin: 2px 0;
+
+  color: #104E45;
+
+  font-size: 16px;
+}
+
+
+.cm-ambiguity-header p {
+  margin: 0;
+
+  color: #7A898D;
+
+  font-size: 9px;
+}
+
+
+.cm-candidate-count {
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  background: #FDF3DC;
+
+  color: #8D6A1E;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+
+.cm-candidate-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+
+  gap: 13px;
+}
+
+
+.cm-candidate {
+  padding: 16px;
+
+  border: 1px solid #DCE5DF;
+
+  border-radius: 15px;
+
+  background: #FAFCF8;
+}
+
+
+.cm-lost-label {
+  color: #A95840;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  text-transform: uppercase;
+}
+
+
+.cm-candidate h4 {
+  margin: 3px 0 13px;
+
+  color: #104E45;
+
+  font-size: 13px;
+}
+
+
+.cm-candidate-score {
+  display: flex;
+  align-items: baseline;
+
+  gap: 6px;
+
+  margin-bottom: 9px;
+}
+
+
+.cm-candidate-score strong {
+  color: #168C70;
+
+  font-size: 23px;
+}
+
+
+.cm-candidate-score span {
+  color: #7A898D;
+
+  font-size: 8px;
+}
+
+
+.cm-candidate-meta {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 5px 10px;
+
+  margin-bottom: 13px;
+
+  color: #7A898D;
+
+  font-size: 8px;
+}
+
+
+.cm-candidate &gt; a {
+  color: #168C70 !important;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  text-decoration: none !important;
+}
+
+
+/* ============================================================
+   TASK 9 - SECURITY DESK CUSTODY
+============================================================ */
+
+.cm-custody-status {
+  margin-top: 10px;
+}
+
+
+.cm-custody-pending,
+.cm-custody-received {
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  font-size: 11px;
+}
+
+
+.cm-custody-pending {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  background: #FFF5DF;
+
+  color: #805B16;
+}
+
+
+.cm-custody-received {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  background: #EDF5E9;
+
+  color: #104E45;
+}
+
+
+.cm-custody-received strong {
+  color: #104E45;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+.cm-custody-received span {
+  color: #617477;
+
+  font-size: 10px;
+}
+
+
+.cm-custody-pending button {
+  flex-shrink: 0;
+
+  padding: 6px 11px;
+
+  border: 0;
+
+  border-radius: 999px;
+
+  background: #104E45;
+
+  color: #FFFFFF;
+
+  font-family: inherit;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.cm-custody-pending button:hover {
+  background: #168C70;
+}
+
+
+.cm-custody-pending button:disabled {
+  opacity: .55;
+
+  cursor: not-allowed;
+}
+
+
+/* ============================================================
+   EMPTY
+============================================================ */
+
+.cm-empty {
+  padding: 65px 20px;
+
+  text-align: center;
+
+  color: #7A898D;
+
+  font-size: 12px;
+}
+
+
+.cm-empty-icon {
+  width: 57px;
+  height: 57px;
+
+  margin: 0 auto 13px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #E4F4EA;
+
+  color: #168C70;
+
+  font-size: 20px;
+  font-weight: 800;
+}
+
+
+.cm-empty h3 {
+  margin: 0 0 4px;
+
+  color: #104E45;
+
+  font-size: 16px;
+}
+
+
+.cm-empty p {
+  margin: 0;
+
+  color: #7A898D;
+
+  font-size: 10px;
+}
+
+
+/* ============================================================
+   ACCESS
+============================================================ */
+
+.cm-access-card {
+  max-width: 460px;
+
+  padding: 50px 28px;
+
+  margin: 50px auto;
+
+  border: 1px solid #D2DED8;
+
+  border-radius: 22px;
+
+  background: #FFFFFF;
+
+  text-align: center;
+}
+
+
+.cm-access-icon {
+  width: 60px;
+  height: 60px;
+
+  margin: 0 auto 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #FBEAE7;
+
+  color: #B5502F;
+
+  font-size: 23px;
+  font-weight: 800;
+}
+
+
+.cm-access-card h2 {
+  color: #104E45;
+}
+
+
+.cm-access-card p {
+  color: #718185;
+}
+
+
+.cm-access-card a {
+  color: #168C70 !important;
+
+  font-weight: 700;
+
+  text-decoration: none !important;
+}
+
+
+/* ============================================================
+   TABLET
+============================================================ */
+
+@media (max-width: 900px) {
+
+  .cm-admin-page {
+    padding:
+      45px
+      18px
+      80px;
+
+    box-shadow:
+      0 -60px 0 #FBF8EF,
+      0 60px 0 #F5F7F0;
+  }
+
+
+  .cm-admin-stats {
+    grid-template-columns:
+      repeat(2,minmax(0,1fr));
+  }
+
+
+  .cm-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 620px) {
+
+  .cm-admin-page {
+    min-height: 100svh;
+
+    padding:
+      37px
+      14px
+      70px;
+
+    box-shadow:
+      0 -60px 0 #FBF8EF,
+      0 60px 0 #F5F7F0;
+  }
+
+
+  .cm-admin-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .cm-admin-header h1 {
+    font-size: 30px;
+  }
+
+
+  .cm-explore-button {
+    width: 100%;
+
+    text-align: center;
+  }
+
+
+  .cm-admin-stats {
+    gap: 9px;
+  }
+
+
+  .cm-admin-stat {
+    padding: 13px;
+  }
+
+
+  .cm-stat-icon {
+    width: 37px;
+    height: 37px;
+  }
+
+
+  .cm-admin-stat strong {
+    font-size: 19px;
+  }
+
+
+  .cm-candidate-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .cm-review-facts {
+    grid-template-columns: 1fr;
+  }
+
+
+  .cm-ambiguity-header {
+    flex-direction: column;
+  }
+
+
+  .cm-custody-pending {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .cm-custody-pending button {
+    width: 100%;
+  }
+
+}
+
+
+/* ============================================================
+   EXTRA SMALL MOBILE
+============================================================ */
+
+@media (max-width: 390px) {
+
+  .cm-admin-page {
+    padding:
+      32px
+      10px
+      65px;
+  }
+
+
+  .cm-admin-header h1 {
+    font-size: 27px;
+  }
+
+
+  .cm-admin-stats {
+    grid-template-columns: 1fr;
+  }
+
+
+  .cm-admin-stat {
+    padding: 12px;
+  }
+
+
+  .cm-panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+
+  .cm-review-card {
+    padding: 17px;
+  }
+
+
+  .cm-ambiguity-card {
+    padding: 18px;
+  }
+
+}
+
+
+/* ============================================================
+   FINAL INTEGRATION FIX
+   SAFE - DOES NOT OVERRIDE PAGE HEIGHT/BACKGROUND
+============================================================ */
+
+.cm-admin-panel {
+  min-height: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+
+.cm-admin-container {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+
+.cm-load-more-wrap {
+
+    width:100%;
+    display:flex;
+    justify-content:center;
+    margin:30px 0;
+
+}
+
+
+
+.cm-load-more-btn {
+
+    padding:12px 35px;
+
+    border-radius:25px;
+
+    border:none;
+
+    background:#15564B;
+
+    color:white;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+}
+
+
+
+.cm-admin-deadlines-section {
+
+    margin-top:30px;
+
+}
+
+
+
+.cm-primary-btn {
+
+    display:inline-flex;
+
+    margin-top:20px;
+
+    padding:12px 25px;
+
+    border-radius:25px;
+
+    background:#15564B;
+
+    color:white;
+
+    text-decoration:none;
+
+}
+
+.cm-load-more-wrapper {
+
+    width:100%;
+    display:flex;
+    justify-content:center;
+    padding:30px 0;
+
+}
+
+
+.cm-load-more-btn {
+
+    padding:12px 28px;
+
+    border-radius:999px;
+
+    border:1px solid #D2DED8;
+
+    background:#15564B;
+
+    color:white;
+
+    font-family:'DM Sans',sans-serif;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+}
+
+
+.cm-load-more-btn:hover {
+
+    opacity:0.9;
+
+}
+
+
+.cm-review-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 22px;
+  height: 22px;
+
+  margin-left: 7px;
+  padding: 0 6px;
+
+  border-radius: 999px;
+
+  background: #b85c38;
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cm-claims-review-section {
+  margin-top: 24px;
+}
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>Administrative dashboard for reports, matches, claims and handovers</description>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_admin_dashboard</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch Admin Dashboard</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+    /* ========================================================
+       TABLES
+    ======================================================== */
+
+    var ITEM_TABLE =
+        'x_snc_campusmatch_campusmatch_item';
+
+    var MATCH_TABLE =
+        'x_snc_campusmatch_campusmatch_match';
+
+    var CLAIM_TABLE =
+        'x_snc_campusmatch_campusmatch_claim';
+
+
+    /* ========================================================
+       ITEM FIELDS
+    ======================================================== */
+
+    var ITEM_NUMBER =
+        'number';
+
+    var ITEM_REPORT_TYPE =
+        'report_type';
+
+    var ITEM_TITLE =
+        'title';
+
+    var ITEM_PUBLIC_TITLE =
+        'public_title';
+
+    var ITEM_CATEGORY =
+        'category';
+
+    var ITEM_LOCATION =
+        'location_zone';
+
+    var ITEM_REPORTED =
+        'reported_date_time';
+
+    var ITEM_STATUS =
+        'status';
+
+    var ITEM_RECEIVED_AT_DESK =
+        'received_at_security_desk';
+
+    var ITEM_RECEIVED_BY =
+        'received_by';
+
+    var ITEM_RECEIVED_ON =
+        'received_on';
+
+
+    /* ========================================================
+       MATCH FIELDS
+    ======================================================== */
+
+    var MATCH_LOST =
+        'u_lost_item';
+
+    var MATCH_FOUND =
+        'u_found_item';
+
+    var MATCH_SCORE =
+        'u_overall_score';
+
+    var MATCH_LEVEL =
+        'u_match_level';
+
+    var MATCH_STATUS =
+        'status';
+
+
+    var matchProbe =
+        new GlideRecord(
+            MATCH_TABLE
+        );
+
+
+    if (
+        !matchProbe.isValidField(
+            MATCH_LOST
+        ) &&
+        matchProbe.isValidField(
+            'lost_item'
+        )
+    ) {
+
+        MATCH_LOST =
+            'lost_item';
+    }
+
+
+    if (
+        !matchProbe.isValidField(
+            MATCH_FOUND
+        ) &&
+        matchProbe.isValidField(
+            'found_item'
+        )
+    ) {
+
+        MATCH_FOUND =
+            'found_item';
+    }
+
+
+    if (
+        !matchProbe.isValidField(
+            MATCH_SCORE
+        ) &&
+        matchProbe.isValidField(
+            'overall_score'
+        )
+    ) {
+
+        MATCH_SCORE =
+            'overall_score';
+    }
+
+
+    if (
+        !matchProbe.isValidField(
+            MATCH_LEVEL
+        ) &&
+        matchProbe.isValidField(
+            'match_level'
+        )
+    ) {
+
+        MATCH_LEVEL =
+            'match_level';
+    }
+
+
+    /* ========================================================
+       CLAIM FIELDS
+    ======================================================== */
+
+    var CLAIM_NUMBER =
+        'number';
+
+    var CLAIM_ITEM =
+        'item';
+
+    var CLAIM_MATCH =
+        'match';
+
+    var CLAIM_STATUS =
+        'claim_status';
+
+    var CLAIM_DATE =
+        'claim_date';
+
+    var CLAIM_VERIFICATION_SCORE =
+        'u_verification_score';
+
+    var CLAIM_VERIFICATION_RESULT =
+        'u_verification_result';
+
+    var CLAIM_VERIFIED_BY =
+        'verified_by';
+
+    var CLAIM_VERIFIED_ON =
+        'verified_on';
+
+
+    /* ========================================================
+       HELPERS
+    ======================================================== */
+
+    function normalize(
+        v
+    ) {
+
+        return (
+            v || ''
+        )
+        .toString()
+        .toLowerCase()
+        .trim();
+    }
+
+
+    function isUnderReviewClaim(
+        gr
+    ) {
+
+        var resultValue =
+            normalize(
+                gr.getValue(
+                    CLAIM_VERIFICATION_RESULT
+                )
+            );
+
+
+        var resultDisplay =
+            normalize(
+                gr.getDisplayValue(
+                    CLAIM_VERIFICATION_RESULT
+                )
+            );
+
+
+        var statusValue =
+            normalize(
+                gr.getValue(
+                    CLAIM_STATUS
+                )
+            );
+
+
+        var statusDisplay =
+            normalize(
+                gr.getDisplayValue(
+                    CLAIM_STATUS
+                )
+            );
+
+
+        return (
+            resultValue === 'review' ||
+            resultValue === 'review_required' ||
+            resultDisplay === 'review' ||
+            resultDisplay === 'review required' ||
+            statusValue === 'under_review' ||
+            statusDisplay === 'under review' ||
+            statusValue === 'review_required' ||
+            statusDisplay === 'review required'
+        );
+    }
+
+
+    function isConfirmedMatch(
+        gr
+    ) {
+
+        var value =
+            normalize(
+                gr.getValue(
+                    MATCH_STATUS
+                )
+            );
+
+
+        var display =
+            normalize(
+                gr.getDisplayValue(
+                    MATCH_STATUS
+                )
+            );
+
+
+        return (
+            value === 'confirmed' ||
+            display === 'confirmed'
+        );
+    }
+
+
+    function itemTitle(
+        sysId,
+        fallback
+    ) {
+
+        if (!sysId) {
+
+            return fallback ||
+                'CampusMatch Item';
+        }
+
+
+        var gr =
+            new GlideRecord(
+                ITEM_TABLE
+            );
+
+
+        if (
+            !gr.get(
+                sysId
+            )
+        ) {
+
+            return fallback ||
+                'CampusMatch Item';
+        }
+
+
+        return (
+            gr.getValue(
+                ITEM_TITLE
+            ) ||
+            gr.getDisplayValue(
+                ITEM_PUBLIC_TITLE
+            ) ||
+            fallback ||
+            'CampusMatch Item'
+        );
+    }
+
+
+    /* ========================================================
+       SECURITY
+    ======================================================== */
+
+    var access =
+        new CampusMatchAccess();
+
+
+    data.isStaff =
+        access.isStaff();
+
+
+    data.isAdmin =
+        data.isStaff;
+
+
+    data.allowed =
+        data.isStaff;
+
+
+    if (
+        !data.allowed
+    ) {
+
+        return;
+    }
+
+
+    /* ========================================================
+       SECURITY DESK ACTION
+    ======================================================== */
+
+    if (
+        input &&
+        input.action ===
+            'markReceived'
+    ) {
+
+        var itemId =
+            (
+                input.item_id ||
+                ''
+            )
+            .toString()
+            .trim();
+
+
+        if (!itemId) {
+
+            data.actionSuccess =
+                false;
+
+            data.actionMessage =
+                'CampusMatch Item ID is missing.';
+
+            return;
+        }
+
+
+        var custodyItem =
+            new GlideRecord(
+                ITEM_TABLE
+            );
+
+
+        if (
+            !custodyItem.get(
+                itemId
+            )
+        ) {
+
+            data.actionSuccess =
+                false;
+
+            data.actionMessage =
+                'CampusMatch Item could not be found.';
+
+            return;
+        }
+
+
+        if (
+            normalize(
+                custodyItem.getValue(
+                    ITEM_REPORT_TYPE
+                )
+            ) !== 'found'
+        ) {
+
+            data.actionSuccess =
+                false;
+
+            data.actionMessage =
+                'Only Found items can be received at the Security Desk.';
+
+            return;
+        }
+
+
+        if (
+            custodyItem.getValue(
+                ITEM_RECEIVED_AT_DESK
+            ) != '1'
+        ) {
+
+            custodyItem.setValue(
+                ITEM_RECEIVED_AT_DESK,
+                true
+            );
+
+
+            custodyItem.update();
+
+
+            data.actionSuccess =
+                true;
+
+            data.actionMessage =
+                'Item received at Security Desk.';
+        }
+        else {
+
+            data.actionSuccess =
+                true;
+
+            data.actionMessage =
+                'This item has already been received at the Security Desk.';
+        }
+    }
+
+
+    /* ========================================================
+       OUTPUT
+    ======================================================== */
+
+    data.stats = {
+
+        totalReports:
+            0,
+
+        lost:
+            0,
+
+        found:
+            0,
+
+        strongMatches:
+            0,
+
+        reviewClaims:
+            0,
+
+        reviewRequired:
+            0,
+
+        resolved:
+            0,
+
+        ambiguous:
+            0
+
+    };
+
+
+    data.recentReports =
+        [];
+
+
+    /*
+     * Ownership claims with result Review.
+     */
+    data.reviewClaims =
+        [];
+
+
+    /*
+     * NEW:
+     * Potential Matches requiring staff review.
+     */
+    data.pendingMatchReviews =
+        [];
+
+
+    data.ambiguousGroups =
+        [];
+
+
+    data.disambiguation =
+        data.ambiguousGroups;
+
+
+    data.history =
+        [];
+
+
+    /* ========================================================
+       ITEM STATISTICS
+    ======================================================== */
+
+    var itemStats =
+        new GlideRecord(
+            ITEM_TABLE
+        );
+
+
+    itemStats.query();
+
+
+    while (
+        itemStats.next()
+    ) {
+
+        data.stats.totalReports++;
+
+
+        var reportType =
+            normalize(
+                itemStats.getValue(
+                    ITEM_REPORT_TYPE
+                )
+            );
+
+
+        if (
+            reportType === 'lost'
+        ) {
+
+            data.stats.lost++;
+        }
+
+
+        if (
+            reportType === 'found'
+        ) {
+
+            data.stats.found++;
+        }
+
+
+        var itemStatus =
+            normalize(
+                itemStats.getValue(
+                    ITEM_STATUS
+                )
+            );
+
+
+        if (
+            itemStatus === 'resolved'
+        ) {
+
+            data.stats.resolved++;
+        }
+    }
+
+
+    /* ========================================================
+       STRONG MATCH COUNT
+    ======================================================== */
+
+    var strongCount =
+        new GlideRecord(
+            MATCH_TABLE
+        );
+
+
+    strongCount.query();
+
+
+    while (
+        strongCount.next()
+    ) {
+
+        var strongScore =
+            parseFloat(
+                strongCount.getValue(
+                    MATCH_SCORE
+                )
+            );
+
+
+        var strongStatus =
+            normalize(
+                strongCount.getValue(
+                    MATCH_STATUS
+                )
+            );
+
+
+        if (
+            !isNaN(
+                strongScore
+            ) &&
+            strongScore >= 80 &&
+            strongStatus !== 'no_match' &&
+            strongStatus !== 'rejected'
+        ) {
+
+            data.stats.strongMatches++;
+        }
+    }
+
+
+    /* ========================================================
+       RECENT REPORTS
+    ======================================================== */
+
+    var recent =
+        new GlideRecord(
+            ITEM_TABLE
+        );
+
+
+    recent.orderByDesc(
+        'sys_created_on'
+    );
+
+
+    recent.setLimit(
+        50
+    );
+
+
+    recent.query();
+
+
+    while (
+        recent.next()
+    ) {
+
+        var type =
+            normalize(
+                recent.getValue(
+                    ITEM_REPORT_TYPE
+                )
+            );
+
+
+        data.recentReports.push({
+
+            sys_id:
+                recent.getUniqueValue(),
+
+            number:
+                recent.getDisplayValue(
+                    ITEM_NUMBER
+                ) || '',
+
+            title:
+                recent.getValue(
+                    ITEM_TITLE
+                ) ||
+                recent.getDisplayValue(
+                    ITEM_PUBLIC_TITLE
+                ) ||
+                'CampusMatch Item',
+
+            reportType:
+                type,
+
+            reportTypeLabel:
+                type === 'found'
+                    ?
+                    'Found'
+                    :
+                    'Lost',
+
+            category:
+                recent.getDisplayValue(
+                    ITEM_CATEGORY
+                ) || '—',
+
+            location:
+                recent.getDisplayValue(
+                    ITEM_LOCATION
+                ) || '—',
+
+            status:
+                recent.getDisplayValue(
+                    ITEM_STATUS
+                ) || '—',
+
+            reported:
+                recent.getDisplayValue(
+                    ITEM_REPORTED
+                ) || '—',
+
+            receivedAtDesk:
+                recent.getValue(
+                    ITEM_RECEIVED_AT_DESK
+                ) == '1',
+
+            receivedBy:
+                recent.getDisplayValue(
+                    ITEM_RECEIVED_BY
+                ) || '',
+
+            receivedOn:
+                recent.getDisplayValue(
+                    ITEM_RECEIVED_ON
+                ) || ''
+
+        });
+    }
+
+
+    /* ========================================================
+       OWNERSHIP CLAIMS NEEDING REVIEW
+    ======================================================== */
+
+    var claim =
+        new GlideRecord(
+            CLAIM_TABLE
+        );
+
+
+    claim.orderByDesc(
+        'sys_created_on'
+    );
+
+
+    claim.query();
+
+
+    while (
+        claim.next()
+    ) {
+
+        if (
+            !isUnderReviewClaim(
+                claim
+            )
+        ) {
+
+            continue;
+        }
+
+
+        var claimStatus =
+            normalize(
+                claim.getValue(
+                    CLAIM_STATUS
+                )
+            );
+
+
+        if (
+            claimStatus === 'approved' ||
+            claimStatus === 'rejected' ||
+            claimStatus === 'cancelled'
+        ) {
+
+            continue;
+        }
+
+
+        data.reviewClaims.push({
+
+            sys_id:
+                claim.getUniqueValue(),
+
+            number:
+                claim.getDisplayValue(
+                    CLAIM_NUMBER
+                ) || '',
+
+            itemTitle:
+                itemTitle(
+                    claim.getValue(
+                        CLAIM_ITEM
+                    ),
+                    'CampusMatch Item'
+                ),
+
+            verificationScore:
+                claim.getValue(
+                    CLAIM_VERIFICATION_SCORE
+                ) || '0',
+
+            verificationResult:
+                claim.getDisplayValue(
+                    CLAIM_VERIFICATION_RESULT
+                ) || 'Review',
+
+            claimDate:
+                claim.getDisplayValue(
+                    CLAIM_DATE
+                ) || '—'
+
+        });
+    }
+
+
+    data.stats.reviewClaims =
+        data.reviewClaims.length;
+
+
+    /* ========================================================
+       POTENTIAL MATCHES NEEDING STAFF REVIEW
+    ======================================================== */
+
+    var potentialReview =
+        new GlideRecord(
+            MATCH_TABLE
+        );
+
+
+    potentialReview.orderByDesc(
+        'sys_created_on'
+    );
+
+
+    potentialReview.query();
+
+
+    while (
+        potentialReview.next()
+    ) {
+
+        var potentialScore =
+            parseFloat(
+                potentialReview.getValue(
+                    MATCH_SCORE
+                )
+            );
+
+
+        var potentialLevel =
+            normalize(
+                potentialReview.getValue(
+                    MATCH_LEVEL
+                )
+            );
+
+
+        var potentialLevelDisplay =
+            normalize(
+                potentialReview.getDisplayValue(
+                    MATCH_LEVEL
+                )
+            );
+
+
+        var isPotential =
+            (
+                potentialLevel === 'potential' ||
+                potentialLevel === 'potential_match' ||
+                potentialLevelDisplay === 'potential' ||
+                potentialLevelDisplay === 'potential match'
+            );
+
+
+        /*
+         * Score fallback.
+         */
+        if (
+            !isPotential &&
+            !isNaN(
+                potentialScore
+            ) &&
+            potentialScore >= 65 &&
+            potentialScore < 80
+        ) {
+
+            isPotential =
+                true;
+        }
+
+
+        if (!isPotential) {
+
+            continue;
+        }
+
+
+        var potentialStatus =
+            normalize(
+                potentialReview.getValue(
+                    MATCH_STATUS
+                )
+            );
+
+
+        /*
+         * Already completed / rejected.
+         */
+        if (
+            potentialStatus === 'no_match' ||
+            potentialStatus === 'rejected' ||
+            potentialStatus === 'confirmed' ||
+            potentialStatus === 'resolved'
+        ) {
+
+            continue;
+        }
+
+
+        /*
+         * Staff verification writes Reviewed By / On.
+         *
+         * Default Active status alone is NOT enough
+         * to mark a Potential Match reviewed.
+         */
+        var reviewed =
+            false;
+
+
+        if (
+            potentialReview.isValidField(
+                'reviewed_by'
+            ) &&
+            potentialReview.getValue(
+                'reviewed_by'
+            )
+        ) {
+
+            reviewed =
+                true;
+        }
+
+
+        if (
+            potentialReview.isValidField(
+                'reviewed_on'
+            ) &&
+            potentialReview.getValue(
+                'reviewed_on'
+            )
+        ) {
+
+            reviewed =
+                true;
+        }
+
+
+        if (reviewed) {
+
+            continue;
+        }
+
+
+        var lostId =
+            potentialReview.getValue(
+                MATCH_LOST
+            );
+
+
+        var foundId =
+            potentialReview.getValue(
+                MATCH_FOUND
+            );
+
+
+        if (
+            !lostId ||
+            !foundId
+        ) {
+
+            continue;
+        }
+
+
+        data.pendingMatchReviews.push({
+
+            sys_id:
+                potentialReview.getUniqueValue(),
+
+            lostTitle:
+                itemTitle(
+                    lostId,
+                    'Lost Item'
+                ),
+
+            foundTitle:
+                itemTitle(
+                    foundId,
+                    'Found Item'
+                ),
+
+            score:
+                isNaN(
+                    potentialScore
+                )
+                    ?
+                    0
+                    :
+                    Math.round(
+                        potentialScore *
+                        100
+                    ) / 100,
+
+            level:
+                'Potential'
+
+        });
+    }
+
+
+    /*
+     * THIS fixes the Review Required card.
+     */
+    data.stats.reviewRequired =
+        data.pendingMatchReviews.length +
+        data.reviewClaims.length;
+
+
+    /* ========================================================
+       MULTIPLE STRONG MATCHES
+       
+       CORRECT LOGIC:
+       
+       ONE LOST ITEM
+              ↓
+       MULTIPLE FOUND ITEMS
+       
+       Example:
+       
+       Lost ITM001244
+          ├── Found ITM001247 → 84.74 Strong
+          └── Found ITM001248 → 83.60 Strong
+       
+       This should create ONE ambiguous group.
+    ======================================================== */
+
+    var groups =
+        {};
+
+
+    var strong =
+        new GlideRecord(
+            MATCH_TABLE
+        );
+
+
+    strong.query();
+
+
+    while (
+        strong.next()
+    ) {
+
+        var score =
+            parseFloat(
+                strong.getValue(
+                    MATCH_SCORE
+                )
+            );
+
+
+        /*
+         * Only Strong matches:
+         * Overall score >= 80
+         */
+        if (
+            isNaN(
+                score
+            ) ||
+            score < 80
+        ) {
+
+            continue;
+        }
+
+
+        var status =
+            normalize(
+                strong.getValue(
+                    MATCH_STATUS
+                )
+            );
+
+
+        /*
+         * Ignore completed / rejected matches.
+         *
+         * These should no longer participate
+         * in the ambiguity queue.
+         */
+        if (
+            status === 'no_match' ||
+            status === 'rejected' ||
+            status === 'confirmed' ||
+            status === 'resolved'
+        ) {
+
+            continue;
+        }
+
+
+        var lostId =
+            strong.getValue(
+                MATCH_LOST
+            );
+
+
+        var foundId =
+            strong.getValue(
+                MATCH_FOUND
+            );
+
+
+        if (
+            !lostId ||
+            !foundId
+        ) {
+
+            continue;
+        }
+
+
+        /*
+         * IMPORTANT:
+         *
+         * Group by LOST ITEM.
+         *
+         * Previously this was:
+         *
+         * groups[foundId]
+         *
+         * which incorrectly detected:
+         *
+         * One Found → multiple Lost
+         *
+         * Now:
+         *
+         * groups[lostId]
+         *
+         * detects:
+         *
+         * One Lost → multiple Found
+         */
+        if (
+            !groups[
+                lostId
+            ]
+        ) {
+
+            groups[
+                lostId
+            ] = {
+
+                lostId:
+                    lostId,
+
+                candidates:
+                    []
+
+            };
+        }
+
+
+        groups[
+            lostId
+        ]
+        .candidates
+        .push({
+
+            matchId:
+                strong.getUniqueValue(),
+
+            foundId:
+                foundId,
+
+            score:
+                Math.round(
+                    score *
+                    100
+                ) / 100
+
+        });
+    }
+
+
+    /* ========================================================
+       BUILD AMBIGUOUS GROUP OUTPUT
+    ======================================================== */
+
+    for (
+        var key in groups
+    ) {
+
+        if (
+            !groups.hasOwnProperty(
+                key
+            )
+        ) {
+
+            continue;
+        }
+
+
+        var group =
+            groups[
+                key
+            ];
+
+
+        /*
+         * A Multiple Strong Match requires
+         * at least TWO Found candidates
+         * for the SAME Lost item.
+         */
+        if (
+            group.candidates.length < 2
+        ) {
+
+            continue;
+        }
+
+
+        /* ====================================================
+           LOST ITEM DETAILS
+        ==================================================== */
+
+        var lost =
+            new GlideRecord(
+                ITEM_TABLE
+            );
+
+
+        var lostTitle =
+            'Lost Item';
+
+        var lostLocation =
+            '—';
+
+        var lostReported =
+            '—';
+
+
+        if (
+            lost.get(
+                group.lostId
+            )
+        ) {
+
+            lostTitle =
+                lost.getDisplayValue(
+                    ITEM_PUBLIC_TITLE
+                ) ||
+                lost.getValue(
+                    ITEM_TITLE
+                ) ||
+                'Lost Item';
+
+
+            lostLocation =
+                lost.getDisplayValue(
+                    ITEM_LOCATION
+                ) ||
+                '—';
+
+
+            lostReported =
+                lost.getDisplayValue(
+                    ITEM_REPORTED
+                ) ||
+                '—';
+        }
+
+
+        /* ====================================================
+           FOUND CANDIDATES
+        ==================================================== */
+
+        var candidateOutput =
+            [];
+
+
+        for (
+            var i = 0;
+            i < group.candidates.length;
+            i++
+        ) {
+
+            var c =
+                group.candidates[
+                    i
+                ];
+
+
+            var found =
+                new GlideRecord(
+                    ITEM_TABLE
+                );
+
+
+            var foundTitle =
+                'Found Item';
+
+            var foundLocation =
+                '—';
+
+
+            if (
+                found.get(
+                    c.foundId
+                )
+            ) {
+
+                foundTitle =
+                    found.getDisplayValue(
+                        ITEM_PUBLIC_TITLE
+                    ) ||
+                    found.getValue(
+                        ITEM_TITLE
+                    ) ||
+                    'Found Item';
+
+
+                foundLocation =
+                    found.getDisplayValue(
+                        ITEM_LOCATION
+                    ) ||
+                    '—';
+            }
+
+
+            candidateOutput.push({
+
+                matchId:
+                    c.matchId,
+
+                foundTitle:
+                    foundTitle,
+
+                location:
+                    foundLocation,
+
+                score:
+                    c.score
+
+            });
+        }
+
+
+        /* ====================================================
+           FINAL AMBIGUOUS GROUP
+        ==================================================== */
+
+        data.ambiguousGroups.push({
+
+            lostId:
+                group.lostId,
+
+            lostTitle:
+                lostTitle,
+
+            location:
+                lostLocation,
+
+            reported:
+                lostReported,
+
+            candidates:
+                candidateOutput
+
+        });
+    }
+
+
+    data.stats.ambiguous =
+        data.ambiguousGroups.length;
+
+
+    /* ========================================================
+       RESOLVED / CLAIM HISTORY
+    ======================================================== */
+
+    var history =
+        new GlideRecord(
+            CLAIM_TABLE
+        );
+
+
+    history.orderByDesc(
+        'sys_updated_on'
+    );
+
+
+    history.setLimit(
+        50
+    );
+
+
+    history.query();
+
+
+    while (
+        history.next()
+    ) {
+
+        var historyStatus =
+            normalize(
+                history.getValue(
+                    CLAIM_STATUS
+                )
+            );
+
+
+        if (
+            historyStatus !== 'approved' &&
+            historyStatus !== 'rejected'
+        ) {
+
+            continue;
+        }
+
+
+        data.history.push({
+
+            sys_id:
+                history.getUniqueValue(),
+
+            number:
+                history.getDisplayValue(
+                    CLAIM_NUMBER
+                ) || '',
+
+            itemTitle:
+                itemTitle(
+                    history.getValue(
+                        CLAIM_ITEM
+                    ),
+                    'CampusMatch Item'
+                ),
+
+            verificationResult:
+                history.getDisplayValue(
+                    CLAIM_VERIFICATION_RESULT
+                ) || '—',
+
+            status:
+                history.getDisplayValue(
+                    CLAIM_STATUS
+                ) || '—',
+
+            verifiedBy:
+                history.getDisplayValue(
+                    CLAIM_VERIFIED_BY
+                ) || '—',
+
+            verifiedOn:
+                history.getDisplayValue(
+                    CLAIM_VERIFIED_ON
+                ) || '—'
+
+        });
+    }
+
+
+    /* ========================================================
+       STAFF DEADLINES WIDGET
+    ======================================================== */
+
+    data.staffDeadlineWidget =
+        $sp.getWidget(
+            'campusmatch_staff_deadlines_calendar',
+            {}
+        );
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 12:54:23</sys_created_on>
+        <sys_id>efb6b6a355df03107f4447f82ce73211</sys_id>
+        <sys_mod_count>47</sys_mod_count>
+        <sys_name>CampusMatch Admin Dashboard</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_efb6b6a355df03107f4447f82ce73211</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-10-02 09:17:54</sys_updated_on>
+        <template><![CDATA[<section class="cm-admin-page">
+
+  <div class="cm-admin-container">
+
+
+    <!-- =========================================
+         ACCESS DENIED
+    ========================================== -->
+
+    <div
+      class="cm-access-card"
+      ng-if="!data.isStaff">
+
+      <div class="cm-access-icon">
+        !
+      </div>
+
+      <h2>
+        Staff access only
+      </h2>
+
+      <p>
+        This dashboard is available only to authorized CampusMatch staff.
+      </p>
+
+      <a href="?id=campusmatch_home">
+        Return Home
+      </a>
+
+    </div>
+
+
+
+    <!-- =========================================
+         ADMIN CONTENT
+    ========================================== -->
+
+    <div ng-if="data.isStaff">
+
+
+      <!-- =========================================
+           HEADER
+      ========================================== -->
+
+      <div class="cm-admin-header">
+
+        <div>
+
+          <span class="cm-admin-eyebrow">
+            ✦ CampusMatch Staff Workspace
+          </span>
+
+          <h1>
+            Admin Dashboard
+          </h1>
+
+          <p>
+            Review reports, resolve ambiguous matches,
+            verify claims and complete secure handovers.
+          </p>
+
+        </div>
+
+
+        <a
+          href="?id=campusmatch_explore"
+          class="cm-explore-button">
+
+          Explore All Items →
+
+        </a>
+
+      </div>
+
+
+
+      <!-- =====================================
+           TABS
+      ====================================== -->
+
+      <div class="cm-admin-tabs">
+
+
+        <!-- =====================================
+             RECENT REPORTS
+        ====================================== -->
+
+        <button
+          class="cm-admin-tab"
+          ng-class="{'active':c.activeTab==='reports'}"
+          ng-click="c.setTab('reports')">
+
+          Recent Reports
+
+        </button>
+
+
+
+        <!-- =====================================
+             REVIEWS REQUIRED
+        ====================================== -->
+
+        <button
+          class="cm-admin-tab"
+          ng-class="{'active':c.activeTab==='reviews'}"
+          ng-click="c.setTab('reviews')">
+
+          Reviews Required
+
+          <span
+            class="cm-review-count"
+            ng-if="data.stats && data.stats.reviewRequired > 0">
+
+            {{data.stats.reviewRequired}}
+
+          </span>
+
+        </button>
+
+
+
+        <!-- =====================================
+             MULTIPLE STRONG MATCHES
+        ====================================== -->
+
+        <button
+          class="cm-admin-tab"
+          ng-class="{'active':c.activeTab==='multiple'}"
+          ng-click="c.setTab('multiple')">
+
+          Multiple Strong Matches
+
+          <span
+            class="cm-review-count"
+            ng-if="data.stats && data.stats.ambiguous > 0">
+
+            {{data.stats.ambiguous}}
+
+          </span>
+
+        </button>
+
+
+
+        <!-- =====================================
+             RESOLVED HISTORY
+        ====================================== -->
+
+        <button
+          class="cm-admin-tab"
+          ng-class="{'active':c.activeTab==='resolved'}"
+          ng-click="c.setTab('resolved')">
+
+          Resolved History
+
+        </button>
+
+
+      </div>
+
+
+
+      <!-- =========================================
+           TAB 1 — RECENT REPORTS
+      ========================================== -->
+
+      <div
+        class="cm-admin-panel"
+        ng-if="
+          c.activeTab === 'reports'
+        ">
+
+        <div class="cm-panel-header">
+
+          <div>
+
+            <h2>
+              Recent Reports
+            </h2>
+
+            <p>
+              Latest lost and found reports across campus.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="cm-table-wrapper"
+          ng-if="data.recentReports.length">
+
+          <div class="cm-table-scroll">
+
+            <table class="cm-admin-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Item
+                  </th>
+
+                  <th>
+                    Type
+                  </th>
+
+                  <th>
+                    Category
+                  </th>
+
+                  <th>
+                    Location
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
+                  <th>
+                    Reported
+                  </th>
+
+                  <th>
+                    Security Desk
+                  </th>
+
+                  <th>
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                <tr
+                  ng-repeat="
+                    item in c.visibleReports()
+                  ">
+
+                  <td>
+
+                    <strong class="cm-item-name">
+                      {{item.title}}
+                    </strong>
+
+                    <small>
+                      {{item.number}}
+                    </small>
+
+                  </td>
+
+
+                  <td>
+
+                    <span
+                      class="cm-type-badge"
+                      ng-class="{
+                        'lost':
+                          item.reportType === 'lost',
+
+                        'found':
+                          item.reportType === 'found'
+                      }">
+
+                      {{item.reportTypeLabel}}
+
+                    </span>
+
+                  </td>
+
+
+                  <td>
+                    {{item.category}}
+                  </td>
+
+
+                  <td>
+                    {{item.location}}
+                  </td>
+
+
+                  <td>
+
+                    <span class="cm-table-status">
+                      {{item.status}}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+                    {{item.reported}}
+                  </td>
+
+
+                  <td>
+
+                    <div
+                      class="cm-custody-status"
+                      ng-if="
+                        item.reportType === 'found'
+                      ">
+
+
+                      <div
+                        class="cm-custody-pending"
+                        ng-if="
+                          !item.receivedAtDesk
+                        ">
+
+                        <span>
+                          Awaiting Security Desk Receipt
+                        </span>
+
+
+                        <button
+                          type="button"
+                          ng-click="
+                            c.markReceived(item)
+                          "
+                          ng-disabled="
+                            item.receiving
+                          ">
+
+                          Mark Received
+
+                        </button>
+
+                      </div>
+
+
+                      <div
+                        class="cm-custody-received"
+                        ng-if="
+                          item.receivedAtDesk
+                        ">
+
+                        <strong>
+                          ✓ At Security Desk
+                        </strong>
+
+                        <span ng-if="item.receivedBy">
+                          Received by {{item.receivedBy}}
+                        </span>
+
+                        <span ng-if="item.receivedOn">
+                          {{item.receivedOn}}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+
+                    <span
+                      ng-if="
+                        item.reportType !== 'found'
+                      ">
+
+                      —
+
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    <a
+                      ng-href="?id=campusmatch_admin_review&item_id={{item.sys_id}}">
+
+                      Review →
+
+                    </a>
+
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="cm-empty"
+          ng-if="
+            !data.recentReports.length
+          ">
+
+          No reports available.
+
+        </div>
+
+
+
+        <!-- LOAD MORE REPORTS -->
+
+        <div
+          class="cm-load-more-wrapper"
+          ng-if="c.showLoadMore()">
+
+          <button
+            type="button"
+            class="cm-load-more-btn"
+            ng-click="c.loadMoreReports()">
+
+            Load More Reports
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =========================================
+           TAB 2 — REVIEWS REQUIRED
+      ========================================== -->
+
+      <div
+        class="cm-admin-panel"
+        ng-if="
+          c.activeTab === 'reviews'
+        ">
+
+
+        <!-- =====================================
+             POTENTIAL MATCH REVIEWS
+        ====================================== -->
+
+        <div
+          ng-if="
+            data.pendingMatchReviews.length
+          ">
+
+          <div class="cm-panel-header">
+
+            <div>
+
+              <h2>
+                Potential Matches Needing Review
+              </h2>
+
+              <p>
+                Review AI-generated Potential Matches before
+                allowing the Lost reporter to begin ownership verification.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="cm-review-grid">
+
+            <article
+              class="cm-review-card"
+              ng-repeat="
+                match in data.pendingMatchReviews
+              ">
+
+              <div class="cm-review-card-top">
+
+                <div>
+
+                  <span class="cm-review-label">
+                    Potential Match
+                  </span>
+
+                  <h3>
+                    {{match.lostTitle}}
+                  </h3>
+
+                </div>
+
+
+                <span class="cm-review-required">
+                  Review Required
+                </span>
+
+              </div>
+
+
+              <div class="cm-review-facts">
+
+                <div>
+
+                  <span>
+                    Found Report
+                  </span>
+
+                  <strong>
+                    {{match.foundTitle}}
+                  </strong>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Match Score
+                  </span>
+
+                  <strong>
+                    {{match.score}}%
+                  </strong>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Match Level
+                  </span>
+
+                  <strong>
+                    {{match.level}}
+                  </strong>
+
+                </div>
+
+              </div>
+
+
+              <a
+                ng-href="?id=campusmatch_admin_review&match_id={{match.sys_id}}">
+
+                Review Match →
+
+              </a>
+
+            </article>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- =====================================
+             OWNERSHIP CLAIM REVIEWS
+        ====================================== -->
+
+        <div
+          class="cm-claims-review-section"
+          ng-if="
+            data.reviewClaims.length
+          ">
+
+          <div class="cm-panel-header">
+
+            <div>
+
+              <h2>
+                Claims Needing Human Review
+              </h2>
+
+              <p>
+                Ownership claims where automated verification
+                requires a staff decision.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="cm-review-grid">
+
+            <article
+              class="cm-review-card"
+              ng-repeat="
+                claim in data.reviewClaims
+              ">
+
+              <div class="cm-review-card-top">
+
+                <div>
+
+                  <span class="cm-review-label">
+                    {{claim.number}}
+                  </span>
+
+                  <h3>
+                    {{claim.itemTitle}}
+                  </h3>
+
+                </div>
+
+
+                <span class="cm-review-required">
+                  Review Required
+                </span>
+
+              </div>
+
+
+              <div class="cm-review-facts">
+
+                <div>
+
+                  <span>
+                    Verification Score
+                  </span>
+
+                  <strong>
+                    {{claim.verificationScore}}%
+                  </strong>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Result
+                  </span>
+
+                  <strong>
+                    {{claim.verificationResult}}
+                  </strong>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Submitted
+                  </span>
+
+                  <strong>
+                    {{claim.claimDate}}
+                  </strong>
+
+                </div>
+
+              </div>
+
+
+              <a
+                ng-href="?id=campusmatch_admin_review&claim_id={{claim.sys_id}}">
+
+                Review Claim →
+
+              </a>
+
+            </article>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- =====================================
+             NOTHING NEEDS REVIEW
+        ====================================== -->
+
+        <div
+          class="cm-empty"
+          ng-if="
+            !data.pendingMatchReviews.length &&
+            !data.reviewClaims.length
+          ">
+
+          <div class="cm-empty-icon">
+            ✓
+          </div>
+
+          <h3>
+            No reviews required
+          </h3>
+
+          <p>
+            Potential Match reviews and ownership claims
+            needing a human decision will appear here.
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =========================================
+           TAB 3 — MULTIPLE STRONG MATCHES
+      ========================================== -->
+
+      <div
+        class="cm-admin-panel"
+        ng-if="
+          c.activeTab === 'multiple'
+        ">
+
+        <div class="cm-panel-header">
+
+          <div>
+
+            <h2>
+              Multiple Strong Matches
+            </h2>
+
+            <p>
+              These lost reports currently have more than one
+              strong Found-item candidate.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- =====================================
+             INFO BANNER
+        ====================================== -->
+
+        <div
+          class="cm-info-banner"
+          ng-if="
+            data.ambiguousGroups.length
+          ">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2">
+
+            <circle
+              cx="12"
+              cy="12"
+              r="9">
+            </circle>
+
+            <path d="M12 7v6"></path>
+
+            <path d="M12 17h.01"></path>
+
+          </svg>
+
+
+          <span>
+            Review the candidates before allowing
+            ownership verification to continue.
+          </span>
+
+        </div>
+
+
+
+        <!-- =====================================
+             AMBIGUOUS MATCH GROUPS
+        ====================================== -->
+
+        <article
+          class="cm-ambiguity-card"
+          ng-repeat="
+            group in data.ambiguousGroups
+          ">
+
+          <div class="cm-ambiguity-header">
+
+            <div>
+
+              <span>
+                Lost Report
+              </span>
+
+              <h3>
+                {{group.lostTitle}}
+              </h3>
+
+              <p>
+                {{group.location}}
+              </p>
+
+            </div>
+
+
+            <span class="cm-candidate-count">
+
+              {{group.candidates.length}}
+              candidates
+
+            </span>
+
+          </div>
+
+
+
+          <!-- =====================================
+               FOUND CANDIDATES
+          ====================================== -->
+
+          <div class="cm-candidate-grid">
+
+            <div
+              class="cm-candidate"
+              ng-repeat="
+                candidate in group.candidates
+              ">
+
+              <span class="cm-lost-label">
+                Found Report
+              </span>
+
+
+              <h4>
+                {{candidate.foundTitle}}
+              </h4>
+
+
+              <div class="cm-candidate-score">
+
+                <strong>
+                  {{candidate.score}}%
+                </strong>
+
+                <span>
+                  Overall Match
+                </span>
+
+              </div>
+
+
+              <div class="cm-candidate-meta">
+
+                <span>
+                  {{candidate.location}}
+                </span>
+
+                <span>
+                  Strong Match
+                </span>
+
+              </div>
+
+
+              <a
+                ng-href="?id=campusmatch_admin_review&match_id={{candidate.matchId}}">
+
+                Compare &amp; Review →
+
+              </a>
+
+            </div>
+
+          </div>
+
+        </article>
+
+
+
+        <!-- =====================================
+             NO AMBIGUOUS MATCHES
+        ====================================== -->
+
+        <div
+          class="cm-empty"
+          ng-if="
+            !data.ambiguousGroups.length
+          ">
+
+          <div class="cm-empty-icon">
+            ✓
+          </div>
+
+          <h3>
+            No ambiguous matches
+          </h3>
+
+          <p>
+            No Lost report currently has multiple Strong candidates.
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =========================================
+           TAB 4 — RESOLVED HISTORY
+      ========================================== -->
+
+      <div
+        class="cm-admin-panel"
+        ng-if="
+          c.activeTab === 'resolved'
+        ">
+
+        <div class="cm-panel-header">
+
+          <div>
+
+            <h2>
+              Resolved History
+            </h2>
+
+            <p>
+              Completed ownership decisions and secure collection cases.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="cm-table-wrapper"
+          ng-if="
+            data.history.length
+          ">
+
+          <div class="cm-table-scroll">
+
+            <table class="cm-admin-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Claim
+                  </th>
+
+                  <th>
+                    Item
+                  </th>
+
+                  <th>
+                    Verification
+                  </th>
+
+                  <th>
+                    Final Status
+                  </th>
+
+                  <th>
+                    Verified By
+                  </th>
+
+                  <th>
+                    Verified On
+                  </th>
+
+                  <th>
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                <tr
+                  ng-repeat="
+                    claim in data.history
+                  ">
+
+                  <td>
+                    {{claim.number}}
+                  </td>
+
+
+                  <td>
+
+                    <strong class="cm-item-name">
+                      {{claim.itemTitle}}
+                    </strong>
+
+                  </td>
+
+
+                  <td>
+
+                    <span class="cm-pass-badge">
+                      {{claim.verificationResult}}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+
+                    <span class="cm-resolved-badge">
+                      {{claim.status}}
+                    </span>
+
+                  </td>
+
+
+                  <td>
+                    {{claim.verifiedBy}}
+                  </td>
+
+
+                  <td>
+                    {{claim.verifiedOn}}
+                  </td>
+
+
+                  <td>
+
+                    <a
+                      ng-href="?id=campusmatch_admin_review&claim_id={{claim.sys_id}}">
+
+                      View →
+
+                    </a>
+
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+
+          <div
+            class="cm-empty"
+            ng-if="
+              !data.history.length
+            ">
+
+            <div class="cm-empty-icon">
+              ✓
+            </div>
+
+            <h3>
+              No resolved history yet
+            </h3>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+</section>]]></template>
+    </sp_widget>
+</record_update>

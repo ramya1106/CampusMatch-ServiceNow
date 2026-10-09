@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="target_url" label="Target URL" language="en" table="x_snc_campusmatch_campusmatch_notification">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>target_url</element>
+            <help/>
+            <hint/>
+            <label>Target URL</label>
+            <language>en</language>
+            <name>x_snc_campusmatch_campusmatch_notification</name>
+            <plural>Target URLs</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-29 08:53:03</sys_created_on>
+            <sys_id>269f5d76d52b03107f4491472fd3df45</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Target URL</sys_name>
+            <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+            <sys_update_name>sys_documentation_x_snc_campusmatch_campusmatch_notification_target_url_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-29 08:53:03</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

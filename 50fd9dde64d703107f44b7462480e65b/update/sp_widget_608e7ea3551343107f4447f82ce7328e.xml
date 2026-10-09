@@ -1,0 +1,6161 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function($window) {
+
+    var c = this;
+
+
+    c.processing = false;
+    c.message = '';
+    c.actionError = false;
+
+
+    /* ======================================================
+       COMMON ACTION
+    ====================================================== */
+
+    c.runAction = function(action) {
+
+        if (c.processing) {
+            return;
+        }
+
+
+        c.processing = true;
+        c.message = '';
+        c.actionError = false;
+
+
+        c.server.get({
+
+            action: action,
+
+            item_id:
+                c.data.item ?
+                c.data.item.sys_id :
+                '',
+
+            match_id:
+                c.data.match ?
+                c.data.match.sys_id :
+                '',
+
+            claim_id:
+                c.data.claim ?
+                c.data.claim.sys_id :
+                ''
+
+        }).then(
+
+            function(response) {
+
+                c.processing = false;
+
+
+                if (
+                    !response ||
+                    !response.data
+                ) {
+
+                    c.actionError = true;
+
+                    c.message =
+                        'The action could not be completed.';
+
+                    return;
+                }
+
+
+                if (
+                    !response.data.success
+                ) {
+
+                    c.actionError = true;
+
+                    c.message =
+                        response.data.message ||
+                        'The action could not be completed.';
+
+                    return;
+                }
+
+
+                c.message =
+                    response.data.message ||
+                    'Action completed successfully.';
+
+
+                $window.setTimeout(
+                    function() {
+
+                        $window.location.reload();
+
+                    },
+                    700
+                );
+
+            },
+
+            function() {
+
+                c.processing = false;
+
+                c.actionError = true;
+
+                c.message =
+                    'The action could not be completed. Please try again.';
+
+            }
+
+        );
+
+    };
+
+
+    /* ======================================================
+       VERIFY POTENTIAL MATCH
+    ====================================================== */
+
+    c.verifyPotentialMatch = function() {
+
+        c.runAction(
+            'verifyPotentialMatch'
+        );
+
+    };
+
+
+    /* ======================================================
+       SELECT STRONG CANDIDATE
+    ====================================================== */
+
+    c.selectCandidate = function() {
+
+        c.runAction(
+            'selectCandidate'
+        );
+
+    };
+
+
+    /* ======================================================
+       REJECT MATCH
+    ====================================================== */
+
+    c.rejectMatch = function() {
+
+        c.runAction(
+            'rejectMatch'
+        );
+
+    };
+
+
+    /* ======================================================
+       APPROVE CLAIM
+    ====================================================== */
+
+    c.approveClaim = function() {
+
+        if (
+            !c.data.claim ||
+            c.data.claim.actionsLocked ||
+            !c.data.claim.canApprove
+        ) {
+
+            return;
+        }
+
+
+        c.runAction(
+            'approveClaim'
+        );
+
+    };
+
+
+    /* ======================================================
+       REJECT CLAIM
+    ====================================================== */
+
+    c.rejectClaim = function() {
+
+        if (
+            !c.data.claim ||
+            c.data.claim.actionsLocked ||
+            !c.data.claim.canReject
+        ) {
+
+            return;
+        }
+
+
+        c.runAction(
+            'rejectClaim'
+        );
+
+    };
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>.cm-review-page {&#13;
+  position: relative;&#13;
+  display: block;&#13;
+&#13;
+  width: 100vw !important;&#13;
+  max-width: 100vw !important;&#13;
+&#13;
+  margin-left: calc(50% - 50vw) !important;&#13;
+  margin-right: calc(50% - 50vw) !important;&#13;
+&#13;
+  margin-top: 0 !important;&#13;
+  margin-bottom: 0 !important;&#13;
+&#13;
+  min-height: 100vh;&#13;
+  min-height: 100svh;&#13;
+&#13;
+  padding: 45px 20px 90px;&#13;
+&#13;
+  background: linear-gradient(180deg,#FBF8EF,#F5F7F0) !important;&#13;
+&#13;
+  box-shadow:&#13;
+    0 -60px 0 #FBF8EF,&#13;
+    0 60px 0 #F5F7F0;&#13;
+&#13;
+  color: #102E34;&#13;
+  font-family: "DM Sans","Segoe UI",sans-serif;&#13;
+&#13;
+  box-sizing: border-box !important;&#13;
+  overflow-x: hidden;&#13;
+}&#13;
+&#13;
+.cm-review-page,&#13;
+.cm-review-page *,&#13;
+.cm-review-page *::before,&#13;
+.cm-review-page *::after {&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+.cm-review-container {&#13;
+  max-width: 1100px;&#13;
+  margin: 0 auto;&#13;
+}&#13;
+&#13;
+.cm-back {&#13;
+  display: inline-flex;&#13;
+  margin-bottom: 26px;&#13;
+  color: #15564B !important;&#13;
+  font-size: 12px;&#13;
+  font-weight: 800;&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+.cm-page-header {&#13;
+  margin-bottom: 30px;&#13;
+}&#13;
+&#13;
+.cm-eyebrow {&#13;
+  display: inline-flex;&#13;
+  padding: 7px 14px;&#13;
+  margin-bottom: 12px;&#13;
+  border-radius: 999px;&#13;
+  background: #EDF5E9;&#13;
+  color: #15564B;&#13;
+  font-size: 11px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+.cm-page-header h1 {&#13;
+  margin: 0 0 7px;&#13;
+  color: #104E45;&#13;
+  font-family: "Plus Jakarta Sans","Segoe UI",sans-serif;&#13;
+  font-size: 37px;&#13;
+}&#13;
+&#13;
+.cm-page-header p {&#13;
+  margin: 0;&#13;
+  color: #687A7E;&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+/* CARDS */&#13;
+&#13;
+.cm-main-card,&#13;
+.cm-item-panel,&#13;
+.cm-decision-card {&#13;
+  padding: 25px;&#13;
+  margin-bottom: 22px;&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 22px;&#13;
+  background: #FFFFFF;&#13;
+  box-shadow: 0 5px 18px rgba(16,78,69,.06);&#13;
+}&#13;
+&#13;
+.cm-card-heading {&#13;
+  display: flex;&#13;
+  justify-content: space-between;&#13;
+  gap: 18px;&#13;
+  margin-bottom: 17px;&#13;
+}&#13;
+&#13;
+.cm-card-heading h2 {&#13;
+  margin: 8px 0 2px;&#13;
+  color: #104E45;&#13;
+  font-size: 22px;&#13;
+}&#13;
+&#13;
+.cm-number {&#13;
+  color: #849194;&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+.cm-status-pill {&#13;
+  height: fit-content;&#13;
+  padding: 6px 10px;&#13;
+  border-radius: 999px;&#13;
+  background: #FDF3DC;&#13;
+  color: #856419;&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+.cm-type-badge {&#13;
+  display: inline-flex;&#13;
+  padding: 5px 10px;&#13;
+  border-radius: 999px;&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+.cm-type-badge.lost {&#13;
+  background: #FBEAE7;&#13;
+  color: #B5502F;&#13;
+}&#13;
+&#13;
+.cm-type-badge.found {&#13;
+  background: #EDF5E9;&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+.cm-description {&#13;
+  color: #617477;&#13;
+  font-size: 12px;&#13;
+  line-height: 1.6;&#13;
+}&#13;
+&#13;
+/* DETAIL GRIDS */&#13;
+&#13;
+.cm-detail-grid,&#13;
+.cm-mini-details {&#13;
+  display: grid;&#13;
+  grid-template-columns: repeat(2,1fr);&#13;
+  gap: 11px;&#13;
+}&#13;
+&#13;
+.cm-detail-grid &gt; div,&#13;
+.cm-mini-details &gt; div {&#13;
+  padding: 12px;&#13;
+  border-radius: 12px;&#13;
+  background: #F5F8F3;&#13;
+}&#13;
+&#13;
+.cm-detail-grid span,&#13;
+.cm-mini-details span {&#13;
+  display: block;&#13;
+  margin-bottom: 4px;&#13;
+  color: #7B898D;&#13;
+  font-size: 8px;&#13;
+}&#13;
+&#13;
+.cm-detail-grid strong,&#13;
+.cm-mini-details strong {&#13;
+  color: #102E34;&#13;
+  font-size: 10px;&#13;
+  word-break: break-word;&#13;
+}&#13;
+&#13;
+.cm-detail-grid a {&#13;
+  color: #168C70 !important;&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+/* SUBSECTION */&#13;
+&#13;
+.cm-subsection {&#13;
+  margin-top: 25px;&#13;
+}&#13;
+&#13;
+.cm-subsection h3 {&#13;
+  color: #104E45;&#13;
+  font-size: 14px;&#13;
+}&#13;
+&#13;
+/* PRIVATE */&#13;
+&#13;
+.cm-private-box {&#13;
+  padding: 18px;&#13;
+  margin-top: 22px;&#13;
+  border-radius: 17px;&#13;
+  background: #EDF5E9;&#13;
+}&#13;
+&#13;
+.cm-private-heading {&#13;
+  display: flex;&#13;
+  gap: 10px;&#13;
+  margin-bottom: 13px;&#13;
+}&#13;
+&#13;
+.cm-private-heading h3 {&#13;
+  margin: 0;&#13;
+  color: #104E45;&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+.cm-private-heading p {&#13;
+  margin: 2px 0 0;&#13;
+  color: #718185;&#13;
+  font-size: 9px;&#13;
+}&#13;
+&#13;
+.cm-private-grid {&#13;
+  display: grid;&#13;
+  grid-template-columns: repeat(3,1fr);&#13;
+  gap: 9px;&#13;
+}&#13;
+&#13;
+.cm-private-grid &gt; div {&#13;
+  padding: 11px;&#13;
+  border-radius: 11px;&#13;
+  background: #FFFFFF;&#13;
+}&#13;
+&#13;
+.cm-private-grid span {&#13;
+  display: block;&#13;
+  margin-bottom: 4px;&#13;
+  color: #7B898D;&#13;
+  font-size: 8px;&#13;
+}&#13;
+&#13;
+.cm-private-grid strong {&#13;
+  color: #102E34;&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+/* SECTION HEADER */&#13;
+&#13;
+.cm-section-heading {&#13;
+  display: flex;&#13;
+  justify-content: space-between;&#13;
+  align-items: center;&#13;
+  margin-bottom: 17px;&#13;
+}&#13;
+&#13;
+.cm-section-heading h2 {&#13;
+  margin: 0;&#13;
+  color: #104E45;&#13;
+  font-size: 18px;&#13;
+}&#13;
+&#13;
+.cm-section-heading &gt; span {&#13;
+  min-width: 26px;&#13;
+  height: 26px;&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  border-radius: 50%;&#13;
+  background: #EDF5E9;&#13;
+  color: #15564B;&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+/* RELATED */&#13;
+&#13;
+.cm-related-list {&#13;
+  display: grid;&#13;
+  gap: 9px;&#13;
+}&#13;
+&#13;
+.cm-related-match {&#13;
+  padding: 12px 14px;&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+  border-radius: 12px;&#13;
+  background: #F5F8F3;&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+.cm-related-match strong {&#13;
+  display: block;&#13;
+  color: #104E45;&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+.cm-related-match span {&#13;
+  color: #7A898D;&#13;
+  font-size: 8px;&#13;
+}&#13;
+&#13;
+.cm-related-match b {&#13;
+  color: #168C70;&#13;
+  font-size: 15px;&#13;
+}&#13;
+&#13;
+/* SCORE SUMMARY */&#13;
+&#13;
+.cm-score-summary,&#13;
+.cm-claim-summary {&#13;
+  display: grid;&#13;
+  grid-template-columns: repeat(4,1fr);&#13;
+  gap: 12px;&#13;
+  margin-bottom: 22px;&#13;
+}&#13;
+&#13;
+.cm-score-summary &gt; div,&#13;
+.cm-claim-summary &gt; div {&#13;
+  padding: 16px;&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 15px;&#13;
+  background: #FFFFFF;&#13;
+}&#13;
+&#13;
+.cm-score-summary span,&#13;
+.cm-claim-summary span {&#13;
+  display: block;&#13;
+  margin-bottom: 5px;&#13;
+  color: #7A898D;&#13;
+  font-size: 8px;&#13;
+}&#13;
+&#13;
+.cm-score-summary strong,&#13;
+.cm-claim-summary strong {&#13;
+  color: #104E45;&#13;
+  font-size: 18px;&#13;
+}&#13;
+&#13;
+/* MATCH COMPARISON */&#13;
+&#13;
+.cm-comparison {&#13;
+  display: grid;&#13;
+  grid-template-columns: 1fr 55px 1fr;&#13;
+  align-items: center;&#13;
+  gap: 13px;&#13;
+  margin-bottom: 22px;&#13;
+}&#13;
+&#13;
+.cm-item-panel h2 {&#13;
+  margin: 10px 0 7px;&#13;
+  color: #104E45;&#13;
+  font-size: 18px;&#13;
+}&#13;
+&#13;
+.cm-item-panel &gt; p {&#13;
+  color: #687A7E;&#13;
+  font-size: 10px;&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+.cm-versus {&#13;
+  width: 44px;&#13;
+  height: 44px;&#13;
+  margin: auto;&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  border-radius: 50%;&#13;
+  background: #EDF5E9;&#13;
+  color: #249D78;&#13;
+  font-size: 18px;&#13;
+}&#13;
+&#13;
+/* FACTORS */&#13;
+&#13;
+.cm-factor-grid {&#13;
+  display: grid;&#13;
+  grid-template-columns: repeat(2,1fr);&#13;
+  gap: 20px 28px;&#13;
+}&#13;
+&#13;
+.cm-factor {&#13;
+  display: grid;&#13;
+  grid-template-columns: 1fr auto;&#13;
+  gap: 7px;&#13;
+}&#13;
+&#13;
+.cm-factor strong {&#13;
+  display: block;&#13;
+  color: #102E34;&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+.cm-factor span {&#13;
+  color: #879397;&#13;
+  font-size: 8px;&#13;
+}&#13;
+&#13;
+.cm-factor b {&#13;
+  color: #15564B;&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+.cm-track {&#13;
+  grid-column: 1 / -1;&#13;
+  height: 7px;&#13;
+  overflow: hidden;&#13;
+  border-radius: 999px;&#13;
+  background: #EDF2EE;&#13;
+}&#13;
+&#13;
+.cm-fill {&#13;
+  height: 100%;&#13;
+  border-radius: inherit;&#13;
+  background: #249D78;&#13;
+}&#13;
+&#13;
+/* ANSWERS */&#13;
+&#13;
+.cm-answer-table {&#13;
+  display: grid;&#13;
+  gap: 12px;&#13;
+}&#13;
+&#13;
+.cm-answer-block {&#13;
+  display: grid;&#13;
+  grid-template-columns: 34px 1fr 1fr;&#13;
+  gap: 12px;&#13;
+  align-items: stretch;&#13;
+}&#13;
+&#13;
+.cm-answer-number {&#13;
+  width: 32px;&#13;
+  height: 32px;&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  border-radius: 11px;&#13;
+  background: #EDF5E9;&#13;
+  color: #15564B;&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+.cm-answer-block &gt; div {&#13;
+  padding: 12px;&#13;
+  border-radius: 12px;&#13;
+  background: #F5F8F3;&#13;
+}&#13;
+&#13;
+.cm-answer-label {&#13;
+  display: block;&#13;
+  margin-bottom: 4px;&#13;
+  color: #7A898D;&#13;
+  font-size: 8px;&#13;
+}&#13;
+&#13;
+.cm-answer-block strong {&#13;
+  color: #102E34;&#13;
+  font-size: 10px;&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+/* DECISION */&#13;
+&#13;
+.cm-decision-card {&#13;
+  background: linear-gradient(135deg,#104E45,#156B5B);&#13;
+  color: #FFFFFF;&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+.cm-decision-label {&#13;
+  color: #BDE8D8;&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+  text-transform: uppercase;&#13;
+}&#13;
+&#13;
+.cm-decision-card h2 {&#13;
+  margin: 7px 0;&#13;
+  color: #FFFFFF;&#13;
+  font-size: 20px;&#13;
+}&#13;
+&#13;
+.cm-decision-card p {&#13;
+  max-width: 650px;&#13;
+  margin: 0 auto 20px;&#13;
+  color: rgba(255,255,255,.72);&#13;
+  font-size: 10px;&#13;
+  line-height: 1.6;&#13;
+}&#13;
+&#13;
+.cm-decision-actions {&#13;
+  display: flex;&#13;
+  justify-content: center;&#13;
+  gap: 10px;&#13;
+}&#13;
+&#13;
+.cm-decision-actions button {&#13;
+  min-width: 170px;&#13;
+  padding: 12px 17px;&#13;
+  border-radius: 999px;&#13;
+  font-size: 11px;&#13;
+  font-weight: 800;&#13;
+  cursor: pointer;&#13;
+}&#13;
+&#13;
+.cm-approve {&#13;
+  border: 0;&#13;
+  background: #FFFFFF;&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+.cm-reject {&#13;
+  border: 1px solid rgba(255,255,255,.55);&#13;
+  background: transparent;&#13;
+  color: #FFFFFF;&#13;
+}&#13;
+&#13;
+/* MESSAGE */&#13;
+&#13;
+.cm-action-message {&#13;
+  padding: 12px 15px;&#13;
+  margin-bottom: 19px;&#13;
+  border-radius: 13px;&#13;
+  background: #E4F4EA;&#13;
+  color: #14765C;&#13;
+  font-size: 11px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+.cm-action-message.error {&#13;
+  background: #FBEAE7;&#13;
+  color: #A44832;&#13;
+}&#13;
+&#13;
+/* STATES */&#13;
+&#13;
+.cm-state-card {&#13;
+  max-width: 480px;&#13;
+  margin: 50px auto;&#13;
+  padding: 50px 28px;&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 22px;&#13;
+  background: #FFFFFF;&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+.cm-state-icon {&#13;
+  width: 60px;&#13;
+  height: 60px;&#13;
+  margin: 0 auto 14px;&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+  border-radius: 50%;&#13;
+  background: #FBEAE7;&#13;
+  color: #B5502F;&#13;
+  font-size: 22px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+.cm-state-card h2 {&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+.cm-state-card p,&#13;
+.cm-empty {&#13;
+  color: #718185;&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+/* MOBILE */&#13;
+&#13;
+@media (max-width: 760px) {&#13;
+&#13;
+  .cm-comparison {&#13;
+    grid-template-columns: 1fr;&#13;
+  }&#13;
+&#13;
+  .cm-score-summary,&#13;
+  .cm-claim-summary {&#13;
+    grid-template-columns: repeat(2,1fr);&#13;
+  }&#13;
+&#13;
+  .cm-versus {&#13;
+    transform: rotate(90deg);&#13;
+  }&#13;
+&#13;
+  .cm-private-grid,&#13;
+  .cm-factor-grid {&#13;
+    grid-template-columns: 1fr;&#13;
+  }&#13;
+}&#13;
+&#13;
+@media (max-width: 560px) {&#13;
+&#13;
+  .cm-review-page {&#13;
+    min-height: 100svh;&#13;
+&#13;
+    padding: 30px 14px 65px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #F5F7F0;&#13;
+  }&#13;
+&#13;
+  .cm-page-header h1 {&#13;
+    font-size: 29px;&#13;
+  }&#13;
+&#13;
+  .cm-detail-grid,&#13;
+  .cm-mini-details {&#13;
+    grid-template-columns: 1fr;&#13;
+  }&#13;
+&#13;
+  .cm-answer-block {&#13;
+    grid-template-columns: 32px 1fr;&#13;
+  }&#13;
+&#13;
+  .cm-answer-block &gt; div {&#13;
+    grid-column: 2;&#13;
+  }&#13;
+&#13;
+  .cm-decision-actions {&#13;
+    flex-direction: column;&#13;
+  }&#13;
+&#13;
+  .cm-decision-actions button {&#13;
+    width: 100%;&#13;
+  }&#13;
+}&#13;
+&#13;
+/* ==========================================================&#13;
+   CLOSED / WITHDRAWN STATE&#13;
+========================================================== */&#13;
+&#13;
+.cm-locked-card {&#13;
+  margin-bottom: 22px;&#13;
+  padding: 20px 22px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: flex-start;&#13;
+&#13;
+  gap: 14px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 18px;&#13;
+&#13;
+  background: #F5F8F3;&#13;
+}&#13;
+&#13;
+.cm-locked-icon {&#13;
+  width: 38px;&#13;
+  height: 38px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #168C70;&#13;
+&#13;
+  font-size: 15px;&#13;
+  font-weight: 900;&#13;
+}&#13;
+&#13;
+.cm-locked-card h3 {&#13;
+  margin: 1px 0 5px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 14px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+.cm-locked-card p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #617477;&#13;
+&#13;
+  font-size: 10px;&#13;
+  line-height: 1.6;&#13;
+}&#13;
+&#13;
+/* ==========================================================&#13;
+   STAFF REVIEW - ITEM IMAGES&#13;
+========================================================== */&#13;
+&#13;
+&#13;
+/* ----------------------------------------------------------&#13;
+   SINGLE ITEM REVIEW IMAGE SECTION&#13;
+---------------------------------------------------------- */&#13;
+&#13;
+.cm-review-image-section {&#13;
+  width: 100%;&#13;
+&#13;
+  margin: 22px 0 24px;&#13;
+  padding: 18px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+  border-radius: 17px;&#13;
+&#13;
+  background: #F8FAF7;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+.cm-review-image-heading {&#13;
+  display: flex;&#13;
+  align-items: flex-start;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 16px;&#13;
+&#13;
+  margin-bottom: 14px;&#13;
+}&#13;
+&#13;
+.cm-review-image-heading h3 {&#13;
+  margin: 0 0 4px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 14px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+.cm-review-image-heading p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 10px;&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+.cm-image-private-badge {&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  padding: 6px 10px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+/* ----------------------------------------------------------&#13;
+   IMAGE FRAME&#13;
+---------------------------------------------------------- */&#13;
+&#13;
+.cm-review-image-frame {&#13;
+  width: 100%;&#13;
+&#13;
+  height: 320px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  border: 1px solid #DCE6E1;&#13;
+  border-radius: 15px;&#13;
+&#13;
+  background: #EEF3EF;&#13;
+}&#13;
+&#13;
+.cm-review-image-frame img {&#13;
+  display: block;&#13;
+&#13;
+  width: 100%;&#13;
+  height: 100%;&#13;
+&#13;
+  object-fit: contain;&#13;
+&#13;
+  background: #EEF3EF;&#13;
+}&#13;
+&#13;
+/* ----------------------------------------------------------&#13;
+   EMPTY STATE&#13;
+---------------------------------------------------------- */&#13;
+&#13;
+.cm-review-image-empty {&#13;
+  width: 100%;&#13;
+  min-height: 170px;&#13;
+&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  gap: 5px;&#13;
+&#13;
+  border: 1px dashed #C8D7D0;&#13;
+  border-radius: 15px;&#13;
+&#13;
+  background: #F4F8F3;&#13;
+&#13;
+  color: #718185;&#13;
+}&#13;
+&#13;
+.cm-review-image-empty-icon {&#13;
+  margin-bottom: 3px;&#13;
+&#13;
+  color: #9AABA5;&#13;
+&#13;
+  font-size: 30px;&#13;
+}&#13;
+&#13;
+.cm-review-image-empty strong {&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+.cm-review-image-empty span {&#13;
+  font-size: 9px;&#13;
+}&#13;
+&#13;
+/* ==========================================================&#13;
+   MATCH REVIEW - LOST / FOUND IMAGES&#13;
+========================================================== */&#13;
+&#13;
+.cm-match-review-image {&#13;
+  width: 100%;&#13;
+  height: 220px;&#13;
+&#13;
+  margin: 17px 0;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  border: 1px solid #DCE6E1;&#13;
+  border-radius: 14px;&#13;
+&#13;
+  background: #F2F6F2;&#13;
+}&#13;
+&#13;
+.cm-match-review-image img {&#13;
+  display: block;&#13;
+&#13;
+  width: 100%;&#13;
+  height: 100%;&#13;
+&#13;
+  object-fit: contain;&#13;
+&#13;
+  background: #F2F6F2;&#13;
+}&#13;
+&#13;
+.cm-match-image-empty {&#13;
+  width: 100%;&#13;
+  height: 100%;&#13;
+&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  gap: 7px;&#13;
+&#13;
+  color: #81908C;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+.cm-match-image-empty &gt; span {&#13;
+  font-size: 27px;&#13;
+}&#13;
+&#13;
+.cm-match-image-empty strong {&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+/* ==========================================================&#13;
+   TABLET&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 850px) {&#13;
+&#13;
+  .cm-review-image-frame {&#13;
+    height: 280px;&#13;
+  }&#13;
+&#13;
+  .cm-match-review-image {&#13;
+    height: 190px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+/* ==========================================================&#13;
+   MOBILE / NOW MOBILE WEBVIEW&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 600px) {&#13;
+&#13;
+  .cm-review-image-section {&#13;
+    margin:&#13;
+      18px&#13;
+      0&#13;
+      20px;&#13;
+&#13;
+    padding: 13px;&#13;
+  }&#13;
+&#13;
+  .cm-review-image-heading {&#13;
+    flex-direction: column;&#13;
+&#13;
+    gap: 9px;&#13;
+  }&#13;
+&#13;
+  .cm-review-image-frame {&#13;
+    height: 230px;&#13;
+  }&#13;
+&#13;
+  .cm-match-review-image {&#13;
+    height: 210px;&#13;
+&#13;
+    margin:&#13;
+      14px&#13;
+      0;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+/* ==========================================================&#13;
+   WITHDRAWN MATCH NOTICE - NEUTRAL SLATE BLUE&#13;
+========================================================== */&#13;
+&#13;
+.cm-withdrawn-banner {&#13;
+  width: 100%;&#13;
+&#13;
+  margin: 0 0 20px;&#13;
+  padding: 15px 17px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: flex-start;&#13;
+  gap: 12px;&#13;
+&#13;
+  border: 1px solid #E7CFCB;&#13;
+  border-left: 4px solid #B86F67;&#13;
+  border-radius: 14px;&#13;
+&#13;
+  background: #FBF1EF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 4px 14px rgba(125, 79, 73, 0.06);&#13;
+&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+.cm-withdrawn-banner .cm-info-banner-icon {&#13;
+  width: 30px;&#13;
+  height: 30px;&#13;
+  min-width: 30px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #F2DDD9;&#13;
+  color: #8F514A;&#13;
+&#13;
+  font-size: 14px;&#13;
+  font-weight: 900;&#13;
+}&#13;
+&#13;
+.cm-withdrawn-banner .cm-info-banner-content {&#13;
+  min-width: 0;&#13;
+&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+&#13;
+  gap: 3px;&#13;
+&#13;
+  padding-top: 1px;&#13;
+}&#13;
+&#13;
+.cm-withdrawn-banner .cm-info-banner-content strong {&#13;
+  display: block;&#13;
+&#13;
+  color: #6F3F3A;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  line-height: 1.4;&#13;
+}&#13;
+&#13;
+.cm-withdrawn-banner .cm-info-banner-content span {&#13;
+  display: block;&#13;
+&#13;
+  color: #84615D;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 500;&#13;
+&#13;
+  line-height: 1.6;&#13;
+}&#13;
+&#13;
+/* MOBILE */&#13;
+&#13;
+@media (max-width: 560px) {&#13;
+&#13;
+  .cm-withdrawn-banner {&#13;
+    padding: 13px 14px;&#13;
+    gap: 10px;&#13;
+  }&#13;
+&#13;
+  .cm-info-banner-icon {&#13;
+    width: 28px;&#13;
+    height: 28px;&#13;
+&#13;
+    min-width: 28px;&#13;
+&#13;
+    font-size: 13px;&#13;
+  }&#13;
+&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>Staff review center for items, matches and ownership claims</description>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_admin_review</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch Admin Review Center</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+    /* ======================================================
+       TABLES
+    ====================================================== */
+
+    var ITEM_TABLE =
+        'x_snc_campusmatch_campusmatch_item';
+
+    var MATCH_TABLE =
+        'x_snc_campusmatch_campusmatch_match';
+
+    var CLAIM_TABLE =
+        'x_snc_campusmatch_campusmatch_claim';
+
+
+    /* ======================================================
+       ITEM FIELDS
+    ====================================================== */
+
+    var I_NUMBER = 'number';
+    var I_TYPE = 'report_type';
+    var I_TITLE = 'title';
+    var I_PUBLIC_TITLE = 'public_title';
+    var I_DESCRIPTION = 'description';
+    var I_CATEGORY = 'category';
+    var I_BRAND = 'brand';
+    var I_COLOR = 'color';
+    var I_UNIQUE = 'unique_features';
+    var I_LOCATION = 'location_zone';
+    var I_X = 'location_x';
+    var I_Y = 'location_y';
+    var I_REPORTED = 'reported_date_time';
+    var I_REPORTER = 'reporter';
+    var I_STATUS = 'status';
+    var I_AI_TEXT = 'ai_attribute_text';
+
+    /*
+     * STAFF-ONLY ITEM IMAGE
+     */
+    var I_IMAGE = 'image';
+
+
+    /* ======================================================
+       MATCH FIELDS
+    ====================================================== */
+
+    var M_LOST = 'lost_item';
+    var M_FOUND = 'found_item';
+    var M_IMAGE = 'image_similarity';
+    var M_DESCRIPTION = 'description_similarity';
+    var M_LOCATION = 'location_score';
+    var M_TIME = 'time_score';
+    var M_CATEGORY = 'category_score';
+    var M_UNIQUE = 'unique_attribute_score';
+    var M_OVERALL = 'overall_score';
+    var M_LEVEL = 'match_level';
+    var M_STATUS = 'status';
+    var M_EXPLANATION = 'explanation';
+
+    var M_DECISION_REASON =
+        'decision_reason';
+
+
+    /* ======================================================
+       CLAIM FIELDS
+    ====================================================== */
+
+    var C_NUMBER = 'number';
+    var C_MATCH = 'match';
+    var C_ITEM = 'item';
+    var C_CLAIMANT = 'claimant';
+    var C_STATUS = 'claim_status';
+    var C_DATE = 'claim_date';
+
+    var C_A1 =
+        'u_claimant_answer_1';
+
+    var C_A2 =
+        'u_claimant_answer_2';
+
+    var C_A3 =
+        'u_claimant_answer_3';
+
+    var C_SCORE =
+        'u_verification_score';
+
+    var C_RESULT =
+        'u_verification_result';
+
+    var C_VERIFIED_BY =
+        'verified_by';
+
+    var C_VERIFIED_ON =
+        'verified_on';
+
+
+    /* ======================================================
+       MATCH CHOICE VALUES
+    ====================================================== */
+
+    var MATCH_ACTIVE =
+        'active';
+
+    var MATCH_CONFIRMED =
+        'confirmed';
+
+    var MATCH_REJECTED =
+        'no_match';
+
+    var MATCH_WITHDRAWN =
+        'withdrawn';
+
+
+    /* ======================================================
+       DECISION REASONS
+    ====================================================== */
+
+    var DECISION_SELECTED =
+        'selected_candidate';
+
+    var DECISION_COMPETING =
+        'competing_candidate';
+
+    var DECISION_STAFF_REJECTED =
+        'staff_rejected';
+
+    var DECISION_CLAIM_WITHDRAWN =
+        'claim_withdrawn';
+
+
+    /* ======================================================
+       CLAIM CHOICE VALUES
+    ====================================================== */
+
+    /*
+     * Internal choice values are handled through helper
+     * functions below so the script works whether the
+     * instance stores them as lowercase values or labels.
+     */
+
+    var CLAIM_APPROVED =
+        'approved';
+
+    var CLAIM_REJECTED =
+        'rejected';
+
+    var CLAIM_WITHDRAWN =
+        'withdrawn';
+
+
+    /* ======================================================
+       DEFAULT DATA
+    ====================================================== */
+
+    data.error = '';
+    data.success = false;
+    data.message = '';
+
+    data.item = null;
+    data.match = null;
+    data.claim = null;
+
+    data.relatedMatches = [];
+
+
+    /* ======================================================
+       STAFF SECURITY
+    ====================================================== */
+
+    var access =
+        new CampusMatchAccess();
+
+    data.isStaff =
+        access.isStaff();
+
+    data.isAdmin =
+        data.isStaff;
+
+    data.allowed =
+        data.isStaff;
+
+
+    if (!data.allowed) {
+
+        data.error =
+            'Staff access required.';
+
+        return;
+    }
+
+
+    /* ======================================================
+       HELPERS
+    ====================================================== */
+
+    function normalize(v) {
+
+        return (
+            v || ''
+        )
+        .toString()
+        .toLowerCase()
+        .trim();
+    }
+
+
+    function firstValidItemField(
+        candidates
+    ) {
+
+        var test =
+            new GlideRecord(
+                ITEM_TABLE
+            );
+
+        for (
+            var i = 0;
+            i < candidates.length;
+            i++
+        ) {
+
+            if (
+                test.isValidField(
+                    candidates[i]
+                )
+            ) {
+
+                return candidates[i];
+            }
+        }
+
+        return '';
+    }
+
+
+    var I_PRIVATE_1 =
+        firstValidItemField([
+            'private_detail_1',
+            'u_private_detail_1',
+            'private_ownership_detail_1',
+            'u_private_ownership_detail_1',
+            'ownership_detail_1',
+            'u_ownership_detail_1'
+        ]);
+
+
+    var I_PRIVATE_2 =
+        firstValidItemField([
+            'private_detail_2',
+            'u_private_detail_2',
+            'private_ownership_detail_2',
+            'u_private_ownership_detail_2',
+            'ownership_detail_2',
+            'u_ownership_detail_2'
+        ]);
+
+
+    var I_PRIVATE_3 =
+        firstValidItemField([
+            'private_detail_3',
+            'u_private_detail_3',
+            'private_ownership_detail_3',
+            'u_private_ownership_detail_3',
+            'ownership_detail_3',
+            'u_ownership_detail_3'
+        ]);
+
+
+    function display(
+        gr,
+        field,
+        fallback
+    ) {
+
+        if (
+            !gr ||
+            !field ||
+            !gr.isValidField(field)
+        ) {
+
+            return fallback || '—';
+        }
+
+        return (
+            gr.getDisplayValue(
+                field
+            ) ||
+            fallback ||
+            '—'
+        );
+    }
+
+
+    function value(
+        gr,
+        field
+    ) {
+
+        if (
+            !gr ||
+            !field ||
+            !gr.isValidField(field)
+        ) {
+
+            return '';
+        }
+
+        return (
+            gr.getValue(
+                field
+            ) || ''
+        );
+    }
+
+
+    /* ======================================================
+       STAFF-ONLY IMAGE URL
+    ====================================================== */
+
+    function getItemImageUrl(gr) {
+
+        if (
+            !data.isStaff ||
+            !gr
+        ) {
+
+            return '';
+        }
+
+        var itemSysId =
+            gr.getUniqueValue();
+
+        if (!itemSysId) {
+            return '';
+        }
+
+
+        /* ==================================================
+           CURRENT CAMPUSMATCH IMAGE ATTACHMENT
+        ================================================== */
+
+        var imageAttachment =
+            new GlideRecord(
+                'sys_attachment'
+            );
+
+        imageAttachment.addQuery(
+            'table_sys_id',
+            itemSysId
+        );
+
+        imageAttachment.addQuery(
+            'table_name',
+            'ZZ_YY' + ITEM_TABLE
+        );
+
+        imageAttachment.addQuery(
+            'file_name',
+            'image'
+        );
+
+        imageAttachment.orderByDesc(
+            'sys_created_on'
+        );
+
+        imageAttachment.setLimit(
+            1
+        );
+
+        imageAttachment.query();
+
+
+        if (
+            imageAttachment.next()
+        ) {
+
+            return '/' +
+                imageAttachment.getUniqueValue() +
+                '.iix';
+        }
+
+
+        /* ==================================================
+           FALLBACK FOR OLDER IMAGE ATTACHMENTS
+        ================================================== */
+
+        var oldImage =
+            new GlideRecord(
+                'sys_attachment'
+            );
+
+        oldImage.addQuery(
+            'table_sys_id',
+            itemSysId
+        );
+
+        oldImage.addQuery(
+            'table_name',
+            ITEM_TABLE
+        );
+
+        oldImage.addQuery(
+            'content_type',
+            'STARTSWITH',
+            'image/'
+        );
+
+        oldImage.orderByDesc(
+            'sys_created_on'
+        );
+
+        oldImage.setLimit(
+            1
+        );
+
+        oldImage.query();
+
+
+        if (
+            oldImage.next()
+        ) {
+
+            return '/' +
+                oldImage.getUniqueValue() +
+                '.iix';
+        }
+
+
+        return '';
+    }
+
+
+    function numberValue(
+        gr,
+        field
+    ) {
+
+        var n =
+            parseFloat(
+                value(
+                    gr,
+                    field
+                )
+            );
+
+        if (
+            isNaN(n)
+        ) {
+
+            return 0;
+        }
+
+        return Math.round(
+            n * 100
+        ) / 100;
+    }
+
+
+    function loadItem(
+        sysId
+    ) {
+
+        if (!sysId) {
+            return null;
+        }
+
+        var gr =
+            new GlideRecord(
+                ITEM_TABLE
+            );
+
+        if (
+            gr.get(
+                sysId
+            )
+        ) {
+
+            return gr;
+        }
+
+        return null;
+    }
+
+
+    function itemObject(
+        gr
+    ) {
+
+        if (!gr) {
+            return null;
+        }
+
+        var type =
+            normalize(
+                value(
+                    gr,
+                    I_TYPE
+                )
+            );
+
+        return {
+
+            sys_id:
+                gr.getUniqueValue(),
+
+            number:
+                display(
+                    gr,
+                    I_NUMBER,
+                    ''
+                ),
+
+            reportType:
+                type,
+
+            reportTypeLabel:
+                type === 'found'
+                    ?
+                    'Found'
+                    :
+                    'Lost',
+
+            title:
+                value(
+                    gr,
+                    I_TITLE
+                ) ||
+                display(
+                    gr,
+                    I_PUBLIC_TITLE,
+                    'CampusMatch Item'
+                ),
+
+            publicTitle:
+                display(
+                    gr,
+                    I_PUBLIC_TITLE,
+                    '—'
+                ),
+
+            description:
+                display(
+                    gr,
+                    I_DESCRIPTION,
+                    '—'
+                ),
+
+            category:
+                display(
+                    gr,
+                    I_CATEGORY,
+                    '—'
+                ),
+
+            brand:
+                display(
+                    gr,
+                    I_BRAND,
+                    '—'
+                ),
+
+            color:
+                display(
+                    gr,
+                    I_COLOR,
+                    '—'
+                ),
+
+            uniqueFeatures:
+                display(
+                    gr,
+                    I_UNIQUE,
+                    '—'
+                ),
+
+            aiAttributeText:
+                display(
+                    gr,
+                    I_AI_TEXT,
+                    '—'
+                ),
+
+            location:
+                display(
+                    gr,
+                    I_LOCATION,
+                    '—'
+                ),
+
+            locationX:
+                display(
+                    gr,
+                    I_X,
+                    '—'
+                ),
+
+            locationY:
+                display(
+                    gr,
+                    I_Y,
+                    '—'
+                ),
+
+            reported:
+                display(
+                    gr,
+                    I_REPORTED,
+                    '—'
+                ),
+
+            reporter:
+                display(
+                    gr,
+                    I_REPORTER,
+                    '—'
+                ),
+
+            status:
+                display(
+                    gr,
+                    I_STATUS,
+                    '—'
+                ),
+
+            private1:
+                display(
+                    gr,
+                    I_PRIVATE_1,
+                    '—'
+                ),
+
+            private2:
+                display(
+                    gr,
+                    I_PRIVATE_2,
+                    '—'
+                ),
+
+            private3:
+                display(
+                    gr,
+                    I_PRIVATE_3,
+                    '—'
+                ),
+
+            imageUrl:
+                getItemImageUrl(
+                    gr
+                )
+        };
+    }
+
+
+    /* ======================================================
+       MATCH LEVEL
+    ====================================================== */
+
+    function getMatchLevel(
+        match
+    ) {
+
+        var level =
+            normalize(
+                match.getValue(
+                    M_LEVEL
+                )
+            );
+
+
+        /*
+         * Normalize common stored values.
+         */
+
+        if (
+            level ===
+                'potential_match'
+        ) {
+
+            level =
+                'potential';
+        }
+
+
+        if (
+            level ===
+                'strong_match'
+        ) {
+
+            level =
+                'strong';
+        }
+
+
+        if (
+            level ===
+                'no_match'
+        ) {
+
+            return 'low';
+        }
+
+
+        if (level) {
+
+            return level;
+        }
+
+
+        /*
+         * Score fallback.
+         */
+
+        var overall =
+            numberValue(
+                match,
+                M_OVERALL
+            );
+
+
+        if (
+            overall >= 80
+        ) {
+
+            return 'strong';
+        }
+
+
+        if (
+            overall >= 65
+        ) {
+
+            return 'potential';
+        }
+
+
+        return 'low';
+    }
+
+
+    /* ======================================================
+       POTENTIAL STAFF VERIFICATION
+    ====================================================== */
+
+    function isPotentialStaffVerified(
+        match
+    ) {
+
+        var status =
+            normalize(
+                match.getValue(
+                    M_STATUS
+                )
+            );
+
+
+        /*
+         * Confirmed also means review is complete.
+         */
+
+        if (
+            status ===
+                MATCH_CONFIRMED
+        ) {
+
+            return true;
+        }
+
+
+        if (
+            status !==
+                MATCH_ACTIVE
+        ) {
+
+            return false;
+        }
+
+
+        var reviewed =
+            false;
+
+
+        if (
+            match.isValidField(
+                'reviewed_by'
+            ) &&
+            match.getValue(
+                'reviewed_by'
+            )
+        ) {
+
+            reviewed =
+                true;
+        }
+
+
+        if (
+            match.isValidField(
+                'reviewed_on'
+            ) &&
+            match.getValue(
+                'reviewed_on'
+            )
+        ) {
+
+            reviewed =
+                true;
+        }
+
+
+        return reviewed;
+    }
+
+
+    /* ======================================================
+       FACTORS
+    ====================================================== */
+
+    function factorArray(
+        match
+    ) {
+
+        return [
+
+            {
+                label:
+                    'Image Attributes',
+
+                score:
+                    numberValue(
+                        match,
+                        M_IMAGE
+                    ),
+
+                weight:
+                    35
+            },
+
+            {
+                label:
+                    'Description',
+
+                score:
+                    numberValue(
+                        match,
+                        M_DESCRIPTION
+                    ),
+
+                weight:
+                    20
+            },
+
+            {
+                label:
+                    'Location',
+
+                score:
+                    numberValue(
+                        match,
+                        M_LOCATION
+                    ),
+
+                weight:
+                    15
+            },
+
+            {
+                label:
+                    'Time',
+
+                score:
+                    numberValue(
+                        match,
+                        M_TIME
+                    ),
+
+                weight:
+                    10
+            },
+
+            {
+                label:
+                    'Category',
+
+                score:
+                    numberValue(
+                        match,
+                        M_CATEGORY
+                    ),
+
+                weight:
+                    10
+            },
+
+            {
+                label:
+                    'Unique Attributes',
+
+                score:
+                    numberValue(
+                        match,
+                        M_UNIQUE
+                    ),
+
+                weight:
+                    10
+            }
+
+        ];
+    }
+
+
+    /* ======================================================
+       CLAIM STATUS HELPER
+    ====================================================== */
+
+    function setClaimStatus(
+        gr,
+        desiredValue
+    ) {
+
+        if (
+            !gr ||
+            !gr.isValidField(
+                C_STATUS
+            )
+        ) {
+
+            return false;
+        }
+
+
+        var element =
+            gr.getElement(
+                C_STATUS
+            );
+
+
+        if (!element) {
+            return false;
+        }
+
+
+        /*
+         * Try internal value first.
+         */
+
+        try {
+
+            element.setValue(
+                desiredValue
+            );
+
+            return true;
+
+        }
+        catch (e) {
+            /*
+             * Continue to fallback.
+             */
+        }
+
+
+        return false;
+    }
+
+
+    /* ======================================================
+       INPUT PARAMETERS
+    ====================================================== */
+
+    var itemId =
+        input &&
+        input.item_id
+            ?
+            input.item_id
+            :
+            $sp.getParameter(
+                'item_id'
+            );
+
+
+    var matchId =
+        input &&
+        input.match_id
+            ?
+            input.match_id
+            :
+            $sp.getParameter(
+                'match_id'
+            );
+
+
+    var claimId =
+        input &&
+        input.claim_id
+            ?
+            input.claim_id
+            :
+            $sp.getParameter(
+                'claim_id'
+            );
+
+
+    /* ======================================================
+       ACTIONS
+    ====================================================== */
+
+    if (
+        input &&
+        input.action
+    ) {
+
+
+        /* ==================================================
+           VERIFY POTENTIAL MATCH
+        ================================================== */
+
+        if (
+            input.action ===
+                'verifyPotentialMatch'
+        ) {
+
+            var verifyId =
+                (
+                    input.match_id ||
+                    matchId ||
+                    ''
+                )
+                .toString()
+                .trim();
+
+
+            var verifyMatch =
+                new GlideRecord(
+                    MATCH_TABLE
+                );
+
+
+            if (
+                !verifyId ||
+                !verifyMatch.get(
+                    verifyId
+                )
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'Match could not be found.';
+
+                return;
+            }
+
+
+            var currentStatus =
+                normalize(
+                    verifyMatch.getValue(
+                        M_STATUS
+                    )
+                );
+
+
+            if (
+                currentStatus ===
+                    MATCH_REJECTED ||
+                currentStatus ===
+                    'rejected'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'This Match has already been rejected.';
+
+                return;
+            }
+
+
+            if (
+                currentStatus ===
+                    MATCH_WITHDRAWN
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'This Match was withdrawn and cannot be reviewed again.';
+
+                return;
+            }
+
+
+            if (
+                currentStatus ===
+                    MATCH_CONFIRMED ||
+                currentStatus ===
+                    'resolved'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'This Match is already closed and cannot be reviewed again.';
+
+                return;
+            }
+
+
+            var verifyLevel =
+                getMatchLevel(
+                    verifyMatch
+                );
+
+
+            if (
+                verifyLevel !==
+                    'potential'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'Only Potential Matches require this review.';
+
+                return;
+            }
+
+
+            /*
+             * Staff accepted the Potential Match.
+             *
+             * Keep Confirmed reserved for successful
+             * ownership verification.
+             */
+
+            verifyMatch.setValue(
+                M_STATUS,
+                MATCH_ACTIVE
+            );
+
+
+            if (
+                verifyMatch.isValidField(
+                    M_DECISION_REASON
+                )
+            ) {
+
+                verifyMatch.setValue(
+                    M_DECISION_REASON,
+                    ''
+                );
+            }
+
+
+            if (
+                verifyMatch.isValidField(
+                    'reviewed_by'
+                )
+            ) {
+
+                verifyMatch.setValue(
+                    'reviewed_by',
+                    gs.getUserID()
+                );
+            }
+
+
+            if (
+                verifyMatch.isValidField(
+                    'reviewed_on'
+                )
+            ) {
+
+                verifyMatch.setValue(
+                    'reviewed_on',
+                    new GlideDateTime()
+                );
+            }
+
+
+            verifyMatch.update();
+
+
+            data.success =
+                true;
+
+            data.message =
+                'Potential Match verified. The Lost reporter can now begin ownership verification.';
+
+            return;
+        }
+
+
+        /* ==================================================
+           REJECT MATCH
+        ================================================== */
+
+        if (
+            input.action ===
+                'rejectMatch'
+        ) {
+
+            var rejectId =
+                (
+                    input.match_id ||
+                    matchId ||
+                    ''
+                )
+                .toString()
+                .trim();
+
+
+            var rejectedMatch =
+                new GlideRecord(
+                    MATCH_TABLE
+                );
+
+
+            if (
+                !rejectId ||
+                !rejectedMatch.get(
+                    rejectId
+                )
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'Match could not be found.';
+
+                return;
+            }
+
+
+            var rejectStatus =
+                normalize(
+                    rejectedMatch.getValue(
+                        M_STATUS
+                    )
+                );
+
+
+            if (
+                rejectStatus ===
+                    MATCH_CONFIRMED
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'A confirmed Match cannot be rejected here.';
+
+                return;
+            }
+
+
+            if (
+                rejectStatus ===
+                    MATCH_WITHDRAWN
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'A withdrawn Match cannot be rejected or reviewed again.';
+
+                return;
+            }
+
+
+            if (
+                rejectStatus ===
+                    'resolved'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'A resolved Match cannot be rejected here.';
+
+                return;
+            }
+
+
+            rejectedMatch.setValue(
+                M_STATUS,
+                MATCH_REJECTED
+            );
+
+
+            if (
+                rejectedMatch.isValidField(
+                    M_DECISION_REASON
+                )
+            ) {
+
+                rejectedMatch.setValue(
+                    M_DECISION_REASON,
+                    DECISION_STAFF_REJECTED
+                );
+            }
+
+
+            if (
+                rejectedMatch.isValidField(
+                    'reviewed_by'
+                )
+            ) {
+
+                rejectedMatch.setValue(
+                    'reviewed_by',
+                    gs.getUserID()
+                );
+            }
+
+
+            if (
+                rejectedMatch.isValidField(
+                    'reviewed_on'
+                )
+            ) {
+
+                rejectedMatch.setValue(
+                    'reviewed_on',
+                    new GlideDateTime()
+                );
+            }
+
+
+            rejectedMatch.update();
+
+
+            data.success =
+                true;
+
+            data.message =
+                'Match rejected. It can no longer proceed to ownership verification.';
+
+            return;
+        }
+
+
+        /* ==================================================
+           MULTIPLE STRONG MATCHES
+           SELECT ONE CANDIDATE
+           
+           IMPORTANT:
+           Candidates are grouped by LOST ITEM.
+
+           Example:
+
+           Lost A
+             ├── Found 1 → Strong
+             └── Found 2 → Strong
+
+           Selecting one closes the other Found
+           candidate for the SAME Lost item.
+        ================================================== */
+
+        if (
+            input.action ===
+                'selectCandidate'
+        ) {
+
+            var selectedMatchId =
+                (
+                    input.match_id ||
+                    matchId ||
+                    ''
+                )
+                .toString()
+                .trim();
+
+
+            var selectedMatch =
+                new GlideRecord(
+                    MATCH_TABLE
+                );
+
+
+            if (
+                !selectedMatchId ||
+                !selectedMatch.get(
+                    selectedMatchId
+                )
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'Selected Match could not be found.';
+
+                return;
+            }
+
+
+            var selectedStatus =
+                normalize(
+                    selectedMatch.getValue(
+                        M_STATUS
+                    )
+                );
+
+
+            if (
+                selectedStatus ===
+                    MATCH_WITHDRAWN
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'A withdrawn Match cannot be selected again.';
+
+                return;
+            }
+
+
+            if (
+                selectedStatus ===
+                    MATCH_REJECTED ||
+                selectedStatus ===
+                    'rejected' ||
+                selectedStatus ===
+                    MATCH_CONFIRMED ||
+                selectedStatus ===
+                    'resolved'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'This Match is already closed and cannot be selected.';
+
+                return;
+            }
+
+
+            var selectedLostId =
+                selectedMatch.getValue(
+                    M_LOST
+                );
+
+
+            if (!selectedLostId) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'The selected Match does not contain a Lost Item.';
+
+                return;
+            }
+
+
+            var selectedFoundId =
+                selectedMatch.getValue(
+                    M_FOUND
+                );
+
+
+            if (!selectedFoundId) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'The selected Match does not contain a Found Item.';
+
+                return;
+            }
+
+
+            /* ==================================================
+               CLOSE COMPETING FOUND CANDIDATES FOR SAME LOST ITEM
+            ================================================== */
+
+            var otherMatches =
+                new GlideRecord(
+                    MATCH_TABLE
+                );
+
+
+            /*
+             * IMPORTANT FIX:
+             *
+             * Group by LOST item, not FOUND item.
+             *
+             * This matches CampusMatch's Multiple Strong
+             * Match scenario.
+             */
+
+            otherMatches.addQuery(
+                M_LOST,
+                selectedLostId
+            );
+
+
+            otherMatches.addQuery(
+                'sys_id',
+                '!=',
+                selectedMatchId
+            );
+
+
+            /*
+             * Only Potential / Strong candidates can compete.
+             */
+
+            otherMatches.addQuery(
+                M_OVERALL,
+                '>=',
+                65
+            );
+
+
+            otherMatches.query();
+
+
+            while (
+                otherMatches.next()
+            ) {
+
+                var otherStatus =
+                    normalize(
+                        otherMatches.getValue(
+                            M_STATUS
+                        )
+                    );
+
+
+                if (
+                    otherStatus ===
+                        'resolved' ||
+                    otherStatus ===
+                        MATCH_CONFIRMED ||
+                    otherStatus ===
+                        MATCH_WITHDRAWN ||
+                    otherStatus ===
+                        MATCH_REJECTED ||
+                    otherStatus ===
+                        'rejected'
+                ) {
+
+                    continue;
+                }
+
+
+                otherMatches.setValue(
+                    M_STATUS,
+                    MATCH_REJECTED
+                );
+
+
+                /*
+                 * These were not manually rejected.
+                 * They were closed because another
+                 * candidate was selected.
+                 */
+
+                if (
+                    otherMatches.isValidField(
+                        M_DECISION_REASON
+                    )
+                ) {
+
+                    otherMatches.setValue(
+                        M_DECISION_REASON,
+                        DECISION_COMPETING
+                    );
+                }
+
+
+                if (
+                    otherMatches.isValidField(
+                        'reviewed_by'
+                    )
+                ) {
+
+                    otherMatches.setValue(
+                        'reviewed_by',
+                        gs.getUserID()
+                    );
+                }
+
+
+                if (
+                    otherMatches.isValidField(
+                        'reviewed_on'
+                    )
+                ) {
+
+                    otherMatches.setValue(
+                        'reviewed_on',
+                        new GlideDateTime()
+                    );
+                }
+
+
+                otherMatches.update();
+            }
+
+
+            /*
+             * Selected candidate stays Active.
+             *
+             * Ownership verification still has to happen.
+             */
+
+            selectedMatch.setValue(
+                M_STATUS,
+                MATCH_ACTIVE
+            );
+
+
+            if (
+                selectedMatch.isValidField(
+                    M_DECISION_REASON
+                )
+            ) {
+
+                selectedMatch.setValue(
+                    M_DECISION_REASON,
+                    DECISION_SELECTED
+                );
+            }
+
+
+            if (
+                selectedMatch.isValidField(
+                    'reviewed_by'
+                )
+            ) {
+
+                selectedMatch.setValue(
+                    'reviewed_by',
+                    gs.getUserID()
+                );
+            }
+
+
+            if (
+                selectedMatch.isValidField(
+                    'reviewed_on'
+                )
+            ) {
+
+                selectedMatch.setValue(
+                    'reviewed_on',
+                    new GlideDateTime()
+                );
+            }
+
+
+            selectedMatch.update();
+
+
+            data.success =
+                true;
+
+            data.message =
+                'Candidate selected. Other eligible matches for this Lost Item were closed as competing candidates.';
+
+            return;
+        }
+
+
+        /* ==================================================
+           APPROVE OWNERSHIP CLAIM
+        ================================================== */
+
+        if (
+            input.action ===
+                'approveClaim'
+        ) {
+
+            var approvalClaim =
+                new GlideRecord(
+                    CLAIM_TABLE
+                );
+
+
+            if (
+                !claimId ||
+                !approvalClaim.get(
+                    claimId
+                )
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'Claim could not be found.';
+
+                return;
+            }
+
+
+            var approvalClaimStatus =
+                normalize(
+                    approvalClaim.getValue(
+                        C_STATUS
+                    )
+                );
+
+
+            if (
+                approvalClaimStatus ===
+                    CLAIM_WITHDRAWN
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'This Claim was withdrawn by the claimant and cannot be approved.';
+
+                return;
+            }
+
+
+            if (
+                approvalClaimStatus ===
+                    'rejected' ||
+                approvalClaimStatus ===
+                    'cancelled' ||
+                approvalClaimStatus ===
+                    'canceled'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'This Claim is already closed and cannot be approved.';
+
+                return;
+            }
+
+
+            if (
+                approvalClaimStatus ===
+                    'approved'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'This Claim has already been approved.';
+
+                return;
+            }
+
+
+            /* ==================================================
+               LOAD MATCH
+            ================================================== */
+
+            var approvalMatchId =
+                approvalClaim.getValue(
+                    C_MATCH
+                );
+
+
+            var approvalMatch =
+                new GlideRecord(
+                    MATCH_TABLE
+                );
+
+
+            if (
+                !approvalMatchId ||
+                !approvalMatch.get(
+                    approvalMatchId
+                )
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'The Match linked to this Claim could not be found.';
+
+                return;
+            }
+
+
+            /* ==================================================
+               MATCH MUST STILL BE VALID
+            ================================================== */
+
+            var approvalMatchStatus =
+                normalize(
+                    approvalMatch.getValue(
+                        M_STATUS
+                    )
+                );
+
+
+            if (
+                approvalMatchStatus ===
+                    MATCH_WITHDRAWN
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'The Match linked to this Claim was withdrawn and cannot be approved.';
+
+                return;
+            }
+
+
+            if (
+                approvalMatchStatus ===
+                    MATCH_REJECTED ||
+                approvalMatchStatus ===
+                    'rejected' ||
+                approvalMatchStatus ===
+                    'resolved'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'The Match linked to this Claim is already closed.';
+
+                return;
+            }
+
+
+            /* ==================================================
+               LOAD FOUND ITEM
+            ================================================== */
+
+            var approvalFoundId =
+                approvalMatch.getValue(
+                    M_FOUND
+                );
+
+
+            var approvalFound =
+                new GlideRecord(
+                    ITEM_TABLE
+                );
+
+
+            if (
+                !approvalFoundId ||
+                !approvalFound.get(
+                    approvalFoundId
+                )
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'The Found Item could not be found.';
+
+                return;
+            }
+
+
+            /* ==================================================
+               SECURITY DESK CUSTODY REQUIRED
+            ================================================== */
+
+            if (
+                approvalFound.getValue(
+                    'received_at_security_desk'
+                ) != '1'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'Claim cannot be approved until the Found Item is received at the Security Desk.';
+
+                return;
+            }
+
+
+            /* ==================================================
+               APPROVE CLAIM
+            ================================================== */
+
+            approvalClaim.setValue(
+                C_STATUS,
+                CLAIM_APPROVED
+            );
+
+
+            if (
+                approvalClaim.isValidField(
+                    C_VERIFIED_BY
+                )
+            ) {
+
+                approvalClaim.setValue(
+                    C_VERIFIED_BY,
+                    gs.getUserID()
+                );
+            }
+
+
+            if (
+                approvalClaim.isValidField(
+                    C_VERIFIED_ON
+                )
+            ) {
+
+                approvalClaim.setValue(
+                    C_VERIFIED_ON,
+                    new GlideDateTime()
+                );
+            }
+
+
+            approvalClaim.update();
+
+
+            /* ==================================================
+               CONFIRM MATCH
+            ================================================== */
+
+            approvalMatch.setValue(
+                M_STATUS,
+                MATCH_CONFIRMED
+            );
+
+
+            approvalMatch.update();
+
+
+            data.success =
+                true;
+
+            data.message =
+                'Ownership verified. Claim approved and ready for collection.';
+
+            return;
+        }
+
+
+        /* ==================================================
+           REJECT CLAIM
+        ================================================== */
+
+        if (
+            input.action ===
+                'rejectClaim'
+        ) {
+
+            var rejectClaim =
+                new GlideRecord(
+                    CLAIM_TABLE
+                );
+
+
+            if (
+                !claimId ||
+                !rejectClaim.get(
+                    claimId
+                )
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'Claim could not be found.';
+
+                return;
+            }
+
+
+            var rejectClaimStatus =
+                normalize(
+                    rejectClaim.getValue(
+                        C_STATUS
+                    )
+                );
+
+
+            if (
+                rejectClaimStatus ===
+                    CLAIM_WITHDRAWN
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'This Claim was withdrawn by the claimant and cannot be rejected again.';
+
+                return;
+            }
+
+
+            if (
+                rejectClaimStatus ===
+                    'approved'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'An approved Claim cannot be rejected from this review page.';
+
+                return;
+            }
+
+
+            if (
+                rejectClaimStatus ===
+                    'rejected'
+            ) {
+
+                data.success =
+                    false;
+
+                data.message =
+                    'This Claim has already been rejected.';
+
+                return;
+            }
+
+
+            rejectClaim.setValue(
+                C_STATUS,
+                CLAIM_REJECTED
+            );
+
+
+            if (
+                rejectClaim.isValidField(
+                    C_VERIFIED_BY
+                )
+            ) {
+
+                rejectClaim.setValue(
+                    C_VERIFIED_BY,
+                    gs.getUserID()
+                );
+            }
+
+
+            if (
+                rejectClaim.isValidField(
+                    C_VERIFIED_ON
+                )
+            ) {
+
+                rejectClaim.setValue(
+                    C_VERIFIED_ON,
+                    new GlideDateTime()
+                );
+            }
+
+
+            rejectClaim.update();
+
+
+            data.success =
+                true;
+
+            data.message =
+                'Claim rejected.';
+
+            return;
+        }
+    }
+
+
+    /* ======================================================
+       PAGE MODE
+    ====================================================== */
+
+    if (claimId) {
+
+        data.mode =
+            'claim';
+
+    }
+    else if (matchId) {
+
+        data.mode =
+            'match';
+
+    }
+    else if (itemId) {
+
+        data.mode =
+            'item';
+
+    }
+    else {
+
+        data.error =
+            'No Item, Match or Claim was provided.';
+
+        return;
+    }
+
+
+    /* ======================================================
+       ITEM MODE
+    ====================================================== */
+
+    if (
+        data.mode ===
+            'item'
+    ) {
+
+        var item =
+            loadItem(
+                itemId
+            );
+
+
+        if (!item) {
+
+            data.error =
+                'Item record could not be found.';
+
+            return;
+        }
+
+
+        data.item =
+            itemObject(
+                item
+            );
+
+
+        var related =
+            new GlideRecord(
+                MATCH_TABLE
+            );
+
+
+        var relatedQuery =
+            related.addQuery(
+                M_LOST,
+                itemId
+            );
+
+
+        relatedQuery.addOrCondition(
+            M_FOUND,
+            itemId
+        );
+
+
+        related.orderByDesc(
+            M_OVERALL
+        );
+
+
+        related.setLimit(
+            20
+        );
+
+
+        related.query();
+
+
+        while (
+            related.next()
+        ) {
+
+            var lostId =
+                related.getValue(
+                    M_LOST
+                );
+
+
+            var foundId =
+                related.getValue(
+                    M_FOUND
+                );
+
+
+            var otherId =
+                lostId === itemId
+                    ?
+                    foundId
+                    :
+                    lostId;
+
+
+            var other =
+                loadItem(
+                    otherId
+                );
+
+
+            var relatedLevel =
+                getMatchLevel(
+                    related
+                );
+
+
+            var relatedStatus =
+                normalize(
+                    related.getValue(
+                        M_STATUS
+                    )
+                );
+
+
+            var relatedReviewed =
+                isPotentialStaffVerified(
+                    related
+                );
+
+
+            var reviewRequired =
+                relatedLevel ===
+                    'potential' &&
+                !relatedReviewed &&
+                relatedStatus !==
+                    MATCH_REJECTED &&
+                relatedStatus !==
+                    'rejected' &&
+                relatedStatus !==
+                    MATCH_CONFIRMED &&
+                relatedStatus !==
+                    MATCH_WITHDRAWN &&
+                relatedStatus !==
+                    'resolved';
+
+
+            data.relatedMatches.push({
+
+                sys_id:
+                    related.getUniqueValue(),
+
+                otherItem:
+                    other
+                        ?
+                        itemObject(
+                            other
+                        ).title
+                        :
+                        'CampusMatch Item',
+
+                score:
+                    numberValue(
+                        related,
+                        M_OVERALL
+                    ),
+
+                level:
+                    display(
+                        related,
+                        M_LEVEL,
+                        relatedLevel === 'potential'
+                            ?
+                            'Potential'
+                            :
+                            (
+                                relatedLevel === 'strong'
+                                    ?
+                                    'Strong'
+                                    :
+                                    'Low'
+                            )
+                    ),
+
+                levelValue:
+                    relatedLevel,
+
+                status:
+                    display(
+                        related,
+                        M_STATUS,
+                        '—'
+                    ),
+
+                statusValue:
+                    relatedStatus,
+
+                reviewRequired:
+                    reviewRequired
+            });
+        }
+
+
+        return;
+    }
+
+
+    /* ======================================================
+       MATCH MODE
+    ====================================================== */
+
+    if (
+        data.mode ===
+            'match'
+    ) {
+
+        var match =
+            new GlideRecord(
+                MATCH_TABLE
+            );
+
+
+        if (
+            !match.get(
+                matchId
+            )
+        ) {
+
+            data.error =
+                'Match record could not be found.';
+
+            return;
+        }
+
+
+        var lostItem =
+            loadItem(
+                match.getValue(
+                    M_LOST
+                )
+            );
+
+
+        var foundItem =
+            loadItem(
+                match.getValue(
+                    M_FOUND
+                )
+            );
+
+
+        if (
+            !lostItem ||
+            !foundItem
+        ) {
+
+            data.error =
+                'One of the matched Item records could not be loaded.';
+
+            return;
+        }
+
+
+        /* ==================================================
+           MULTIPLE STRONG CANDIDATES
+
+           IMPORTANT FIX:
+           Count Strong matches for the SAME LOST ITEM.
+
+           Example:
+
+           Lost ITM001244
+             ├── Found ITM001247 → 84.74 Strong
+             └── Found ITM001248 → 83.60 Strong
+
+           ambiguityCount = 2
+        ================================================== */
+
+        var candidateCount =
+            0;
+
+
+        var candidateQuery =
+            new GlideRecord(
+                MATCH_TABLE
+            );
+
+
+        candidateQuery.addQuery(
+            M_LOST,
+            match.getValue(
+                M_LOST
+            )
+        );
+
+
+        candidateQuery.addQuery(
+            M_OVERALL,
+            '>=',
+            80
+        );
+
+
+        candidateQuery.query();
+
+
+        while (
+            candidateQuery.next()
+        ) {
+
+            var candidateStatus =
+                normalize(
+                    candidateQuery.getValue(
+                        M_STATUS
+                    )
+                );
+
+
+            /*
+             * Closed candidates do not count.
+             */
+
+            if (
+                candidateStatus ===
+                    MATCH_REJECTED ||
+                candidateStatus ===
+                    'rejected' ||
+                candidateStatus ===
+                    MATCH_CONFIRMED ||
+                candidateStatus ===
+                    'resolved' ||
+                candidateStatus ===
+                    MATCH_WITHDRAWN
+            ) {
+
+                continue;
+            }
+
+
+            candidateCount++;
+        }
+
+
+        /* ==================================================
+           CURRENT MATCH STATE
+        ================================================== */
+
+        var currentStatus =
+            normalize(
+                match.getValue(
+                    M_STATUS
+                )
+            );
+
+
+        var currentLevel =
+            getMatchLevel(
+                match
+            );
+
+
+        var currentOverall =
+            numberValue(
+                match,
+                M_OVERALL
+            );
+
+
+        var staffVerifiedPotential =
+            currentLevel ===
+                'potential' &&
+            isPotentialStaffVerified(
+                match
+            );
+
+
+        var needsPotentialReview =
+            currentLevel ===
+                'potential' &&
+            !staffVerifiedPotential &&
+            currentStatus !==
+                MATCH_REJECTED &&
+            currentStatus !==
+                'rejected' &&
+            currentStatus !==
+                MATCH_CONFIRMED &&
+            currentStatus !==
+                MATCH_WITHDRAWN &&
+            currentStatus !==
+                'resolved';
+
+
+        /* ==================================================
+           MATCH OBJECT
+        ================================================== */
+
+        data.match = {
+
+            sys_id:
+                match.getUniqueValue(),
+
+            statusValue:
+                currentStatus,
+
+            withdrawn:
+                currentStatus ===
+                    MATCH_WITHDRAWN,
+
+            actionsLocked:
+                currentStatus ===
+                    MATCH_WITHDRAWN ||
+                currentStatus ===
+                    MATCH_REJECTED ||
+                currentStatus ===
+                    'rejected' ||
+                currentStatus ===
+                    'resolved',
+
+            levelValue:
+                currentLevel,
+
+            potentialStaffVerified:
+                staffVerifiedPotential,
+
+            needsPotentialReview:
+                needsPotentialReview,
+
+            ambiguityCount:
+                candidateCount,
+
+            overallScore:
+                currentOverall,
+
+            level:
+                display(
+                    match,
+                    M_LEVEL,
+                    currentLevel === 'strong'
+                        ?
+                        'Strong'
+                        :
+                        (
+                            currentLevel === 'potential'
+                                ?
+                                'Potential'
+                                :
+                                'Low'
+                        )
+                ),
+
+            status:
+                display(
+                    match,
+                    M_STATUS,
+                    '—'
+                ),
+
+            lost:
+                itemObject(
+                    lostItem
+                ),
+
+            found:
+                itemObject(
+                    foundItem
+                ),
+
+            factors:
+                factorArray(
+                    match
+                )
+        };
+
+
+        data.matchReview =
+            data.match;
+
+
+        return;
+    }
+
+
+    /* ======================================================
+       CLAIM MODE
+    ====================================================== */
+
+    if (
+        data.mode ===
+            'claim'
+    ) {
+
+        var claim =
+            new GlideRecord(
+                CLAIM_TABLE
+            );
+
+
+        if (
+            !claim.get(
+                claimId
+            )
+        ) {
+
+            data.error =
+                'Claim record could not be found.';
+
+            return;
+        }
+
+
+        var relatedMatchId =
+            claim.getValue(
+                C_MATCH
+            );
+
+
+        var relatedMatch =
+            null;
+
+
+        if (relatedMatchId) {
+
+            relatedMatch =
+                new GlideRecord(
+                    MATCH_TABLE
+                );
+
+
+            if (
+                !relatedMatch.get(
+                    relatedMatchId
+                )
+            ) {
+
+                relatedMatch =
+                    null;
+            }
+        }
+
+
+        if (relatedMatch) {
+
+            var relatedLost =
+                loadItem(
+                    relatedMatch.getValue(
+                        M_LOST
+                    )
+                );
+
+
+            var relatedFound =
+                loadItem(
+                    relatedMatch.getValue(
+                        M_FOUND
+                    )
+                );
+
+
+            var relatedMatchLevel =
+                getMatchLevel(
+                    relatedMatch
+                );
+
+
+            data.match = {
+
+                sys_id:
+                    relatedMatch.getUniqueValue(),
+
+                overallScore:
+                    numberValue(
+                        relatedMatch,
+                        M_OVERALL
+                    ),
+
+                level:
+                    display(
+                        relatedMatch,
+                        M_LEVEL,
+                        relatedMatchLevel === 'strong'
+                            ?
+                            'Strong'
+                            :
+                            (
+                                relatedMatchLevel === 'potential'
+                                    ?
+                                    'Potential'
+                                    :
+                                    'Low'
+                            )
+                    ),
+
+                status:
+                    display(
+                        relatedMatch,
+                        M_STATUS,
+                        '—'
+                    ),
+
+                statusValue:
+                    normalize(
+                        relatedMatch.getValue(
+                            M_STATUS
+                        )
+                    ),
+
+                withdrawn:
+                    normalize(
+                        relatedMatch.getValue(
+                            M_STATUS
+                        )
+                    ) ===
+                        MATCH_WITHDRAWN,
+
+                explanation:
+                    display(
+                        relatedMatch,
+                        M_EXPLANATION,
+                        '—'
+                    ),
+
+                lost:
+                    relatedLost
+                        ?
+                        itemObject(
+                            relatedLost
+                        )
+                        :
+                        null,
+
+                found:
+                    relatedFound
+                        ?
+                        itemObject(
+                            relatedFound
+                        )
+                        :
+                        null,
+
+                factors:
+                    factorArray(
+                        relatedMatch
+                    )
+            };
+        }
+
+
+        var claimItem =
+            loadItem(
+                claim.getValue(
+                    C_ITEM
+                )
+            );
+
+
+        if (
+            !claimItem &&
+            relatedMatch
+        ) {
+
+            claimItem =
+                loadItem(
+                    relatedMatch.getValue(
+                        M_FOUND
+                    )
+                );
+        }
+
+
+        var statusValue =
+            normalize(
+                claim.getValue(
+                    C_STATUS
+                )
+            );
+
+
+        var resultValue =
+            normalize(
+                claim.getValue(
+                    C_RESULT
+                )
+            );
+
+
+        data.claim = {
+
+            sys_id:
+                claim.getUniqueValue(),
+
+            number:
+                display(
+                    claim,
+                    C_NUMBER,
+                    '—'
+                ),
+
+            claimant:
+                display(
+                    claim,
+                    C_CLAIMANT,
+                    '—'
+                ),
+
+            status:
+                display(
+                    claim,
+                    C_STATUS,
+                    '—'
+                ),
+
+            statusValue:
+                statusValue,
+
+
+            /* ==================================================
+               WITHDRAWAL STATE
+            ================================================== */
+
+            withdrawn:
+                statusValue ===
+                    CLAIM_WITHDRAWN,
+
+
+            /* ==================================================
+               CLOSED CLAIM STATE
+            ================================================== */
+
+            actionsLocked:
+                statusValue ===
+                    CLAIM_WITHDRAWN ||
+                statusValue ===
+                    'rejected' ||
+                statusValue ===
+                    'cancelled' ||
+                statusValue ===
+                    'canceled' ||
+                statusValue ===
+                    'approved',
+
+
+            /* ==================================================
+               APPROVE BUTTON
+            ================================================== */
+
+            canApprove:
+                statusValue !==
+                    CLAIM_WITHDRAWN &&
+                statusValue !==
+                    'rejected' &&
+                statusValue !==
+                    'cancelled' &&
+                statusValue !==
+                    'canceled' &&
+                statusValue !==
+                    'approved',
+
+
+            /* ==================================================
+               REJECT BUTTON
+            ================================================== */
+
+            canReject:
+                statusValue !==
+                    CLAIM_WITHDRAWN &&
+                statusValue !==
+                    'rejected' &&
+                statusValue !==
+                    'cancelled' &&
+                statusValue !==
+                    'canceled' &&
+                statusValue !==
+                    'approved',
+
+
+            claimDate:
+                display(
+                    claim,
+                    C_DATE,
+                    '—'
+                ),
+
+
+            verificationScore:
+                numberValue(
+                    claim,
+                    C_SCORE
+                ),
+
+
+            verificationResult:
+                resultValue,
+
+
+            verificationDisplay:
+                display(
+                    claim,
+                    C_RESULT,
+                    '—'
+                ),
+
+
+            matchId:
+                relatedMatchId,
+
+
+            itemTitle:
+                claimItem
+                    ?
+                    itemObject(
+                        claimItem
+                    ).title
+                    :
+                    'CampusMatch Item',
+
+
+            found:
+                claimItem
+                    ?
+                    {
+
+                        receivedAtDesk:
+                            claimItem.getValue(
+                                'received_at_security_desk'
+                            ) == '1',
+
+                        receivedBy:
+                            claimItem.getDisplayValue(
+                                'received_by'
+                            ) || '',
+
+                        receivedOn:
+                            claimItem.getDisplayValue(
+                                'received_on'
+                            ) || ''
+
+                    }
+                    :
+                    {
+
+                        receivedAtDesk:
+                            false,
+
+                        receivedBy:
+                            '',
+
+                        receivedOn:
+                            ''
+
+                    },
+
+
+            expected1:
+                claimItem
+                    ?
+                    display(
+                        claimItem,
+                        I_PRIVATE_1,
+                        '—'
+                    )
+                    :
+                    '—',
+
+
+            expected2:
+                claimItem
+                    ?
+                    display(
+                        claimItem,
+                        I_PRIVATE_2,
+                        '—'
+                    )
+                    :
+                    '—',
+
+
+            expected3:
+                claimItem
+                    ?
+                    display(
+                        claimItem,
+                        I_PRIVATE_3,
+                        '—'
+                    )
+                    :
+                    '—',
+
+
+            answer1:
+                display(
+                    claim,
+                    C_A1,
+                    '—'
+                ),
+
+
+            answer2:
+                display(
+                    claim,
+                    C_A2,
+                    '—'
+                ),
+
+
+            answer3:
+                display(
+                    claim,
+                    C_A3,
+                    '—'
+                )
+        };
+
+
+        return;
+    }
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 13:28:12</sys_created_on>
+        <sys_id>608e7ea3551343107f4447f82ce7328e</sys_id>
+        <sys_mod_count>34</sys_mod_count>
+        <sys_name>CampusMatch Admin Review Center</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_608e7ea3551343107f4447f82ce7328e</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-10-02 09:52:50</sys_updated_on>
+        <template><![CDATA[<section class="cm-review-page">
+
+  <div class="cm-review-container">
+
+
+    <!-- ==================================================
+         BACK
+    =================================================== -->
+
+    <a
+      class="cm-back"
+      href="?id=campusmatch_admin">
+
+      ← Back to Admin Dashboard
+
+    </a>
+
+
+
+    <!-- ==================================================
+         ACCESS DENIED
+    =================================================== -->
+
+    <div
+      class="cm-state-card"
+      ng-if="!data.isStaff">
+
+      <div class="cm-state-icon">
+        !
+      </div>
+
+      <h2>
+        Staff access only
+      </h2>
+
+      <p>
+        You are not authorized to access this review.
+      </p>
+
+    </div>
+
+
+
+    <!-- ==================================================
+         ERROR
+    =================================================== -->
+
+    <div
+      class="cm-state-card"
+      ng-if="data.isStaff && data.error">
+
+      <div class="cm-state-icon">
+        !
+      </div>
+
+      <h2>
+        Unable to load review
+      </h2>
+
+      <p>
+        {{data.error}}
+      </p>
+
+    </div>
+
+
+
+    <!-- ==================================================
+         AUTHORIZED CONTENT
+    =================================================== -->
+
+    <div
+      ng-if="
+        data.isStaff &&
+        !data.error
+      ">
+
+
+
+      <!-- ==================================================
+           PAGE HEADER
+      =================================================== -->
+
+      <div class="cm-page-header">
+
+        <span class="cm-eyebrow">
+          ✦ Staff Review
+        </span>
+
+
+        <h1 ng-if="data.mode === 'item'">
+          Review Item Report
+        </h1>
+
+
+        <!-- DYNAMIC MATCH TITLE -->
+
+        <h1 ng-if="
+          data.mode === 'match' &&
+          data.match.levelValue === 'strong'
+        ">
+          Review Strong Match
+        </h1>
+
+
+        <h1 ng-if="
+          data.mode === 'match' &&
+          data.match.levelValue !== 'strong'
+        ">
+          Review Potential Match
+        </h1>
+
+
+        <h1 ng-if="data.mode === 'claim'">
+          Review Ownership Claim
+        </h1>
+
+
+        <p ng-if="data.mode === 'item'">
+          Review the complete report and related match activity.
+        </p>
+
+
+        <p ng-if="data.mode === 'match'">
+          Compare the Lost and Found reports and review the six-factor score.
+        </p>
+
+
+        <p ng-if="data.mode === 'claim'">
+          Compare claimant answers with the private details supplied by the finder.
+        </p>
+
+      </div>
+
+
+
+      <!-- ==================================================
+           ACTION MESSAGE
+      =================================================== -->
+
+      <div
+        class="cm-action-message"
+        ng-if="
+          c.message ||
+          c.actionMessage
+        "
+        ng-class="{
+          'error': c.actionError
+        }">
+
+        {{c.message || c.actionMessage}}
+
+      </div>
+
+
+
+      <!-- ==================================================
+           ITEM MODE
+      =================================================== -->
+
+      <div ng-if="data.mode === 'item'">
+
+
+        <!-- ITEM DETAILS -->
+
+        <div class="cm-main-card">
+
+          <div class="cm-card-heading">
+
+            <div>
+
+              <span
+                class="cm-type-badge"
+                ng-class="{
+                  'lost': data.item.reportType === 'lost',
+                  'found': data.item.reportType === 'found'
+                }">
+
+                {{data.item.reportTypeLabel}}
+
+              </span>
+
+
+              <h2>
+                {{data.item.title}}
+              </h2>
+
+
+              <span class="cm-number">
+                {{data.item.number}}
+              </span>
+
+            </div>
+
+
+            <span class="cm-status-pill">
+              {{data.item.status}}
+            </span>
+
+          </div>
+
+
+          <p class="cm-description">
+            {{data.item.description || 'No description provided.'}}
+          </p>
+
+
+          <!-- ==================================================
+               STAFF-ONLY ITEM IMAGE
+          =================================================== -->
+
+          <div class="cm-review-image-section">
+
+            <div class="cm-review-image-heading">
+
+              <div>
+
+                <h3>
+                  Item Image
+                </h3>
+
+                <p>
+                  Original image submitted with this report.
+                  Visible only to authorized staff.
+                </p>
+
+              </div>
+
+              <span class="cm-image-private-badge">
+                ]]>🔒<![CDATA[ Staff only
+              </span>
+
+            </div>
+
+
+            <!-- IMAGE AVAILABLE -->
+
+            <div
+              class="cm-review-image-frame"
+              ng-if="data.item.imageUrl">
+
+              <img
+                ng-src="{{data.item.imageUrl}}"
+                alt="{{data.item.title}}">
+
+            </div>
+
+
+            <!-- NO IMAGE -->
+
+            <div
+              class="cm-review-image-empty"
+              ng-if="!data.item.imageUrl">
+
+              <div class="cm-review-image-empty-icon">
+                ◫
+              </div>
+
+              <strong>
+                No image uploaded
+              </strong>
+
+              <span>
+                This report does not contain an item image.
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="cm-detail-grid">
+
+            <div>
+              <span>Public Title</span>
+              <strong>{{data.item.publicTitle}}</strong>
+            </div>
+
+
+            <div>
+              <span>Category</span>
+              <strong>{{data.item.category}}</strong>
+            </div>
+
+
+            <div>
+              <span>Brand</span>
+              <strong>{{data.item.brand}}</strong>
+            </div>
+
+
+            <div>
+              <span>Color</span>
+              <strong>{{data.item.color}}</strong>
+            </div>
+
+
+            <div>
+              <span>Location Zone</span>
+              <strong>{{data.item.location}}</strong>
+            </div>
+
+
+            <div>
+
+              <span>
+                Coordinates
+              </span>
+
+              <strong>
+                X {{data.item.locationX}}
+                ·
+                Y {{data.item.locationY}}
+              </strong>
+
+            </div>
+
+
+            <div>
+              <span>Reported</span>
+              <strong>{{data.item.reported}}</strong>
+            </div>
+
+
+            <div>
+              <span>Reporter</span>
+              <strong>{{data.item.reporter}}</strong>
+            </div>
+
+          </div>
+
+
+
+          <!-- AI ATTRIBUTES -->
+
+          <div class="cm-subsection">
+
+            <h3>
+              AI / Matching Attributes
+            </h3>
+
+
+            <div class="cm-detail-grid">
+
+              <div>
+
+                <span>
+                  AI Attribute Text
+                </span>
+
+                <strong>
+                  {{data.item.aiAttributeText}}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Unique Features
+                </span>
+
+                <strong>
+                  {{data.item.uniqueFeatures}}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- FOUND PRIVATE DETAILS -->
+
+          <div
+            class="cm-private-box"
+            ng-if="
+              data.item.reportType === 'found'
+            ">
+
+            <div class="cm-private-heading">
+
+              <span>
+                ]]>🔒
+<![CDATA[              </span>
+
+              <div>
+
+                <h3>
+                  Private Ownership Details
+                </h3>
+
+                <p>
+                  Visible only to authorized staff.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="cm-private-grid">
+
+              <div>
+
+                <span>
+                  Private Detail 1
+                </span>
+
+                <strong>
+                  {{data.item.private1}}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Private Detail 2
+                </span>
+
+                <strong>
+                  {{data.item.private2}}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Private Detail 3
+                </span>
+
+                <strong>
+                  {{data.item.private3}}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             RELATED MATCHES
+        =================================================== -->
+
+        <div class="cm-main-card">
+
+          <div class="cm-section-heading">
+
+            <h2>
+              Related Matches
+            </h2>
+
+            <span>
+              {{data.relatedMatches.length}}
+            </span>
+
+          </div>
+
+
+          <div
+            class="cm-related-list"
+            ng-if="data.relatedMatches.length">
+
+
+            <div
+              class="cm-related-match"
+              ng-repeat="match in data.relatedMatches">
+
+
+              <div>
+
+                <strong>
+                  {{match.otherItem}}
+                </strong>
+
+
+                <span>
+                  {{match.level}}
+                  ·
+                  {{match.status}}
+                </span>
+
+
+                <span
+                  class="cm-review-required"
+                  ng-if="match.reviewRequired">
+
+                  Review Required
+
+                </span>
+
+              </div>
+
+
+              <div>
+
+                <b>
+                  {{match.score}}%
+                </b>
+
+
+                <a
+                  ng-if="match.reviewRequired"
+                  ng-href="?id=campusmatch_admin_review&match_id={{match.sys_id}}">
+
+                  Review Match →
+
+                </a>
+
+
+                <a
+                  ng-if="!match.reviewRequired"
+                  ng-href="?id=campusmatch_admin_review&match_id={{match.sys_id}}">
+
+                  View →
+
+                </a>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="cm-empty"
+            ng-if="!data.relatedMatches.length">
+
+            No related Match records yet.
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ==================================================
+           MATCH MODE
+      =================================================== -->
+
+      <div ng-if="data.mode === 'match'">
+
+
+
+        <!-- ==================================================
+             WITHDRAWN MATCH
+        =================================================== -->
+
+        <div
+          class="cm-info-banner cm-withdrawn-banner"
+          ng-if="data.match.withdrawn">
+
+          <div class="cm-info-banner-icon">
+            !
+          </div>
+
+          <div class="cm-info-banner-content">
+
+            <strong>
+              This Match has been withdrawn
+            </strong>
+
+            <span>
+              The claimant withdrew the ownership claim.
+              No further staff decision can be made on this Match.
+            </span>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             REJECTED MATCH
+        =================================================== -->
+
+        <div
+          class="cm-info-banner"
+          ng-if="
+            data.match.statusValue === 'no_match' ||
+            data.match.statusValue === 'rejected'
+          ">
+
+          <span>
+
+            <strong>
+              This candidate has been rejected.
+            </strong>
+
+            It can no longer continue to ownership verification.
+
+          </span>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             MULTIPLE STRONG WARNING
+             IMPORTANT:
+             ONE LOST → MULTIPLE FOUND
+        =================================================== -->
+
+        <div
+          class="cm-info-banner"
+          ng-if="
+            !data.match.actionsLocked &&
+            data.match.levelValue === 'strong' &&
+            data.match.statusValue !== 'no_match' &&
+            data.match.statusValue !== 'rejected' &&
+            (
+              data.match.isMultipleStrong ||
+              data.match.ambiguityCount > 1
+            )
+          ">
+
+          <span>
+
+            <strong>
+              {{
+                data.match.strongCandidateCount ||
+                data.match.ambiguityCount
+              }}
+              active Strong candidates
+            </strong>
+
+            currently match this Lost report.
+            Select the correct Found item before ownership verification.
+
+          </span>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             SCORE SUMMARY
+        =================================================== -->
+
+        <div class="cm-score-summary">
+
+          <div>
+
+            <span>
+              Overall Match Score
+            </span>
+
+            <strong>
+              {{data.match.overallScore}}%
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Match Level
+            </span>
+
+            <strong>
+              {{data.match.level}}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Status
+            </span>
+
+            <strong>
+              {{data.match.status || 'Active'}}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             LOST VS FOUND
+        =================================================== -->
+
+        <div class="cm-comparison">
+
+
+          <!-- LOST -->
+
+          <div class="cm-item-panel">
+
+            <span class="cm-type-badge lost">
+              Lost
+            </span>
+
+
+            <h2>
+              {{data.match.lost.title}}
+            </h2>
+
+
+            <p>
+              {{data.match.lost.description}}
+            </p>
+
+
+            <!-- LOST ITEM IMAGE -->
+
+            <div class="cm-match-review-image">
+
+              <img
+                ng-if="data.match.lost.imageUrl"
+                ng-src="{{data.match.lost.imageUrl}}"
+                alt="{{data.match.lost.title}}">
+
+
+              <div
+                class="cm-match-image-empty"
+                ng-if="!data.match.lost.imageUrl">
+
+                <span>◫</span>
+
+                <strong>
+                  No image uploaded
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <div class="cm-mini-details">
+
+              <div>
+                <span>Report Number</span>
+                <strong>{{data.match.lost.number}}</strong>
+              </div>
+
+
+              <div>
+                <span>Category</span>
+                <strong>{{data.match.lost.category}}</strong>
+              </div>
+
+
+              <div>
+                <span>Brand</span>
+                <strong>{{data.match.lost.brand}}</strong>
+              </div>
+
+
+              <div>
+                <span>Color</span>
+                <strong>{{data.match.lost.color}}</strong>
+              </div>
+
+
+              <div>
+                <span>Location</span>
+                <strong>{{data.match.lost.location}}</strong>
+              </div>
+
+
+              <div>
+                <span>Unique Features</span>
+                <strong>{{data.match.lost.uniqueFeatures}}</strong>
+              </div>
+
+
+              <div>
+                <span>Reported</span>
+                <strong>{{data.match.lost.reported}}</strong>
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="cm-versus">
+            ⇄
+          </div>
+
+
+
+          <!-- FOUND -->
+
+          <div class="cm-item-panel found">
+
+            <span class="cm-type-badge found">
+              Found
+            </span>
+
+
+            <h2>
+              {{data.match.found.title}}
+            </h2>
+
+
+            <p>
+              {{data.match.found.description}}
+            </p>
+
+
+            <!-- FOUND ITEM IMAGE -->
+
+            <div class="cm-match-review-image">
+
+              <img
+                ng-if="data.match.found.imageUrl"
+                ng-src="{{data.match.found.imageUrl}}"
+                alt="{{data.match.found.title}}">
+
+
+              <div
+                class="cm-match-image-empty"
+                ng-if="!data.match.found.imageUrl">
+
+                <span>◫</span>
+
+                <strong>
+                  No image uploaded
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <div class="cm-mini-details">
+
+              <div>
+                <span>Report Number</span>
+                <strong>{{data.match.found.number}}</strong>
+              </div>
+
+
+              <div>
+                <span>Category</span>
+                <strong>{{data.match.found.category}}</strong>
+              </div>
+
+
+              <div>
+                <span>Brand</span>
+                <strong>{{data.match.found.brand}}</strong>
+              </div>
+
+
+              <div>
+                <span>Color</span>
+                <strong>{{data.match.found.color}}</strong>
+              </div>
+
+
+              <div>
+                <span>Location</span>
+                <strong>{{data.match.found.location}}</strong>
+              </div>
+
+
+              <div>
+                <span>Unique Features</span>
+                <strong>{{data.match.found.uniqueFeatures}}</strong>
+              </div>
+
+
+              <div>
+                <span>Reported</span>
+                <strong>{{data.match.found.reported}}</strong>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             SIX FACTORS
+        =================================================== -->
+
+        <div class="cm-main-card">
+
+          <div class="cm-section-heading">
+
+            <h2>
+              Six-Factor Breakdown
+            </h2>
+
+          </div>
+
+
+          <div class="cm-factor-grid">
+
+            <div
+              class="cm-factor"
+              ng-repeat="factor in data.match.factors">
+
+              <div>
+
+                <strong>
+                  {{factor.label}}
+                </strong>
+
+                <span>
+                  Weight {{factor.weight}}%
+                </span>
+
+              </div>
+
+
+              <b>
+                {{factor.score}}%
+              </b>
+
+
+              <div class="cm-track">
+
+                <div
+                  class="cm-fill"
+                  ng-style="{
+                    'width': factor.score + '%'
+                  }">
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             WITHDRAWN / CLOSED MATCH
+        =================================================== -->
+
+        <div
+          class="cm-locked-card"
+          ng-if="data.match.withdrawn">
+
+          <div class="cm-locked-icon">
+            ✓
+          </div>
+
+
+          <div>
+
+            <h3>
+              Match withdrawn
+            </h3>
+
+            <p>
+              The claimant withdrew this ownership claim.
+              Verify, Select and Reject actions are no longer available.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             POTENTIAL MATCH REVIEW
+        =================================================== -->
+
+        <div
+          class="cm-decision-card"
+          ng-if="
+            !data.match.actionsLocked &&
+            data.match.levelValue === 'potential' &&
+            data.match.needsPotentialReview
+          ">
+
+          <span class="cm-decision-label">
+            Potential Match Review
+          </span>
+
+
+          <h2>
+            Verify this potential Lost + Found match
+          </h2>
+
+
+          <p>
+            CampusMatch classified this pair as a Potential Match.
+            Review both reports and the six-factor score before
+            allowing ownership verification.
+          </p>
+
+
+          <div class="cm-decision-actions">
+
+            <button
+              type="button"
+              class="cm-approve"
+              ng-disabled="c.processing"
+              ng-click="c.verifyPotentialMatch()">
+
+              <span ng-if="!c.processing">
+                ✓ Verify Match
+              </span>
+
+              <span ng-if="c.processing">
+                Processing...
+              </span>
+
+            </button>
+
+
+            <button
+              type="button"
+              class="cm-reject"
+              ng-disabled="c.processing"
+              ng-click="c.rejectMatch()">
+
+              Reject Match
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             POTENTIAL VERIFIED
+        =================================================== -->
+
+        <div
+          class="cm-decision-card"
+          ng-if="
+            !data.match.actionsLocked &&
+            data.match.levelValue === 'potential' &&
+            data.match.potentialStaffVerified
+          ">
+
+          <span class="cm-decision-label">
+            Staff Review Complete
+          </span>
+
+
+          <h2>
+            Potential Match Verified
+          </h2>
+
+
+          <p>
+            Staff verified this Lost + Found pair.
+            The Lost reporter can now begin secure ownership verification.
+          </p>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             MULTIPLE STRONG MATCH
+             ONE LOST → MULTIPLE FOUND
+        =================================================== -->
+
+        <div
+          class="cm-decision-card"
+          ng-if="
+            !data.match.actionsLocked &&
+            data.match.levelValue === 'strong' &&
+            data.match.statusValue !== 'no_match' &&
+            data.match.statusValue !== 'rejected' &&
+            (
+              data.match.isMultipleStrong ||
+              data.match.ambiguityCount > 1
+            )
+          ">
+
+          <span class="cm-decision-label">
+            Staff Disambiguation
+          </span>
+
+
+          <h2>
+            Multiple Strong Candidates Found
+          </h2>
+
+
+          <p>
+            This Lost report has
+            {{
+              data.match.strongCandidateCount ||
+              data.match.ambiguityCount
+            }}
+            active Strong Found-item candidates.
+            Approving this candidate will allow it to proceed
+            to ownership verification and reject the competing
+            Strong candidates for the same Lost report.
+          </p>
+
+
+          <div class="cm-decision-actions">
+
+            <button
+              type="button"
+              class="cm-approve"
+              ng-disabled="c.processing"
+              ng-click="c.selectCandidate()">
+
+              <span ng-if="!c.processing">
+                ✓ Approve This Candidate
+              </span>
+
+              <span ng-if="c.processing">
+                Processing...
+              </span>
+
+            </button>
+
+
+            <button
+              type="button"
+              class="cm-reject"
+              ng-disabled="c.processing"
+              ng-click="c.rejectMatch()">
+
+              Reject Candidate
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             SINGLE STRONG
+        =================================================== -->
+
+        <div
+          class="cm-decision-card"
+          ng-if="
+            !data.match.actionsLocked &&
+            data.match.levelValue === 'strong' &&
+            data.match.statusValue !== 'no_match' &&
+            data.match.statusValue !== 'rejected' &&
+            !data.match.isMultipleStrong &&
+            data.match.ambiguityCount <= 1
+          ">
+
+          <span class="cm-decision-label">
+            Match Status
+          </span>
+
+
+          <h2>
+            Strong Match Confirmed by Scoring
+          </h2>
+
+
+          <p>
+            This Lost report has only one active Strong candidate.
+            No multiple-match disambiguation is required.
+            Ownership verification can continue normally.
+          </p>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             REJECTED MATCH
+        =================================================== -->
+
+        <div
+          class="cm-decision-card"
+          ng-if="
+            !data.match.withdrawn &&
+            (
+              data.match.statusValue === 'no_match' ||
+              data.match.statusValue === 'rejected'
+            )
+          ">
+
+          <span class="cm-decision-label">
+            Candidate Status
+          </span>
+
+
+          <h2>
+            Candidate Rejected
+          </h2>
+
+
+          <p>
+            This Match cannot proceed to ownership verification.
+          </p>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             OTHER CLOSED MATCH
+        =================================================== -->
+
+        <div
+          class="cm-locked-card"
+          ng-if="
+            data.match.actionsLocked &&
+            !data.match.withdrawn &&
+            data.match.statusValue !== 'no_match' &&
+            data.match.statusValue !== 'rejected'
+          ">
+
+          <div class="cm-locked-icon">
+            ✓
+          </div>
+
+
+          <div>
+
+            <h3>
+              Match closed
+            </h3>
+
+
+            <p>
+              This Match is already closed.
+              No further staff decision is available.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ==================================================
+           CLAIM MODE
+      =================================================== -->
+
+      <div ng-if="data.mode === 'claim'">
+
+
+
+        <!-- ==================================================
+             WITHDRAWN CLAIM NOTICE
+        =================================================== -->
+
+        <div
+          class="cm-info-banner"
+          ng-if="data.claim.withdrawn">
+
+          <span>
+
+            <strong>
+              This ownership claim has been withdrawn.
+            </strong>
+
+            The claimant ended this claim before physical handover.
+            No further approval or rejection action is allowed.
+
+          </span>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             CLAIM SUMMARY
+        =================================================== -->
+
+        <div class="cm-claim-summary">
+
+          <div>
+
+            <span>
+              Claim
+            </span>
+
+            <h2>
+              {{data.claim.number}}
+            </h2>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Verification Score
+            </span>
+
+            <strong>
+              {{data.claim.verificationScore}}%
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Verification Result
+            </span>
+
+            <strong>
+              {{data.claim.verificationDisplay}}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Claim Status
+            </span>
+
+            <strong>
+              {{data.claim.status}}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             CLAIM INFO
+        =================================================== -->
+
+        <div class="cm-main-card">
+
+          <div class="cm-section-heading">
+
+            <h2>
+              Claim Information
+            </h2>
+
+          </div>
+
+
+          <div class="cm-detail-grid">
+
+            <div>
+              <span>Claimant</span>
+              <strong>{{data.claim.claimant}}</strong>
+            </div>
+
+
+            <div>
+              <span>Claimed Item</span>
+              <strong>{{data.claim.itemTitle}}</strong>
+            </div>
+
+
+            <div>
+              <span>Claim Date</span>
+              <strong>{{data.claim.claimDate}}</strong>
+            </div>
+
+
+            <div>
+
+              <span>
+                Related Match
+              </span>
+
+              <a
+                ng-if="data.claim.matchId"
+                ng-href="?id=campusmatch_admin_review&match_id={{data.claim.matchId}}">
+
+                Open Match →
+
+              </a>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             OWNERSHIP ANSWERS
+        =================================================== -->
+
+        <div class="cm-main-card">
+
+          <div class="cm-section-heading">
+
+            <h2>
+              Ownership Answer Comparison
+            </h2>
+
+          </div>
+
+
+          <div class="cm-answer-table">
+
+
+            <!-- QUESTION 1 -->
+
+            <div class="cm-answer-block">
+
+              <span class="cm-answer-number">
+                1
+              </span>
+
+
+              <div>
+
+                <span class="cm-answer-label">
+                  Finder's Private Detail
+                </span>
+
+                <strong>
+                  {{data.claim.expected1}}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span class="cm-answer-label">
+                  Claimant Answer
+                </span>
+
+                <strong>
+                  {{data.claim.answer1}}
+                </strong>
+
+              </div>
+
+            </div>
+
+
+
+            <!-- QUESTION 2 -->
+
+            <div class="cm-answer-block">
+
+              <span class="cm-answer-number">
+                2
+              </span>
+
+
+              <div>
+
+                <span class="cm-answer-label">
+                  Finder's Private Detail
+                </span>
+
+                <strong>
+                  {{data.claim.expected2}}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span class="cm-answer-label">
+                  Claimant Answer
+                </span>
+
+                <strong>
+                  {{data.claim.answer2}}
+                </strong>
+
+              </div>
+
+            </div>
+
+
+
+            <!-- QUESTION 3 -->
+
+            <div class="cm-answer-block">
+
+              <span class="cm-answer-number">
+                3
+              </span>
+
+
+              <div>
+
+                <span class="cm-answer-label">
+                  Finder's Private Detail
+                </span>
+
+                <strong>
+                  {{data.claim.expected3}}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span class="cm-answer-label">
+                  Claimant Answer
+                </span>
+
+                <strong>
+                  {{data.claim.answer3}}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             RELATED MATCH EVIDENCE
+        =================================================== -->
+
+        <div
+          class="cm-main-card"
+          ng-if="data.match">
+
+          <div class="cm-section-heading">
+
+            <h2>
+              Related Match Evidence
+            </h2>
+
+          </div>
+
+
+          <div class="cm-score-summary">
+
+            <div>
+
+              <span>
+                Overall Match Score
+              </span>
+
+              <strong>
+                {{data.match.overallScore}}%
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                Match Level
+              </span>
+
+              <strong>
+                {{data.match.level}}
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                Match Status
+              </span>
+
+              <strong>
+                {{data.match.status}}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="cm-factor-grid">
+
+            <div
+              class="cm-factor"
+              ng-repeat="factor in data.match.factors">
+
+              <div>
+
+                <strong>
+                  {{factor.label}}
+                </strong>
+
+                <span>
+                  Weight {{factor.weight}}%
+                </span>
+
+              </div>
+
+
+              <b>
+                {{factor.score}}%
+              </b>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             SECURITY DESK
+        =================================================== -->
+
+        <div class="cm-main-card">
+
+          <div class="cm-section-heading">
+
+            <h2>
+              Security Desk Custody
+            </h2>
+
+          </div>
+
+
+          <div
+            class="cm-info-banner"
+            ng-if="data.claim.found.receivedAtDesk">
+
+            <span>
+              ✓ Item is currently at the Security Desk.
+            </span>
+
+          </div>
+
+
+          <div
+            class="cm-info-banner"
+            ng-if="!data.claim.found.receivedAtDesk">
+
+            <span>
+              Item has not yet been received at the Security Desk.
+            </span>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             HUMAN CLAIM REVIEW
+        =================================================== -->
+
+        <div
+          class="cm-decision-card"
+          ng-if="!data.claim.actionsLocked">
+
+          <span class="cm-decision-label">
+            Final Human Verification
+          </span>
+
+
+          <h2>
+            Complete the ownership decision
+          </h2>
+
+
+          <p>
+            Approve only when the ownership information is satisfactory
+            and the Found item is at the Security Desk.
+          </p>
+
+
+          <div class="cm-decision-actions">
+
+            <button
+              type="button"
+              class="cm-approve"
+              ng-if="data.claim.canApprove"
+              ng-disabled="c.processing"
+              ng-click="c.approveClaim()">
+
+              <span ng-if="!c.processing">
+                ✓ Approve Claim
+              </span>
+
+              <span ng-if="c.processing">
+                Processing...
+              </span>
+
+            </button>
+
+
+            <button
+              type="button"
+              class="cm-reject"
+              ng-if="data.claim.canReject"
+              ng-disabled="c.processing"
+              ng-click="c.rejectClaim()">
+
+              Reject Claim
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             WITHDRAWN CLAIM
+        =================================================== -->
+
+        <div
+          class="cm-locked-card"
+          ng-if="data.claim.withdrawn">
+
+          <div class="cm-locked-icon">
+            ✓
+          </div>
+
+
+          <div>
+
+            <h3>
+              Claim withdrawn
+            </h3>
+
+            <p>
+              The claimant withdrew this ownership claim.
+              Approve and Reject actions are no longer available.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             APPROVED CLAIM
+        =================================================== -->
+
+        <div
+          class="cm-decision-card"
+          ng-if="
+            !data.claim.withdrawn &&
+            data.claim.statusValue === 'approved'
+          ">
+
+          <span class="cm-decision-label">
+            Claim Status
+          </span>
+
+
+          <h2>
+            Claim Approved
+          </h2>
+
+
+          <p>
+            The claim is approved and may proceed to secure collection.
+          </p>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             REJECTED CLAIM
+        =================================================== -->
+
+        <div
+          class="cm-decision-card"
+          ng-if="
+            !data.claim.withdrawn &&
+            data.claim.statusValue === 'rejected'
+          ">
+
+          <span class="cm-decision-label">
+            Claim Status
+          </span>
+
+
+          <h2>
+            Claim Rejected
+          </h2>
+
+
+          <p>
+            This ownership claim has been rejected.
+            No further claim decision is available.
+          </p>
+
+        </div>
+
+
+
+        <!-- ==================================================
+             OTHER CLOSED CLAIM
+        =================================================== -->
+
+        <div
+          class="cm-locked-card"
+          ng-if="
+            data.claim.actionsLocked &&
+            !data.claim.withdrawn &&
+            data.claim.statusValue !== 'approved' &&
+            data.claim.statusValue !== 'rejected'
+          ">
+
+          <div class="cm-locked-icon">
+            ✓
+          </div>
+
+
+          <div>
+
+            <h3>
+              Claim closed
+            </h3>
+
+
+            <p>
+              This ownership claim is already closed.
+              No further approval or rejection action is available.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>]]></template>
+    </sp_widget>
+</record_update>

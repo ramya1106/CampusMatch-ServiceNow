@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_sg_icon">
+    <sys_sg_icon action="INSERT_OR_UPDATE">
+        <icon>{"ImageRef":"23e2570efde703107f449bd501c42ee7"}</icon>
+        <name>CampusMatch About Icon</name>
+        <sys_class_name>sys_sg_icon</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-27 09:39:31</sys_created_on>
+        <sys_id>75e69f06fd2b03107f449bd501c42e42</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch About Icon</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_sg_icon_75e69f06fd2b03107f449bd501c42e42</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-27 09:39:31</sys_updated_on>
+        <type>image</type>
+    </sys_sg_icon>
+</record_update>

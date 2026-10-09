@@ -1,0 +1,2469 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function() {
+
+    var c = this;
+
+
+
+    /* ======================================================
+       INITIAL FILTER STATE
+    ====================================================== */
+
+    c.searchText = '';
+
+    c.typeFilter =
+        'all';
+
+    c.categoryFilter =
+        'all';
+
+
+
+    /* ======================================================
+       LOST / FOUND FILTER
+    ====================================================== */
+
+    c.setTypeFilter = function(type) {
+
+        c.typeFilter =
+            type;
+
+    };
+
+
+
+    /* ======================================================
+       CATEGORY FILTER
+    ====================================================== */
+
+    c.setCategoryFilter = function(category) {
+
+        c.categoryFilter =
+            category;
+
+    };
+
+
+
+    /* ======================================================
+       CLEAR SEARCH
+    ====================================================== */
+
+    c.clearSearch = function() {
+
+        c.searchText =
+            '';
+
+    };
+
+
+
+    /* ======================================================
+       RESET EVERYTHING
+    ====================================================== */
+
+    c.resetFilters = function() {
+
+        c.searchText =
+            '';
+
+        c.typeFilter =
+            'all';
+
+        c.categoryFilter =
+            'all';
+
+    };
+
+
+
+    /* ======================================================
+       FILTER REAL ITEMS
+    ====================================================== */
+
+    c.filteredItems = function() {
+
+        var items =
+            c.data.items || [];
+
+
+        var search =
+            (
+                c.searchText ||
+                ''
+            )
+            .toLowerCase()
+            .trim();
+
+
+        return items.filter(
+            function(item) {
+
+
+                /* ------------------------------------------
+                   LOST / FOUND
+                ------------------------------------------ */
+
+                if (
+                    c.typeFilter !== 'all' &&
+                    item.reportType !==
+                        c.typeFilter
+                ) {
+
+                    return false;
+
+                }
+
+
+
+                /* ------------------------------------------
+                   CATEGORY
+                ------------------------------------------ */
+
+                if (
+                    c.categoryFilter !== 'all' &&
+                    item.categoryValue !==
+                        c.categoryFilter
+                ) {
+
+                    return false;
+
+                }
+
+
+
+                /* ------------------------------------------
+                   SEARCH
+                ------------------------------------------ */
+
+                if (search) {
+
+                    var searchable =
+                        (
+                            (
+                                item.publicTitle ||
+                                ''
+                            )
+                            +
+                            ' '
+                            +
+                            (
+                                item.category ||
+                                ''
+                            )
+                        )
+                        .toLowerCase();
+
+
+                    if (
+                        searchable.indexOf(
+                            search
+                        ) === -1
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+
+                return true;
+
+            }
+        );
+
+    };
+
+
+
+    /* ======================================================
+       BUILD CATEGORY DROPDOWN FROM REAL RECORDS
+    ====================================================== */
+
+    c.getCategories = function() {
+
+        var items =
+            c.data.items || [];
+
+
+        var seen =
+            {};
+
+
+        var categories =
+            [];
+
+
+        items.forEach(
+            function(item) {
+
+
+                if (
+                    item.categoryValue &&
+                    !seen[
+                        item.categoryValue
+                    ]
+                ) {
+
+                    seen[
+                        item.categoryValue
+                    ] =
+                        true;
+
+
+                    categories.push({
+
+                        value:
+                            item.categoryValue,
+
+                        label:
+                            item.category
+
+                    });
+
+                }
+
+            }
+        );
+
+
+        /*
+         * Sort alphabetically so the
+         * dropdown stays clean.
+         */
+
+        categories.sort(
+            function(a, b) {
+
+                return a.label.localeCompare(
+                    b.label
+                );
+
+            }
+        );
+
+
+        return categories;
+
+    };
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ============================================================&#13;
+   CAMPUSMATCH EXPLORE&#13;
+   WEBSITE + NOW MOBILE APP&#13;
+============================================================ */&#13;
+&#13;
+.cm-explore {&#13;
+  position: relative;&#13;
+&#13;
+  /*&#13;
+     FULL-BLEED FIX&#13;
+     Escapes ServiceNow's parent container padding.&#13;
+  */&#13;
+  width: 100vw;&#13;
+  max-width: 100vw;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    calc(50% - 50vw);&#13;
+&#13;
+  min-height: 100vh;&#13;
+  min-height: 100svh;&#13;
+&#13;
+  padding:&#13;
+    58px&#13;
+    20px&#13;
+    90px;&#13;
+&#13;
+  background: #FBF8EF;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family:&#13;
+    "DM Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  box-sizing: border-box;&#13;
+&#13;
+  overflow-x: hidden;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   SAFE BOX SIZING&#13;
+============================================================ */&#13;
+&#13;
+.cm-explore,&#13;
+.cm-explore *,&#13;
+.cm-explore *::before,&#13;
+.cm-explore *::after {&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   INNER CONTENT CONTAINER&#13;
+============================================================ */&#13;
+&#13;
+.cm-explore-container {&#13;
+  width: 100%;&#13;
+&#13;
+  max-width: 1240px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   PAGE HEADER&#13;
+============================================================ */&#13;
+&#13;
+.cm-explore-header {&#13;
+  max-width: 680px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    38px;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-explore-eyebrow {&#13;
+  display: inline-flex;&#13;
+  align-items: center;&#13;
+&#13;
+  padding:&#13;
+    8px&#13;
+    16px;&#13;
+&#13;
+  margin-bottom: 17px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-explore-header h1 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    10px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 42px;&#13;
+&#13;
+  font-weight: 700;&#13;
+&#13;
+  line-height: 1.12;&#13;
+&#13;
+  letter-spacing: -1.2px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-explore-header p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 16px;&#13;
+&#13;
+  line-height: 1.55;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   SEARCH&#13;
+============================================================ */&#13;
+&#13;
+.cm-search {&#13;
+  width: 100%;&#13;
+&#13;
+  max-width: 820px;&#13;
+&#13;
+  height: 58px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    22px;&#13;
+&#13;
+  padding:&#13;
+    0&#13;
+    19px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 12px;&#13;
+&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 7px 22px rgba(16,78,69,.06);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-search &gt; svg {&#13;
+  width: 21px;&#13;
+&#13;
+  height: 21px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  color: #758589;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-search input {&#13;
+  width: 100%;&#13;
+&#13;
+  height: 100%;&#13;
+&#13;
+  min-width: 0;&#13;
+&#13;
+  padding: 0;&#13;
+&#13;
+  border: 0;&#13;
+&#13;
+  outline: 0;&#13;
+&#13;
+  background: transparent;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 15px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-search input::placeholder {&#13;
+  color: #899699;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-clear-search {&#13;
+  width: 32px;&#13;
+&#13;
+  height: 32px;&#13;
+&#13;
+  padding: 0;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  border: 0;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 21px;&#13;
+&#13;
+  line-height: 1;&#13;
+&#13;
+  cursor: pointer;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   FILTERS&#13;
+============================================================ */&#13;
+&#13;
+.cm-filter-bar {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 16px;&#13;
+&#13;
+  margin-bottom: 36px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-filter-chips {&#13;
+  display: flex;&#13;
+&#13;
+  flex-wrap: wrap;&#13;
+&#13;
+  gap: 9px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-filter-chips button {&#13;
+  padding:&#13;
+    10px&#13;
+    20px;&#13;
+&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  font-weight: 700;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  transition:&#13;
+    background .2s ease,&#13;
+    border .2s ease,&#13;
+    color .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-filter-chips button:hover {&#13;
+  border-color: #249D78;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-filter-chips button.active {&#13;
+  border-color: #104E45;&#13;
+&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-filter {&#13;
+  min-width: 175px;&#13;
+&#13;
+  padding:&#13;
+    10px&#13;
+    15px;&#13;
+&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 13px;&#13;
+&#13;
+  outline: none;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  font-weight: 600;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   RESULT COUNT&#13;
+============================================================ */&#13;
+&#13;
+.cm-results-head {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 16px;&#13;
+&#13;
+  margin-bottom: 18px;&#13;
+&#13;
+  color: #677A7E;&#13;
+&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-results-head strong {&#13;
+  margin-right: 4px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 16px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-reset-filter {&#13;
+  padding: 0;&#13;
+&#13;
+  border: 0;&#13;
+&#13;
+  background: transparent;&#13;
+&#13;
+  color: #168C70;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  font-weight: 700;&#13;
+&#13;
+  cursor: pointer;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   ITEM GRID&#13;
+============================================================ */&#13;
+&#13;
+.cm-item-grid {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    repeat(3, minmax(0, 1fr));&#13;
+&#13;
+  gap: 24px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   CARD&#13;
+============================================================ */&#13;
+&#13;
+.cm-item-card {&#13;
+  min-width: 0;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 23px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 5px 18px rgba(16,78,69,.06);&#13;
+&#13;
+  transition:&#13;
+    transform .22s ease,&#13;
+    box-shadow .22s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-card:hover {&#13;
+  transform: translateY(-4px);&#13;
+&#13;
+  box-shadow:&#13;
+    0 13px 30px rgba(16,78,69,.11);&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   GENERIC MEDIA&#13;
+============================================================ */&#13;
+&#13;
+.cm-item-media {&#13;
+  position: relative;&#13;
+&#13;
+  height: 190px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  flex-direction: column;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  overflow: hidden;&#13;
+&#13;
+  background:&#13;
+    linear-gradient(&#13;
+      145deg,&#13;
+      #EDF5E9,&#13;
+      #E3F0E5&#13;
+    );&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-media.lost {&#13;
+  background:&#13;
+    linear-gradient(&#13;
+      145deg,&#13;
+      #F9EEE8,&#13;
+      #F7E7E2&#13;
+    );&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   STEP 10&#13;
+   STAFF ITEM IMAGE&#13;
+============================================================ */&#13;
+&#13;
+.cm-item-image {&#13;
+  position: absolute;&#13;
+&#13;
+  inset: 0;&#13;
+&#13;
+  width: 100%;&#13;
+&#13;
+  height: 100%;&#13;
+&#13;
+  display: block;&#13;
+&#13;
+  object-fit: cover;&#13;
+&#13;
+  object-position: center;&#13;
+&#13;
+  z-index: 1;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-icon {&#13;
+  position: relative;&#13;
+&#13;
+  width: 74px;&#13;
+&#13;
+  height: 74px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  margin-bottom: 9px;&#13;
+&#13;
+  border-radius: 23px;&#13;
+&#13;
+  background: rgba(255,255,255,.72);&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  z-index: 2;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-media.lost .cm-category-icon {&#13;
+  color: #A65A41;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-icon svg {&#13;
+  width: 39px;&#13;
+&#13;
+  height: 39px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-category-caption {&#13;
+  position: relative;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  font-weight: 600;&#13;
+&#13;
+  z-index: 2;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   TYPE BADGE&#13;
+============================================================ */&#13;
+&#13;
+.cm-type-badge {&#13;
+  position: absolute;&#13;
+&#13;
+  top: 13px;&#13;
+&#13;
+  left: 13px;&#13;
+&#13;
+  padding:&#13;
+    6px&#13;
+    12px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  font-size: 11px;&#13;
+&#13;
+  font-weight: 800;&#13;
+&#13;
+  z-index: 3;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-lost-badge {&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #A54A34;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-found-badge {&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   CARD BODY&#13;
+============================================================ */&#13;
+&#13;
+.cm-item-body {&#13;
+  padding:&#13;
+    20px&#13;
+    21px&#13;
+    19px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-body h3 {&#13;
+  min-height: 46px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    11px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 17px;&#13;
+&#13;
+  line-height: 1.35;&#13;
+&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   ITEM META&#13;
+   DATE/TIME + CATEGORY&#13;
+   CHANGED TO BLACK&#13;
+============================================================ */&#13;
+&#13;
+.cm-item-meta {&#13;
+  display: flex;&#13;
+&#13;
+  flex-direction: column;&#13;
+&#13;
+  gap: 7px;&#13;
+&#13;
+  color: #000000;&#13;
+&#13;
+  font-size: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-meta span {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 6px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-meta svg {&#13;
+  width: 14px;&#13;
+&#13;
+  height: 14px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   ADMIN INFORMATION&#13;
+============================================================ */&#13;
+&#13;
+.cm-admin-details {&#13;
+  margin-top: 15px;&#13;
+&#13;
+  padding:&#13;
+    12px&#13;
+    13px;&#13;
+&#13;
+  border-radius: 13px;&#13;
+&#13;
+  background: #F4F8F2;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-admin-row {&#13;
+  display: flex;&#13;
+&#13;
+  align-items: flex-start;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 12px;&#13;
+&#13;
+  padding:&#13;
+    4px&#13;
+    0;&#13;
+&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+&#13;
+/* LOCATION + STATUS HEADINGS CHANGED TO BLACK */&#13;
+&#13;
+.cm-admin-row span {&#13;
+  color: #000000;&#13;
+}&#13;
+&#13;
+&#13;
+/* LOCATION + STATUS VALUES REMAIN GREEN */&#13;
+&#13;
+.cm-admin-row strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  text-align: right;&#13;
+&#13;
+  word-break: break-word;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   CARD FOOTER&#13;
+============================================================ */&#13;
+&#13;
+.cm-item-footer {&#13;
+  display: flex;&#13;
+&#13;
+  justify-content: flex-end;&#13;
+&#13;
+  margin-top: 18px;&#13;
+&#13;
+  padding-top: 14px;&#13;
+&#13;
+  border-top: 1px solid #EDF2EE;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-view-link {&#13;
+  display: inline-flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 7px;&#13;
+&#13;
+  color: #104E45 !important;&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-view-link span {&#13;
+  font-size: 18px;&#13;
+&#13;
+  transition:&#13;
+    transform .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-view-link:hover span {&#13;
+  transform: translateX(4px);&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   EMPTY STATE&#13;
+============================================================ */&#13;
+&#13;
+.cm-empty-state {&#13;
+  width: 100%;&#13;
+&#13;
+  max-width: 460px;&#13;
+&#13;
+  margin:&#13;
+    70px&#13;
+    auto;&#13;
+&#13;
+  padding:&#13;
+    42px&#13;
+    25px;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty-icon {&#13;
+  width: 72px;&#13;
+&#13;
+  height: 72px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    17px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 23px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty-icon svg {&#13;
+  width: 32px;&#13;
+&#13;
+  height: 32px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty-state h3 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    7px;&#13;
+&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty-state p {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    18px;&#13;
+&#13;
+  color: #718185;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-empty-reset {&#13;
+  padding:&#13;
+    10px&#13;
+    18px;&#13;
+&#13;
+  border: 1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-weight: 700;&#13;
+&#13;
+  cursor: pointer;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   BOTTOM CTA&#13;
+============================================================ */&#13;
+&#13;
+.cm-explore-cta {&#13;
+  margin-top: 60px;&#13;
+&#13;
+  padding:&#13;
+    28px&#13;
+    32px;&#13;
+&#13;
+  display: flex;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 30px;&#13;
+&#13;
+  border-radius: 24px;&#13;
+&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-explore-cta h2 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    6px;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 21px;&#13;
+&#13;
+  line-height: 1.3;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-explore-cta p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: rgba(255,255,255,.72);&#13;
+&#13;
+  font-size: 13px;&#13;
+&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-cta-buttons {&#13;
+  display: flex;&#13;
+&#13;
+  gap: 10px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-cta-buttons a {&#13;
+  padding:&#13;
+    11px&#13;
+    18px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  font-size: 12px;&#13;
+&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+&#13;
+  white-space: nowrap;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-cta-primary {&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #104E45 !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-cta-secondary {&#13;
+  border: 1px solid rgba(255,255,255,.5);&#13;
+&#13;
+  color: #FFFFFF !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   TABLET&#13;
+   WEBSITE TABLET + NOW MOBILE LARGE WIDTH&#13;
+============================================================ */&#13;
+&#13;
+@media (max-width: 950px) {&#13;
+&#13;
+  .cm-explore {&#13;
+    padding:&#13;
+      50px&#13;
+      24px&#13;
+      80px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-grid {&#13;
+    grid-template-columns:&#13;
+      repeat(2, minmax(0, 1fr));&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   MOBILE&#13;
+   WEBSITE MOBILE + NOW MOBILE APP&#13;
+============================================================ */&#13;
+&#13;
+@media (max-width: 650px) {&#13;
+&#13;
+  .cm-explore {&#13;
+    min-height: 100svh;&#13;
+&#13;
+    padding:&#13;
+      38px&#13;
+      16px&#13;
+      70px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-header {&#13;
+    margin-bottom: 28px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-eyebrow {&#13;
+    padding:&#13;
+      7px&#13;
+      14px;&#13;
+&#13;
+    font-size: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-header h1 {&#13;
+    font-size: 31px;&#13;
+&#13;
+    letter-spacing: -0.8px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-header p {&#13;
+    font-size: 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-search {&#13;
+    height: 52px;&#13;
+&#13;
+    padding:&#13;
+      0&#13;
+      16px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-search input {&#13;
+    font-size: 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-filter-bar {&#13;
+    align-items: stretch;&#13;
+&#13;
+    flex-direction: column;&#13;
+&#13;
+    gap: 13px;&#13;
+&#13;
+    margin-bottom: 30px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-filter-chips {&#13;
+    display: grid;&#13;
+&#13;
+    grid-template-columns:&#13;
+      repeat(3, minmax(0, 1fr));&#13;
+&#13;
+    width: 100%;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-filter-chips button {&#13;
+    width: 100%;&#13;
+&#13;
+    padding:&#13;
+      10px&#13;
+      8px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-category-filter {&#13;
+    width: 100%;&#13;
+&#13;
+    min-width: 0;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-grid {&#13;
+    grid-template-columns: 1fr;&#13;
+&#13;
+    gap: 18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-media {&#13;
+    height: 175px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-body h3 {&#13;
+    min-height: auto;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-cta {&#13;
+    align-items: stretch;&#13;
+&#13;
+    flex-direction: column;&#13;
+&#13;
+    gap: 20px;&#13;
+&#13;
+    margin-top: 45px;&#13;
+&#13;
+    padding:&#13;
+      24px&#13;
+      21px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-cta-buttons {&#13;
+    width: 100%;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-cta-buttons a {&#13;
+    flex: 1;&#13;
+&#13;
+    text-align: center;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   SMALL PHONE / NOW MOBILE&#13;
+============================================================ */&#13;
+&#13;
+@media (max-width: 480px) {&#13;
+&#13;
+  .cm-explore {&#13;
+    padding:&#13;
+      34px&#13;
+      14px&#13;
+      60px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-header {&#13;
+    margin-bottom: 24px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-header h1 {&#13;
+    font-size: 28px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-header p {&#13;
+    font-size: 13px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-search {&#13;
+    height: 50px;&#13;
+&#13;
+    margin-bottom: 18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-filter-bar {&#13;
+    margin-bottom: 26px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-filter-chips {&#13;
+    gap: 7px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-filter-chips button {&#13;
+    font-size: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-results-head {&#13;
+    margin-bottom: 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-card {&#13;
+    border-radius: 20px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-media {&#13;
+    height: 160px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-category-icon {&#13;
+    width: 66px;&#13;
+&#13;
+    height: 66px;&#13;
+&#13;
+    border-radius: 20px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-category-icon svg {&#13;
+    width: 34px;&#13;
+&#13;
+    height: 34px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-body {&#13;
+    padding:&#13;
+      18px&#13;
+      17px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-cta {&#13;
+    border-radius: 20px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ============================================================&#13;
+   VERY SMALL PHONE&#13;
+============================================================ */&#13;
+&#13;
+@media (max-width: 390px) {&#13;
+&#13;
+  .cm-explore {&#13;
+    padding:&#13;
+      30px&#13;
+      12px&#13;
+      55px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-header h1 {&#13;
+    font-size: 26px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explore-header p {&#13;
+    font-size: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-search {&#13;
+    height: 48px;&#13;
+&#13;
+    padding:&#13;
+      0&#13;
+      13px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-filter-chips button {&#13;
+    padding:&#13;
+      9px&#13;
+      5px;&#13;
+&#13;
+    font-size: 11px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-media {&#13;
+    height: 150px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-cta-buttons {&#13;
+    flex-direction: column;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-cta-buttons a {&#13;
+    width: 100%;&#13;
+  }&#13;
+&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>Privacy-safe Lost and Found item browser for CampusMatch</description>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_explore_items</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch Explore Items</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+    /* ======================================================
+       TABLE
+    ====================================================== */
+
+    var ITEM_TABLE =
+        'x_snc_campusmatch_campusmatch_item';
+
+
+    /*
+     * CampusMatch uploaded images are converted into
+     * ServiceNow user_image attachments using this table name.
+     */
+
+    var ITEM_IMAGE_ATTACHMENT_TABLE =
+        'ZZ_YY' + ITEM_TABLE;
+
+
+
+    /* ======================================================
+       FIELD NAMES
+    ====================================================== */
+
+    var F_TYPE =
+        'report_type';
+
+    var F_PUBLIC_TITLE =
+        'public_title';
+
+    var F_CATEGORY =
+        'category';
+
+    var F_LOCATION =
+        'location_zone';
+
+    var F_REPORTED =
+        'reported_date_time';
+
+    var F_STATUS =
+        'status';
+
+
+
+    /* ======================================================
+       OUTPUT
+    ====================================================== */
+
+    data.items = [];
+
+
+
+    /* ======================================================
+       TASK 14 - CENTRALIZED STAFF ACCESS
+    ====================================================== */
+
+    var access =
+        new CampusMatchAccess();
+
+
+    data.isStaff =
+        access.isStaff();
+
+
+    /*
+     * Temporary compatibility in case the existing
+     * Explore Items HTML still uses data.isAdmin.
+     */
+
+    data.isAdmin =
+        data.isStaff;
+
+
+
+    /* ======================================================
+       STEP 8
+       GET ACTUAL ITEM IMAGE FOR STAFF ONLY
+    ====================================================== */
+
+    function getItemImageUrl(
+        itemSysId
+    ) {
+
+        if (
+            !itemSysId
+        ) {
+
+            return '';
+
+        }
+
+
+        var imageAttachment =
+            new GlideRecord(
+                'sys_attachment'
+            );
+
+
+        imageAttachment.addQuery(
+            'table_sys_id',
+            itemSysId
+        );
+
+
+        imageAttachment.addQuery(
+            'table_name',
+            ITEM_IMAGE_ATTACHMENT_TABLE
+        );
+
+
+        imageAttachment.addQuery(
+            'file_name',
+            'image'
+        );
+
+
+        /*
+         * If more than one converted image exists,
+         * use the newest one.
+         */
+
+        imageAttachment.orderByDesc(
+            'sys_created_on'
+        );
+
+
+        imageAttachment.setLimit(
+            1
+        );
+
+
+        imageAttachment.query();
+
+
+        if (
+            imageAttachment.next()
+        ) {
+
+            return (
+                '/sys_attachment.do?sys_id=' +
+                imageAttachment.getUniqueValue() +
+                '&view=true'
+            );
+
+        }
+
+
+        return '';
+
+    }
+
+
+
+    /* ======================================================
+       QUERY REAL CAMPUSMATCH ITEMS
+    ====================================================== */
+
+    var item =
+        new GlideRecord(
+            ITEM_TABLE
+        );
+
+
+    /*
+     * Show newest reports first.
+     */
+
+    item.orderByDesc(
+        'sys_created_on'
+    );
+
+
+    /*
+     * Safety limit for Explore.
+     */
+
+    item.setLimit(
+        100
+    );
+
+
+    item.query();
+
+
+
+    /* ======================================================
+       BUILD PRIVACY-SAFE ITEM OBJECTS
+    ====================================================== */
+
+    while (
+        item.next()
+    ) {
+
+
+        /* ------------------------------------------
+           REPORT TYPE
+        ------------------------------------------ */
+
+        var rawType =
+            item.getValue(
+                F_TYPE
+            ) || '';
+
+
+        var reportType =
+            rawType
+                .toString()
+                .toLowerCase()
+                .trim();
+
+
+
+        /*
+         * Ignore malformed / unexpected records.
+         */
+
+        if (
+            reportType !== 'lost' &&
+            reportType !== 'found'
+        ) {
+
+            continue;
+
+        }
+
+
+
+        /* ------------------------------------------
+           PUBLIC TITLE
+        ------------------------------------------ */
+
+        var publicTitle =
+            item.getDisplayValue(
+                F_PUBLIC_TITLE
+            ) || '';
+
+
+        /*
+         * PRIVACY:
+         *
+         * NEVER fall back to the raw Title field.
+         *
+         * If Public Title has not yet been generated,
+         * use a generic safe fallback.
+         */
+
+        if (
+            !publicTitle
+        ) {
+
+            if (
+                reportType === 'found'
+            ) {
+
+                publicTitle =
+                    'Found Item';
+
+            }
+            else {
+
+                publicTitle =
+                    'Lost Item';
+
+            }
+
+        }
+
+
+
+        /* ------------------------------------------
+           CATEGORY
+        ------------------------------------------ */
+
+        var categoryValue =
+            item.getValue(
+                F_CATEGORY
+            ) || 'other';
+
+
+        categoryValue =
+            categoryValue
+                .toString()
+                .toLowerCase()
+                .trim();
+
+
+        var categoryDisplay =
+            item.getDisplayValue(
+                F_CATEGORY
+            ) || 'Other';
+
+
+
+        /* ==================================================
+           STUDENT-SAFE PUBLIC RECORD
+
+           IMPORTANT:
+           Do NOT add:
+           - raw title
+           - description
+           - reporter
+           - brand
+           - color
+           - private verification details
+           - AI attribute text
+           - location_x
+           - location_y
+           - uploaded image
+        ================================================== */
+
+        var record = {
+
+            sys_id:
+                item.getUniqueValue(),
+
+            reportType:
+                reportType,
+
+            reportTypeLabel:
+                reportType === 'found'
+                    ? 'Found'
+                    : 'Lost',
+
+            publicTitle:
+                publicTitle,
+
+            category:
+                categoryDisplay,
+
+            categoryValue:
+                categoryValue,
+
+            reported:
+                item.getDisplayValue(
+                    F_REPORTED
+                ) || '—'
+
+        };
+
+
+
+        /* ==================================================
+           STAFF-ONLY OPERATIONAL INFORMATION
+
+           STEP 8:
+           Actual uploaded image is exposed ONLY here.
+           Students never receive record.imageUrl.
+        ================================================== */
+
+        if (
+            data.isStaff
+        ) {
+
+            record.location =
+                item.getDisplayValue(
+                    F_LOCATION
+                ) || '—';
+
+
+            record.status =
+                item.getDisplayValue(
+                    F_STATUS
+                ) || '—';
+
+
+            /* =============================================
+               STAFF-ONLY ACTUAL ITEM IMAGE
+            ============================================= */
+
+            record.imageUrl =
+                getItemImageUrl(
+                    item.getUniqueValue()
+                );
+
+        }
+
+
+
+        /* ==================================================
+           ADD TO OUTPUT
+        ================================================== */
+
+        data.items.push(
+            record
+        );
+
+    }
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 11:04:17</sys_created_on>
+        <sys_id>a15d1663551f03107f4447f82ce732ba</sys_id>
+        <sys_mod_count>17</sys_mod_count>
+        <sys_name>CampusMatch Explore Items</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_a15d1663551f03107f4447f82ce732ba</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-29 10:08:11</sys_updated_on>
+        <template><![CDATA[<section class="cm-explore">
+
+  <div class="cm-explore-container">
+
+
+    <!-- =========================================
+         PAGE HEADER
+    ========================================== -->
+
+    <div class="cm-explore-header">
+
+      <span class="cm-explore-eyebrow">
+        {{data.isStaff
+          ? '✦ Staff Item Explorer'
+          : '✦ Campus Lost & Found'}}
+      </span>
+
+      <h1>
+        Explore Lost &amp; Found
+      </h1>
+
+      <p ng-if="!data.isStaff">
+        Browse privacy-safe reports from across campus.
+      </p>
+
+      <p ng-if="data.isStaff">
+        Review campus reports, locations and current status.
+      </p>
+
+    </div>
+
+
+    <!-- =========================================
+         SEARCH
+    ========================================== -->
+
+    <div class="cm-search">
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round">
+
+        <circle
+          cx="11"
+          cy="11"
+          r="7">
+        </circle>
+
+        <path
+          d="m21 21-4.3-4.3">
+        </path>
+
+      </svg>
+
+
+      <input
+        type="search"
+        ng-model="c.searchText"
+        placeholder="Search items..."
+        aria-label="Search items">
+
+
+      <button
+        ng-if="c.searchText"
+        type="button"
+        class="cm-clear-search"
+        ng-click="c.clearSearch()">
+
+        ×
+
+      </button>
+
+    </div>
+
+
+    <!-- =========================================
+         FILTER BAR
+    ========================================== -->
+
+    <div class="cm-filter-bar">
+
+
+      <!-- REPORT TYPE -->
+
+      <div class="cm-filter-chips">
+
+        <button
+          type="button"
+          ng-class="{'active': c.typeFilter === 'all'}"
+          ng-click="c.setTypeFilter('all')">
+
+          All
+
+        </button>
+
+
+        <button
+          type="button"
+          ng-class="{'active': c.typeFilter === 'lost'}"
+          ng-click="c.setTypeFilter('lost')">
+
+          Lost
+
+        </button>
+
+
+        <button
+          type="button"
+          ng-class="{'active': c.typeFilter === 'found'}"
+          ng-click="c.setTypeFilter('found')">
+
+          Found
+
+        </button>
+
+      </div>
+
+
+      <!-- CATEGORY -->
+
+      <select
+        class="cm-category-filter"
+        ng-model="c.categoryFilter">
+
+        <option value="all">
+          All Categories
+        </option>
+
+        <option
+          ng-repeat="category in c.getCategories()"
+          value="{{category.value}}">
+
+          {{category.label}}
+
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <!-- =========================================
+         RESULT SUMMARY
+    ========================================== -->
+
+    <div class="cm-results-head">
+
+      <div>
+
+        <strong>
+          {{c.filteredItems().length}}
+        </strong>
+
+        <span>
+          {{c.filteredItems().length === 1
+            ? 'report'
+            : 'reports'}}
+        </span>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="cm-reset-filter"
+        ng-if="
+          c.searchText ||
+          c.typeFilter !== 'all' ||
+          c.categoryFilter !== 'all'
+        "
+        ng-click="c.resetFilters()">
+
+        Reset filters
+
+      </button>
+
+    </div>
+
+
+    <!-- =========================================
+         ITEM GRID
+    ========================================== -->
+
+    <div
+      class="cm-item-grid"
+      ng-if="c.filteredItems().length">
+
+
+      <article
+        class="cm-item-card"
+        ng-repeat="item in c.filteredItems() track by item.sys_id">
+
+
+        <!-- =====================================
+             ITEM MEDIA
+        ====================================== -->
+
+        <div
+          class="cm-item-media"
+          ng-class="{
+            'lost': item.reportType === 'lost',
+            'found': item.reportType === 'found'
+          }">
+
+
+          <!-- LOST / FOUND BADGE -->
+
+          <span
+            class="cm-type-badge"
+            ng-class="{
+              'cm-lost-badge':
+                item.reportType === 'lost',
+
+              'cm-found-badge':
+                item.reportType === 'found'
+            }">
+
+            {{item.reportTypeLabel}}
+
+          </span>
+
+
+          <!-- =====================================
+               STEP 9
+               STAFF-ONLY ACTUAL ITEM IMAGE
+          ====================================== -->
+
+          <img
+            ng-if="data.isStaff && item.imageUrl"
+            ng-src="{{item.imageUrl}}"
+            class="cm-item-image"
+            alt="{{item.publicTitle}}">
+
+
+          <!-- =====================================
+               GENERIC CATEGORY ICON
+
+               Students always see this.
+               Staff see it only when no image exists.
+          ====================================== -->
+
+          <div
+            class="cm-category-icon"
+            ng-if="!data.isStaff || !item.imageUrl">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+
+              <rect
+                x="5"
+                y="6"
+                width="14"
+                height="14"
+                rx="3">
+              </rect>
+
+              <path
+                d="M8 6V5a4 4 0 0 1 8 0v1">
+              </path>
+
+              <path
+                d="M9 12h6">
+              </path>
+
+            </svg>
+
+          </div>
+
+
+          <!-- CATEGORY CAPTION -->
+
+          <span
+            class="cm-category-caption"
+            ng-if="!data.isStaff || !item.imageUrl">
+
+            {{item.category}}
+
+          </span>
+
+        </div>
+
+
+        <!-- =====================================
+             CARD BODY
+        ====================================== -->
+
+        <div class="cm-item-body">
+
+
+          <!-- PUBLIC PRIVACY-SAFE TITLE -->
+
+          <h3>
+            {{item.publicTitle}}
+          </h3>
+
+
+          <!-- ITEM META -->
+
+          <div class="cm-item-meta">
+
+
+            <!-- REPORTED DATE -->
+
+            <span>
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2">
+
+                <path
+                  d="M4 4h16v16H4z">
+                </path>
+
+                <path
+                  d="M8 2v4M16 2v4M4 9h16">
+                </path>
+
+              </svg>
+
+              {{item.reported}}
+
+            </span>
+
+
+            <!-- CATEGORY -->
+
+            <span>
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2">
+
+                <path
+                  d="M4 6h16M4 12h16M4 18h10">
+                </path>
+
+              </svg>
+
+              {{item.category}}
+
+            </span>
+
+          </div>
+
+
+          <!-- ==================================
+               STAFF-ONLY INFORMATION
+          =================================== -->
+
+          <div
+            class="cm-admin-details"
+            ng-if="data.isStaff">
+
+
+            <!-- LOCATION -->
+
+            <div class="cm-admin-row">
+
+              <span>
+                Location
+              </span>
+
+              <strong>
+                {{item.location || '—'}}
+              </strong>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div class="cm-admin-row">
+
+              <span>
+                Status
+              </span>
+
+              <strong>
+                {{item.status || '—'}}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <!-- ==================================
+               STAFF ACTION
+          =================================== -->
+
+          <div
+            class="cm-item-footer"
+            ng-if="data.isStaff">
+
+            <a
+              class="cm-view-link"
+              ng-href="?id=campusmatch_admin_review&item_id={{item.sys_id}}">
+
+              Review
+
+              <span>
+                →
+              </span>
+
+            </a>
+
+          </div>
+
+
+        </div>
+
+      </article>
+
+    </div>
+
+
+    <!-- =========================================
+         EMPTY STATE
+    ========================================== -->
+
+    <div
+      class="cm-empty-state"
+      ng-if="!c.filteredItems().length">
+
+
+      <div class="cm-empty-icon">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round">
+
+          <circle
+            cx="11"
+            cy="11"
+            r="7">
+          </circle>
+
+          <path
+            d="m21 21-4.3-4.3">
+          </path>
+
+        </svg>
+
+      </div>
+
+
+      <h3>
+        No reports found
+      </h3>
+
+      <p>
+        Try changing your search or filters.
+      </p>
+
+
+      <button
+        type="button"
+        class="cm-empty-reset"
+        ng-click="c.resetFilters()">
+
+        Clear filters
+
+      </button>
+
+    </div>
+
+
+    <!-- =========================================
+         REPORT CTA
+    ========================================== -->
+
+    <div
+      class="cm-explore-cta"
+      ng-if="!data.isStaff">
+
+
+      <div>
+
+        <h2>
+          Can't find what you're looking for?
+        </h2>
+
+        <p>
+          Create a report and let CampusMatch search for potential matches.
+        </p>
+
+      </div>
+
+
+      <div class="cm-cta-buttons">
+
+        <a
+          href="?id=campusmatch_report&type=lost"
+          class="cm-cta-primary">
+
+          Report Lost
+
+        </a>
+
+
+        <a
+          href="?id=campusmatch_report&type=found"
+          class="cm-cta-secondary">
+
+          Report Found
+
+        </a>
+
+      </div>
+
+    </div>
+
+
+  </div>
+
+</section>]]></template>
+    </sp_widget>
+</record_update>

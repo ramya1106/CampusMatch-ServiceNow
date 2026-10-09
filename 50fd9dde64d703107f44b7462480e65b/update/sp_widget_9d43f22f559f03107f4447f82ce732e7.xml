@@ -1,0 +1,4457 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function($window) {
+
+    var c = this;
+
+
+    /* =====================================================
+       INITIAL STATE
+    ===================================================== */
+
+    c.answers = {
+        answer1: '',
+        answer2: '',
+        answer3: ''
+    };
+
+    c.submitting = false;
+    c.submitted = false;
+    c.refreshing = false;
+
+    c.withdrawing = false;
+    c.showWithdrawModal = false;
+    c.withdrawReason = '';
+
+    c.errorMessage = '';
+
+
+    /* =====================================================
+       SUBMIT CLAIM
+    ===================================================== */
+
+    c.submitClaim = function() {
+
+        c.errorMessage = '';
+
+
+        if (
+            !c.answers.answer1 ||
+            !c.answers.answer1.trim()
+        ) {
+
+            c.errorMessage =
+                'Please answer question 1.';
+
+            return;
+        }
+
+
+        if (
+            !c.answers.answer2 ||
+            !c.answers.answer2.trim()
+        ) {
+
+            c.errorMessage =
+                'Please answer question 2.';
+
+            return;
+        }
+
+
+        c.submitting = true;
+
+
+        c.server.get({
+
+            action:
+                'submitClaim',
+
+            match_id:
+                c.data.match.sys_id,
+
+            answer1:
+                c.answers.answer1,
+
+            answer2:
+                c.answers.answer2,
+
+            answer3:
+                c.answers.answer3
+
+        }).then(
+
+            function(response) {
+
+                c.submitting = false;
+
+
+                if (
+                    !response.data.success
+                ) {
+
+                    c.errorMessage =
+                        response.data.message ||
+                        response.data.error ||
+                        'Verification could not be submitted.';
+
+
+                    if (
+                        response.data.claim
+                    ) {
+
+                        c.data.claim =
+                            response.data.claim;
+
+                        c.data.canVerify =
+                            false;
+                    }
+
+
+                    return;
+                }
+
+
+                c.data.claim =
+                    response.data.claim;
+
+
+                c.data.canVerify =
+                    false;
+
+
+                c.submitted =
+                    true;
+
+
+                $window.scrollTo(
+                    0,
+                    0
+                );
+            },
+
+
+            function() {
+
+                c.submitting =
+                    false;
+
+                c.errorMessage =
+                    'Verification could not be submitted. Please try again.';
+            }
+        );
+    };
+
+
+    /* =====================================================
+       REFRESH STATUS
+    ===================================================== */
+
+    c.refreshStatus = function() {
+
+        c.errorMessage = '';
+
+        c.refreshing = true;
+
+
+        c.server.get({
+
+            action:
+                'refreshStatus',
+
+            match_id:
+                c.data.match.sys_id
+
+        }).then(
+
+            function(response) {
+
+                c.refreshing = false;
+
+
+                if (
+                    response.data.error
+                ) {
+
+                    c.errorMessage =
+                        response.data.error;
+
+                    return;
+                }
+
+
+                if (
+                    response.data.claim
+                ) {
+
+                    c.data.claim =
+                        response.data.claim;
+
+                    c.data.canVerify =
+                        false;
+                }
+            },
+
+
+            function() {
+
+                c.refreshing =
+                    false;
+
+                c.errorMessage =
+                    'Unable to refresh verification status.';
+            }
+        );
+    };
+
+
+    /* =====================================================
+       OPEN WITHDRAW MODAL
+    ===================================================== */
+
+    c.openWithdrawModal = function() {
+
+        c.errorMessage = '';
+
+        c.withdrawReason = '';
+
+        c.showWithdrawModal = true;
+    };
+
+
+    /* =====================================================
+       CLOSE WITHDRAW MODAL
+    ===================================================== */
+
+    c.closeWithdrawModal = function() {
+
+        if (
+            c.withdrawing
+        ) {
+
+            return;
+        }
+
+
+        c.showWithdrawModal = false;
+
+        c.withdrawReason = '';
+    };
+
+
+    /* =====================================================
+       WITHDRAW CLAIM
+    ===================================================== */
+
+    c.withdrawClaim = function() {
+
+        if (
+            c.withdrawing
+        ) {
+
+            return;
+        }
+
+
+        c.errorMessage = '';
+
+        c.withdrawing = true;
+
+
+        c.server.get({
+
+            action:
+                'withdrawClaim',
+
+            match_id:
+                c.data.match.sys_id,
+
+            withdrawal_reason:
+                c.withdrawReason || ''
+
+        }).then(
+
+            function(response) {
+
+                c.withdrawing = false;
+
+
+                if (
+                    !response.data.success
+                ) {
+
+                    c.errorMessage =
+                        response.data.message ||
+                        response.data.error ||
+                        'The claim could not be withdrawn.';
+
+
+                    if (
+                        response.data.claim
+                    ) {
+
+                        c.data.claim =
+                            response.data.claim;
+                    }
+
+
+                    return;
+                }
+
+
+                c.data.claim =
+                    response.data.claim;
+
+
+                c.data.canVerify =
+                    false;
+
+
+                c.showWithdrawModal =
+                    false;
+
+
+                c.withdrawReason =
+                    '';
+
+
+                $window.scrollTo(
+                    0,
+                    0
+                );
+            },
+
+
+            function() {
+
+                c.withdrawing =
+                    false;
+
+                c.errorMessage =
+                    'The claim could not be withdrawn. Please try again.';
+            }
+        );
+    };
+
+
+    /* =====================================================
+       RESULT CSS CLASS
+    ===================================================== */
+
+    c.resultClass = function() {
+
+        var status =
+            (
+                c.data.claim &&
+                c.data.claim.statusValue
+                    ?
+                    c.data.claim.statusValue
+                    :
+                    ''
+            )
+            .toString()
+            .toLowerCase();
+
+
+        if (
+            status ===
+            'withdrawn'
+        ) {
+
+            return 'withdrawn';
+        }
+
+
+        var result =
+            (
+                c.data.claim &&
+                c.data.claim.verificationResult
+                    ?
+                    c.data.claim.verificationResult
+                    :
+                    ''
+            )
+            .toString()
+            .toLowerCase();
+
+
+        if (
+            result ===
+            'pass'
+        ) {
+
+            return 'pass';
+        }
+
+
+        if (
+            result ===
+            'review'
+        ) {
+
+            return 'review';
+        }
+
+
+        if (
+            result ===
+            'fail'
+        ) {
+
+            return 'fail';
+        }
+
+
+        return '';
+    };
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ==========================================================&#13;
+   CAMPUSMATCH OWNERSHIP VERIFICATION&#13;
+   WEBSITE + NOW MOBILE APP&#13;
+   FULL-BLEED SAFE VERSION&#13;
+========================================================== */&#13;
+&#13;
+.cm-verify-page {&#13;
+  position: relative;&#13;
+  display: block;&#13;
+&#13;
+  width: 100vw !important;&#13;
+  max-width: 100vw !important;&#13;
+&#13;
+  margin-left: calc(50% - 50vw) !important;&#13;
+  margin-right: calc(50% - 50vw) !important;&#13;
+&#13;
+  margin-top: 0 !important;&#13;
+  margin-bottom: 0 !important;&#13;
+&#13;
+  min-height: 100vh;&#13;
+  min-height: 100svh;&#13;
+&#13;
+  padding:&#13;
+    42px&#13;
+    20px&#13;
+    90px;&#13;
+&#13;
+  background:&#13;
+    linear-gradient(&#13;
+      180deg,&#13;
+      #FBF8EF 0%,&#13;
+      #F5F7F0 100%&#13;
+    ) !important;&#13;
+&#13;
+  box-shadow:&#13;
+    0 -60px 0 #FBF8EF,&#13;
+    0 60px 0 #F5F7F0;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family:&#13;
+    "DM Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  box-sizing: border-box !important;&#13;
+  overflow-x: hidden;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-verify-page,&#13;
+.cm-verify-page *,&#13;
+.cm-verify-page *::before,&#13;
+.cm-verify-page *::after {&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-verify-container {&#13;
+  width: 100%;&#13;
+  max-width: 720px;&#13;
+&#13;
+  margin: 0 auto;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   BACK&#13;
+========================================================== */&#13;
+&#13;
+.cm-back-link {&#13;
+  display: inline-flex;&#13;
+&#13;
+  margin-bottom: 26px;&#13;
+&#13;
+  color: #15564B !important;&#13;
+&#13;
+  font-size: 13px;&#13;
+  font-weight: 700;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   HEADER&#13;
+========================================================== */&#13;
+&#13;
+.cm-verify-header {&#13;
+  max-width: 620px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    30px;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-eyebrow {&#13;
+  display: inline-flex;&#13;
+&#13;
+  padding:&#13;
+    8px&#13;
+    16px;&#13;
+&#13;
+  margin-bottom: 15px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-verify-header h1 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    10px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 38px;&#13;
+  font-weight: 700;&#13;
+&#13;
+  letter-spacing: -1px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-verify-header p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #617477;&#13;
+&#13;
+  font-size: 14px;&#13;
+  line-height: 1.65;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   ITEM SUMMARY&#13;
+========================================================== */&#13;
+&#13;
+.cm-item-summary {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 15px;&#13;
+&#13;
+  padding: 19px 21px;&#13;
+&#13;
+  margin-bottom: 17px;&#13;
+&#13;
+  border:&#13;
+    1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 20px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 5px 17px rgba(16,78,69,.05);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-icon {&#13;
+  width: 56px;&#13;
+  height: 56px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 17px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-icon svg {&#13;
+  width: 28px;&#13;
+  height: 28px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-summary-main {&#13;
+  min-width: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-summary-main &gt; span {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 3px;&#13;
+&#13;
+  color: #7A898D;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 700;&#13;
+&#13;
+  text-transform: uppercase;&#13;
+&#13;
+  letter-spacing: .45px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-summary-main h2 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    7px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 18px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-item-meta {&#13;
+  display: flex;&#13;
+  flex-wrap: wrap;&#13;
+&#13;
+  gap:&#13;
+    6px&#13;
+    12px;&#13;
+&#13;
+  color: #718185;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   PRIVACY NOTE&#13;
+========================================================== */&#13;
+&#13;
+.cm-privacy-note {&#13;
+  display: flex;&#13;
+  align-items: flex-start;&#13;
+&#13;
+  gap: 11px;&#13;
+&#13;
+  padding: 15px 17px;&#13;
+&#13;
+  margin-bottom: 20px;&#13;
+&#13;
+  border-radius: 16px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-note &gt; svg {&#13;
+  width: 20px;&#13;
+  height: 20px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-note strong {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 2px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-note p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 11px;&#13;
+  line-height: 1.55;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   QUESTION CARD&#13;
+========================================================== */&#13;
+&#13;
+.cm-question-card {&#13;
+  padding: 30px;&#13;
+&#13;
+  border:&#13;
+    1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 24px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 8px 26px rgba(16,78,69,.07);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-question-heading {&#13;
+  display: flex;&#13;
+  align-items: flex-start;&#13;
+&#13;
+  gap: 12px;&#13;
+&#13;
+  margin-bottom: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-question-number {&#13;
+  width: 36px;&#13;
+  height: 36px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 12px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 12px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-question-heading h3 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    3px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 15px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-question-heading p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #77878A;&#13;
+&#13;
+  font-size: 10px;&#13;
+  line-height: 1.45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-question-card textarea {&#13;
+  width: 100%;&#13;
+&#13;
+  min-height: 92px;&#13;
+&#13;
+  padding: 13px 15px;&#13;
+&#13;
+  border:&#13;
+    1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 14px;&#13;
+&#13;
+  outline: 0;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family: inherit;&#13;
+  font-size: 13px;&#13;
+&#13;
+  resize: vertical;&#13;
+&#13;
+  transition:&#13;
+    border .2s ease,&#13;
+    box-shadow .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-question-card textarea:focus {&#13;
+  border-color: #249D78;&#13;
+&#13;
+  box-shadow:&#13;
+    0 0 0 4px rgba(36,157,120,.10);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-question-divider {&#13;
+  height: 1px;&#13;
+&#13;
+  margin:&#13;
+    27px&#13;
+    0;&#13;
+&#13;
+  background: #EDF2EE;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   FORM ERROR&#13;
+========================================================== */&#13;
+&#13;
+.cm-form-error {&#13;
+  padding:&#13;
+    12px&#13;
+    14px;&#13;
+&#13;
+  margin-top: 20px;&#13;
+&#13;
+  border-radius: 12px;&#13;
+&#13;
+  background: #FBEAE7;&#13;
+&#13;
+  color: #A44732;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SUBMIT&#13;
+========================================================== */&#13;
+&#13;
+.cm-submit-button {&#13;
+  width: 100%;&#13;
+&#13;
+  min-height: 52px;&#13;
+&#13;
+  margin-top: 24px;&#13;
+&#13;
+  border: 0;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 13px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  box-shadow:&#13;
+    0 8px 20px rgba(16,78,69,.16);&#13;
+&#13;
+  transition:&#13;
+    transform .2s ease,&#13;
+    background .2s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-submit-button:hover {&#13;
+  transform: translateY(-1px);&#13;
+&#13;
+  background: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-submit-button:disabled {&#13;
+  opacity: .55;&#13;
+&#13;
+  cursor: not-allowed;&#13;
+&#13;
+  transform: none;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-submit-note {&#13;
+  max-width: 500px;&#13;
+&#13;
+  margin:&#13;
+    12px&#13;
+    auto&#13;
+    0;&#13;
+&#13;
+  color: #849194;&#13;
+&#13;
+  font-size: 9px;&#13;
+  line-height: 1.5;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   STATUS CARD&#13;
+========================================================== */&#13;
+&#13;
+.cm-status-card {&#13;
+  padding: 35px;&#13;
+&#13;
+  border:&#13;
+    1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 24px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  text-align: center;&#13;
+&#13;
+  box-shadow:&#13;
+    0 8px 27px rgba(16,78,69,.07);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-result-icon {&#13;
+  width: 70px;&#13;
+  height: 70px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    16px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #EDF2EE;&#13;
+&#13;
+  color: #617477;&#13;
+&#13;
+  font-size: 24px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-result-icon svg {&#13;
+  width: 31px;&#13;
+  height: 31px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-result-icon.pass {&#13;
+  background: #E4F4EA;&#13;
+&#13;
+  color: #168C70;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-result-icon.review {&#13;
+  background: #FDF3DC;&#13;
+&#13;
+  color: #8B681B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-result-icon.fail {&#13;
+  background: #FBEAE7;&#13;
+&#13;
+  color: #B5502F;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-eyebrow {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 7px;&#13;
+&#13;
+  color: #168C70;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-transform: uppercase;&#13;
+&#13;
+  letter-spacing: .6px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-card h2 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    8px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 24px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-card &gt; div &gt; p {&#13;
+  max-width: 520px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 12px;&#13;
+  line-height: 1.6;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CURRENT STATUS&#13;
+========================================================== */&#13;
+&#13;
+.cm-current-status {&#13;
+  max-width: 390px;&#13;
+&#13;
+  margin:&#13;
+    23px&#13;
+    auto;&#13;
+&#13;
+  padding:&#13;
+    13px&#13;
+    16px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 15px;&#13;
+&#13;
+  border-radius: 14px;&#13;
+&#13;
+  background: #F4F8F2;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-current-status span {&#13;
+  color: #77878A;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-current-status strong {&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   TIMELINE&#13;
+========================================================== */&#13;
+&#13;
+.cm-timeline {&#13;
+  max-width: 470px;&#13;
+&#13;
+  margin:&#13;
+    29px&#13;
+    auto&#13;
+    0;&#13;
+&#13;
+  padding-left: 5px;&#13;
+&#13;
+  text-align: left;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-timeline-item {&#13;
+  position: relative;&#13;
+&#13;
+  min-height: 65px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: flex-start;&#13;
+&#13;
+  gap: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-timeline-item:not(:last-child)::after {&#13;
+  content: "";&#13;
+&#13;
+  position: absolute;&#13;
+&#13;
+  top: 18px;&#13;
+  left: 7px;&#13;
+&#13;
+  width: 2px;&#13;
+  height: 49px;&#13;
+&#13;
+  background: #DCE5DF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-timeline-dot {&#13;
+  position: relative;&#13;
+&#13;
+  z-index: 2;&#13;
+&#13;
+  width: 16px;&#13;
+  height: 16px;&#13;
+&#13;
+  margin-top: 2px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border:&#13;
+    3px solid #FFFFFF;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #CBD7D1;&#13;
+&#13;
+  box-shadow:&#13;
+    0 0 0 2px #CBD7D1;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-timeline-item.completed .cm-timeline-dot {&#13;
+  background: #249D78;&#13;
+&#13;
+  box-shadow:&#13;
+    0 0 0 2px #249D78;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-timeline-item.active .cm-timeline-dot {&#13;
+  background: #E7B74A;&#13;
+&#13;
+  box-shadow:&#13;
+    0 0 0 2px #E7B74A;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-timeline-item strong {&#13;
+  display: block;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-timeline-item small {&#13;
+  display: block;&#13;
+&#13;
+  margin-top: 2px;&#13;
+&#13;
+  color: #849194;&#13;
+&#13;
+  font-size: 9px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   STATUS ACTIONS&#13;
+========================================================== */&#13;
+&#13;
+.cm-status-actions {&#13;
+  margin-top: 15px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  gap: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-actions button,&#13;
+.cm-status-actions a {&#13;
+  padding:&#13;
+    10px&#13;
+    16px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  cursor: pointer;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-actions button {&#13;
+  border: 0;&#13;
+&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-actions a {&#13;
+  border:&#13;
+    1.5px solid #D2DED8;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #104E45 !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   WITHDRAWN STATE&#13;
+========================================================== */&#13;
+&#13;
+.cm-result-icon.withdrawn {&#13;
+  background: #FBEAE7;&#13;
+&#13;
+  color: #B5502F;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdrawal-meta {&#13;
+  max-width: 520px;&#13;
+&#13;
+  margin:&#13;
+    16px&#13;
+    auto&#13;
+    0;&#13;
+&#13;
+  padding:&#13;
+    12px&#13;
+    14px;&#13;
+&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+&#13;
+  gap: 4px;&#13;
+&#13;
+  border-radius: 13px;&#13;
+&#13;
+  background: #FFF7F4;&#13;
+&#13;
+  color: #8D4B39;&#13;
+&#13;
+  font-size: 10px;&#13;
+  line-height: 1.5;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-actions .cm-withdraw-button {&#13;
+  border:&#13;
+    1.5px solid #E5B9AD;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #A44732;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-status-actions .cm-withdraw-button:hover {&#13;
+  background: #FFF5F2;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   WITHDRAW CONFIRMATION MODAL&#13;
+========================================================== */&#13;
+&#13;
+.cm-modal-backdrop {&#13;
+  position: fixed;&#13;
+&#13;
+  z-index: 10000;&#13;
+&#13;
+  inset: 0;&#13;
+&#13;
+  padding: 20px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  background:&#13;
+    rgba(&#13;
+      16,&#13;
+      46,&#13;
+      52,&#13;
+      .42&#13;
+    );&#13;
+&#13;
+  backdrop-filter:&#13;
+    blur(3px);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal {&#13;
+  width: 100%;&#13;
+  max-width: 470px;&#13;
+&#13;
+  padding:&#13;
+    30px;&#13;
+&#13;
+  border:&#13;
+    1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 24px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 24px 70px rgba(16,46,52,.22);&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal-icon {&#13;
+  width: 58px;&#13;
+  height: 58px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    15px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #FDF3DC;&#13;
+&#13;
+  color: #8B681B;&#13;
+&#13;
+  font-size: 23px;&#13;
+  font-weight: 900;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal h2 {&#13;
+  margin:&#13;
+    0&#13;
+    0&#13;
+    8px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 22px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal &gt; p {&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    20px;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 12px;&#13;
+  line-height: 1.6;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal label {&#13;
+  display: block;&#13;
+&#13;
+  margin-bottom: 7px;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-align: left;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal textarea {&#13;
+  width: 100%;&#13;
+&#13;
+  min-height: 95px;&#13;
+&#13;
+  padding:&#13;
+    12px&#13;
+    14px;&#13;
+&#13;
+  border:&#13;
+    1.5px solid #D2DED8;&#13;
+&#13;
+  border-radius: 14px;&#13;
+&#13;
+  outline: 0;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family: inherit;&#13;
+  font-size: 12px;&#13;
+&#13;
+  resize: vertical;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal textarea:focus {&#13;
+  border-color: #249D78;&#13;
+&#13;
+  box-shadow:&#13;
+    0 0 0 4px rgba(36,157,120,.10);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-modal-error {&#13;
+  margin-top: 12px;&#13;
+&#13;
+  padding:&#13;
+    10px&#13;
+    12px;&#13;
+&#13;
+  border-radius: 12px;&#13;
+&#13;
+  background: #FBEAE7;&#13;
+&#13;
+  color: #A44732;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 700;&#13;
+&#13;
+  text-align: left;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal-actions {&#13;
+  margin-top: 20px;&#13;
+&#13;
+  display: flex;&#13;
+  justify-content: flex-end;&#13;
+&#13;
+  gap: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal-actions button {&#13;
+  min-width: 125px;&#13;
+&#13;
+  padding:&#13;
+    11px&#13;
+    17px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  font-family: inherit;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  cursor: pointer;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-withdraw-modal-actions button:disabled {&#13;
+  opacity: .55;&#13;
+&#13;
+  cursor: not-allowed;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-modal-cancel {&#13;
+  border:&#13;
+    1.5px solid #D2DED8;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-modal-confirm {&#13;
+  border: 0;&#13;
+&#13;
+  background: #A44732;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   ERROR STATE&#13;
+========================================================== */&#13;
+&#13;
+.cm-state-card {&#13;
+  max-width: 500px;&#13;
+&#13;
+  margin: 50px auto;&#13;
+&#13;
+  padding: 50px 28px;&#13;
+&#13;
+  border:&#13;
+    1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 23px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-state-icon {&#13;
+  width: 62px;&#13;
+  height: 62px;&#13;
+&#13;
+  margin:&#13;
+    0&#13;
+    auto&#13;
+    15px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 24px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-state-card h2 {&#13;
+  color: #104E45;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-state-card p {&#13;
+  color: #718185;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-state-card a {&#13;
+  color: #168C70 !important;&#13;
+&#13;
+  font-weight: 700;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   TABLET&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 760px) {&#13;
+&#13;
+  .cm-verify-page {&#13;
+    min-height: 100svh;&#13;
+&#13;
+    padding:&#13;
+      36px&#13;
+      16px&#13;
+      75px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #F5F7F0;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MOBILE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 560px) {&#13;
+&#13;
+  .cm-verify-page {&#13;
+    min-height: 100svh;&#13;
+&#13;
+    padding:&#13;
+      30px&#13;
+      14px&#13;
+      65px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #F5F7F0;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-verify-header h1 {&#13;
+    font-size: 30px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-summary {&#13;
+    align-items: flex-start;&#13;
+&#13;
+    padding:&#13;
+      16px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-icon {&#13;
+    width: 48px;&#13;
+    height: 48px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-meta {&#13;
+    flex-direction: column;&#13;
+&#13;
+    gap: 3px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-question-card {&#13;
+    padding:&#13;
+      23px&#13;
+      18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-status-card {&#13;
+    padding:&#13;
+      29px&#13;
+      18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-status-actions {&#13;
+    flex-direction: column;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-status-actions button,&#13;
+  .cm-status-actions a {&#13;
+    width: 100%;&#13;
+&#13;
+    text-align: center;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-withdraw-modal {&#13;
+    padding:&#13;
+      25px&#13;
+      18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-withdraw-modal-actions {&#13;
+    flex-direction: column-reverse;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-withdraw-modal-actions button {&#13;
+    width: 100%;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   EXTRA SMALL MOBILE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 390px) {&#13;
+&#13;
+  .cm-verify-page {&#13;
+    padding:&#13;
+      27px&#13;
+      10px&#13;
+      58px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-verify-header h1 {&#13;
+    font-size: 27px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-summary {&#13;
+    gap: 11px;&#13;
+    padding: 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-item-icon {&#13;
+    width: 44px;&#13;
+    height: 44px;&#13;
+&#13;
+    border-radius: 14px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-question-card {&#13;
+    padding:&#13;
+      20px&#13;
+      15px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-status-card {&#13;
+    padding:&#13;
+      26px&#13;
+      15px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-withdraw-modal {&#13;
+    padding:&#13;
+      22px&#13;
+      15px;&#13;
+  }&#13;
+&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>Secure ownership verification and claim status experience for CampusMatch</description>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_ownership_verification</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch Ownership Verification</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+    /* ======================================================
+       TABLES
+    ====================================================== */
+
+    var ITEM_TABLE =
+        'x_snc_campusmatch_campusmatch_item';
+
+    var MATCH_TABLE =
+        'x_snc_campusmatch_campusmatch_match';
+
+    var CLAIM_TABLE =
+        'x_snc_campusmatch_campusmatch_claim';
+
+
+    /* ======================================================
+       DEFAULT DATA
+    ====================================================== */
+
+    data.error = '';
+
+    data.success = false;
+
+    data.message = '';
+
+    data.match = null;
+
+    data.canVerify = false;
+
+    data.claim = {
+        exists: false
+    };
+
+
+    /* ======================================================
+       HELPER - FIND FIRST VALID FIELD
+    ====================================================== */
+
+    function findField(
+        gr,
+        names
+    ) {
+
+        for (
+            var i = 0;
+            i < names.length;
+            i++
+        ) {
+
+            if (
+                gr.isValidField(
+                    names[i]
+                )
+            ) {
+
+                return names[i];
+            }
+        }
+
+
+        return '';
+    }
+
+
+    /* ======================================================
+       MATCH ID
+    ====================================================== */
+
+    var matchId = '';
+
+
+    if (
+        input &&
+        input.match_id
+    ) {
+
+        matchId =
+            input.match_id
+                .toString()
+                .trim();
+    }
+    else {
+
+        matchId =
+            (
+                $sp.getParameter(
+                    'match_id'
+                ) || ''
+            )
+            .toString()
+            .trim();
+    }
+
+
+    if (!matchId) {
+
+        data.error =
+            'No Match was provided.';
+
+        return;
+    }
+
+
+    /* ======================================================
+       LOAD MATCH
+    ====================================================== */
+
+    var match =
+        new GlideRecord(
+            MATCH_TABLE
+        );
+
+
+    if (
+        !match.get(
+            matchId
+        )
+    ) {
+
+        data.error =
+            'Match record could not be found.';
+
+        return;
+    }
+
+
+    /* ======================================================
+       MATCH STATUS
+    ====================================================== */
+
+    var matchStatus =
+        (
+            match.getValue(
+                'status'
+            ) || ''
+        )
+        .toString()
+        .toLowerCase()
+        .trim();
+
+
+    /* ======================================================
+       MATCH SCORE
+    ====================================================== */
+
+    var overall =
+        parseFloat(
+            match.getValue(
+                'overall_score'
+            )
+        );
+
+
+    if (
+        isNaN(overall)
+    ) {
+
+        overall = 0;
+    }
+
+
+    overall =
+        Math.round(
+            overall * 100
+        ) / 100;
+
+
+    /* ======================================================
+       MATCH LEVEL
+    ====================================================== */
+
+    var matchLevel =
+        (
+            match.getValue(
+                'match_level'
+            ) || ''
+        )
+        .toString()
+        .toLowerCase()
+        .trim();
+
+
+    if (!matchLevel) {
+
+        if (
+            overall >= 80
+        ) {
+
+            matchLevel =
+                'strong';
+        }
+        else if (
+            overall >= 65
+        ) {
+
+            matchLevel =
+                'potential';
+        }
+        else {
+
+            matchLevel =
+                'low';
+        }
+    }
+
+
+    /* ======================================================
+       INVALID / LOW MATCH
+    ====================================================== */
+
+    if (
+        matchStatus ===
+        'no_match'
+    ) {
+
+        data.error =
+            'This Match is no longer available for ownership verification.';
+
+        return;
+    }
+
+
+    if (
+        overall < 65 ||
+        matchLevel ===
+        'low'
+    ) {
+
+        data.error =
+            'This Match does not meet the minimum score required for ownership verification.';
+
+        return;
+    }
+
+
+    /* ======================================================
+       POTENTIAL MATCH SECURITY
+
+       Potential Match normally requires staff review first.
+
+       Rejected / Withdrawn are allowed to LOAD here only
+       because an existing Claim may need to show its final
+       status page. A NEW Claim is still blocked later.
+    ====================================================== */
+
+    if (
+        matchLevel ===
+        'potential'
+    ) {
+
+        var hasReviewAudit =
+            false;
+
+
+        if (
+            match.isValidField(
+                'reviewed_by'
+            ) &&
+            match.getValue(
+                'reviewed_by'
+            )
+        ) {
+
+            hasReviewAudit =
+                true;
+        }
+
+
+        if (
+            match.isValidField(
+                'reviewed_on'
+            ) &&
+            match.getValue(
+                'reviewed_on'
+            )
+        ) {
+
+            hasReviewAudit =
+                true;
+        }
+
+
+        var potentialAllowed =
+            (
+                matchStatus ===
+                'confirmed'
+            ) ||
+            (
+                matchStatus ===
+                'active' &&
+                hasReviewAudit
+            ) ||
+            (
+                matchStatus ===
+                'withdrawn'
+            ) ||
+            (
+                matchStatus ===
+                'rejected'
+            );
+
+
+        if (!potentialAllowed) {
+
+            data.error =
+                'Campus staff must verify this Potential Match before ownership verification can begin.';
+
+            return;
+        }
+    }
+
+
+    /* ======================================================
+       ITEM REFERENCES
+    ====================================================== */
+
+    var lostId =
+        match.getValue(
+            'lost_item'
+        );
+
+
+    var foundId =
+        match.getValue(
+            'found_item'
+        );
+
+
+    if (
+        !lostId ||
+        !foundId
+    ) {
+
+        data.error =
+            'The Match does not contain valid Lost and Found Items.';
+
+        return;
+    }
+
+
+    /* ======================================================
+       LOAD LOST / FOUND ITEMS
+    ====================================================== */
+
+    var lost =
+        new GlideRecord(
+            ITEM_TABLE
+        );
+
+
+    var found =
+        new GlideRecord(
+            ITEM_TABLE
+        );
+
+
+    if (
+        !lost.get(
+            lostId
+        ) ||
+        !found.get(
+            foundId
+        )
+    ) {
+
+        data.error =
+            'Matched Item records could not be loaded.';
+
+        return;
+    }
+
+
+    /* ======================================================
+       ONLY LOST REPORT OWNER MAY ACCESS VERIFICATION
+    ====================================================== */
+
+    var access =
+        new CampusMatchAccess();
+
+
+    if (
+        !access.ownsItem(
+            lost
+        )
+    ) {
+
+        data.error =
+            'Only the Lost report owner can complete ownership verification.';
+
+        return;
+    }
+
+
+    var userId =
+        access.getUserId();
+
+
+    /* ======================================================
+       SAFE MATCH DATA
+
+       PRIVATE FOUND DETAILS ARE NEVER SENT TO CLIENT.
+    ====================================================== */
+
+    data.match = {
+
+        sys_id:
+            match.getUniqueValue(),
+
+        overallScore:
+            overall,
+
+        publicTitle:
+            found.getDisplayValue(
+                'public_title'
+            ) ||
+            'Found Item',
+
+        category:
+            found.getDisplayValue(
+                'category'
+            ) ||
+            '—',
+
+        location:
+            found.getDisplayValue(
+                'location_zone'
+            ) ||
+            'Campus'
+    };
+
+
+    /* ======================================================
+       SAFE VERIFICATION QUESTIONS
+    ====================================================== */
+
+    data.questions = {
+
+        question1:
+            (
+                found.getValue(
+                    'verification_question_1'
+                ) || ''
+            )
+            .toString(),
+
+        question2:
+            (
+                found.getValue(
+                    'verification_question_2'
+                ) || ''
+            )
+            .toString(),
+
+        question3:
+            (
+                found.getValue(
+                    'verification_question_3'
+                ) || ''
+            )
+            .toString()
+    };
+
+
+    /* ======================================================
+       CLAIM TABLE
+    ====================================================== */
+
+    var claimTemplate =
+        new GlideRecord(
+            CLAIM_TABLE
+        );
+
+
+    if (
+        !claimTemplate.isValid()
+    ) {
+
+        data.error =
+            'CampusMatch Claim table could not be found.';
+
+        return;
+    }
+
+
+    /* ======================================================
+       CLAIM FIELD DETECTION
+    ====================================================== */
+
+    var CLAIM_MATCH =
+        findField(
+            claimTemplate,
+            [
+                'u_match',
+                'match'
+            ]
+        );
+
+
+    var CLAIM_ITEM =
+        findField(
+            claimTemplate,
+            [
+                'u_item',
+                'item'
+            ]
+        );
+
+
+    var CLAIM_CLAIMANT =
+        findField(
+            claimTemplate,
+            [
+                'u_claimant',
+                'claimant'
+            ]
+        );
+
+
+    var CLAIM_STATUS =
+        findField(
+            claimTemplate,
+            [
+                'u_claim_status',
+                'claim_status',
+                'status'
+            ]
+        );
+
+
+    var CLAIM_DATE =
+        findField(
+            claimTemplate,
+            [
+                'u_claim_date',
+                'claim_date'
+            ]
+        );
+
+
+    var CLAIM_ANSWER_1 =
+        findField(
+            claimTemplate,
+            [
+                'u_claimant_answer_1',
+                'claimant_answer_1'
+            ]
+        );
+
+
+    var CLAIM_ANSWER_2 =
+        findField(
+            claimTemplate,
+            [
+                'u_claimant_answer_2',
+                'claimant_answer_2'
+            ]
+        );
+
+
+    var CLAIM_ANSWER_3 =
+        findField(
+            claimTemplate,
+            [
+                'u_claimant_answer_3',
+                'claimant_answer_3'
+            ]
+        );
+
+
+    var CLAIM_SCORE =
+        findField(
+            claimTemplate,
+            [
+                'u_verification_score',
+                'verification_score'
+            ]
+        );
+
+
+    var CLAIM_RESULT =
+        findField(
+            claimTemplate,
+            [
+                'u_verification_result',
+                'verification_result'
+            ]
+        );
+
+
+    var CLAIM_NUMBER =
+        findField(
+            claimTemplate,
+            [
+                'number',
+                'u_number'
+            ]
+        );
+
+
+    var CLAIM_HANDOVER_COMPLETED =
+        findField(
+            claimTemplate,
+            [
+                'u_handover_completed',
+                'handover_completed'
+            ]
+        );
+
+
+    var CLAIM_WITHDRAWAL_REASON =
+        findField(
+            claimTemplate,
+            [
+                'u_withdrawal_reason',
+                'withdrawal_reason'
+            ]
+        );
+
+
+    var CLAIM_WITHDRAWN_BY =
+        findField(
+            claimTemplate,
+            [
+                'u_withdrawn_by',
+                'withdrawn_by'
+            ]
+        );
+
+
+    var CLAIM_WITHDRAWN_ON =
+        findField(
+            claimTemplate,
+            [
+                'u_withdrawn_on',
+                'withdrawn_on'
+            ]
+        );
+
+
+    /* ======================================================
+       REQUIRED CLAIM FIELDS
+    ====================================================== */
+
+    if (!CLAIM_MATCH) {
+
+        data.error =
+            'Match field could not be found on the Claim table.';
+
+        return;
+    }
+
+
+    if (!CLAIM_ITEM) {
+
+        data.error =
+            'Item field could not be found on the Claim table.';
+
+        return;
+    }
+
+
+    if (!CLAIM_CLAIMANT) {
+
+        data.error =
+            'Claimant field could not be found on the Claim table.';
+
+        return;
+    }
+
+
+    if (!CLAIM_STATUS) {
+
+        data.error =
+            'Claim Status field could not be found on the Claim table.';
+
+        return;
+    }
+
+
+    if (!CLAIM_DATE) {
+
+        data.error =
+            'Claim Date field could not be found on the Claim table.';
+
+        return;
+    }
+
+
+    if (!CLAIM_ANSWER_1) {
+
+        data.error =
+            'Claimant Answer 1 field could not be found.';
+
+        return;
+    }
+
+
+    if (!CLAIM_ANSWER_2) {
+
+        data.error =
+            'Claimant Answer 2 field could not be found.';
+
+        return;
+    }
+
+
+    if (!CLAIM_ANSWER_3) {
+
+        data.error =
+            'Claimant Answer 3 field could not be found.';
+
+        return;
+    }
+
+
+    if (!CLAIM_RESULT) {
+
+        data.error =
+            'Verification Result field could not be found.';
+
+        return;
+    }
+
+
+    /* ======================================================
+       BUILD SAFE CLAIM RESPONSE
+    ====================================================== */
+
+    function buildClaim(
+        claim
+    ) {
+
+        if (!claim) {
+
+            return {
+                exists: false,
+                canWithdraw: false
+            };
+        }
+
+
+        var statusValue =
+            (
+                claim.getValue(
+                    CLAIM_STATUS
+                ) || ''
+            )
+            .toString()
+            .toLowerCase()
+            .trim();
+
+
+        var resultValue =
+            (
+                claim.getValue(
+                    CLAIM_RESULT
+                ) ||
+                'pending'
+            )
+            .toString()
+            .toLowerCase()
+            .trim();
+
+
+        var scoreValue =
+            '0';
+
+
+        if (
+            CLAIM_SCORE
+        ) {
+
+            scoreValue =
+                claim.getValue(
+                    CLAIM_SCORE
+                ) || '0';
+        }
+
+
+        var claimNumber =
+            '';
+
+
+        if (
+            CLAIM_NUMBER
+        ) {
+
+            claimNumber =
+                claim.getDisplayValue(
+                    CLAIM_NUMBER
+                ) || '';
+        }
+
+
+        if (!claimNumber) {
+
+            claimNumber =
+                claim
+                    .getUniqueValue()
+                    .substring(
+                        0,
+                        8
+                    );
+        }
+
+
+        var handoverCompleted =
+            false;
+
+
+        if (
+            CLAIM_HANDOVER_COMPLETED
+        ) {
+
+            handoverCompleted =
+                claim.getValue(
+                    CLAIM_HANDOVER_COMPLETED
+                ) == '1';
+        }
+
+
+        /*
+         * Claim can be withdrawn until physical handover.
+         *
+         * Rejected and already-withdrawn claims cannot
+         * be withdrawn.
+         */
+        var canWithdraw =
+            (
+                !handoverCompleted &&
+                statusValue !==
+                'rejected' &&
+                statusValue !==
+                'withdrawn'
+            );
+
+
+        var withdrawalReason =
+            '';
+
+
+        if (
+            CLAIM_WITHDRAWAL_REASON
+        ) {
+
+            withdrawalReason =
+                (
+                    claim.getValue(
+                        CLAIM_WITHDRAWAL_REASON
+                    ) || ''
+                )
+                .toString();
+        }
+
+
+        var withdrawnBy =
+            '';
+
+
+        if (
+            CLAIM_WITHDRAWN_BY &&
+            claim.getValue(
+                CLAIM_WITHDRAWN_BY
+            )
+        ) {
+
+            withdrawnBy =
+                claim.getDisplayValue(
+                    CLAIM_WITHDRAWN_BY
+                ) || '';
+        }
+
+
+        var withdrawnOn =
+            '';
+
+
+        if (
+            CLAIM_WITHDRAWN_ON &&
+            claim.getValue(
+                CLAIM_WITHDRAWN_ON
+            )
+        ) {
+
+            withdrawnOn =
+                claim.getDisplayValue(
+                    CLAIM_WITHDRAWN_ON
+                ) || '';
+        }
+
+
+        return {
+
+            exists:
+                true,
+
+            sys_id:
+                claim.getUniqueValue(),
+
+            number:
+                claimNumber,
+
+            statusValue:
+                statusValue,
+
+            statusDisplay:
+                claim.getDisplayValue(
+                    CLAIM_STATUS
+                ) ||
+                'Submitted',
+
+            verificationScore:
+                scoreValue,
+
+            verificationResult:
+                resultValue,
+
+            verificationDisplay:
+                claim.getDisplayValue(
+                    CLAIM_RESULT
+                ) ||
+                'Pending',
+
+            handoverCompleted:
+                handoverCompleted,
+
+            canWithdraw:
+                canWithdraw,
+
+            isWithdrawn:
+                statusValue ===
+                'withdrawn',
+
+            withdrawalReason:
+                withdrawalReason,
+
+            withdrawnBy:
+                withdrawnBy,
+
+            withdrawnOn:
+                withdrawnOn
+        };
+    }
+
+
+    /* ======================================================
+       FIND CURRENT USER'S CLAIM FOR THIS MATCH
+
+       VERY IMPORTANT:
+       This means another user's Claim cannot be modified.
+    ====================================================== */
+
+    function findClaim() {
+
+        var gr =
+            new GlideRecord(
+                CLAIM_TABLE
+            );
+
+
+        gr.addQuery(
+            CLAIM_MATCH,
+            matchId
+        );
+
+
+        gr.addQuery(
+            CLAIM_CLAIMANT,
+            userId
+        );
+
+
+        gr.orderByDesc(
+            'sys_created_on'
+        );
+
+
+        gr.setLimit(
+            1
+        );
+
+
+        gr.query();
+
+
+        if (
+            gr.next()
+        ) {
+
+            return gr;
+        }
+
+
+        return null;
+    }
+
+
+    /* ======================================================
+       REFRESH CLAIM STATUS
+    ====================================================== */
+
+    if (
+        input &&
+        input.action ===
+        'refreshStatus'
+    ) {
+
+        data.claim =
+            buildClaim(
+                findClaim()
+            );
+
+
+        data.success =
+            true;
+
+        return;
+    }
+
+
+    /* ======================================================
+       WITHDRAW CLAIM
+    ====================================================== */
+
+    if (
+        input &&
+        input.action ===
+        'withdrawClaim'
+    ) {
+
+        var claimToWithdraw =
+            findClaim();
+
+
+        /* --------------------------------------------------
+           CLAIM MUST EXIST
+        -------------------------------------------------- */
+
+        if (
+            !claimToWithdraw
+        ) {
+
+            data.success =
+                false;
+
+            data.message =
+                'No ownership claim was found for this Match.';
+
+            return;
+        }
+
+
+        var currentClaimStatus =
+            (
+                claimToWithdraw.getValue(
+                    CLAIM_STATUS
+                ) || ''
+            )
+            .toString()
+            .toLowerCase()
+            .trim();
+
+
+        /* --------------------------------------------------
+           HANDOVER CHECK
+        -------------------------------------------------- */
+
+        var handoverAlreadyCompleted =
+            false;
+
+
+        if (
+            CLAIM_HANDOVER_COMPLETED
+        ) {
+
+            handoverAlreadyCompleted =
+                claimToWithdraw.getValue(
+                    CLAIM_HANDOVER_COMPLETED
+                ) == '1';
+        }
+
+
+        if (
+            handoverAlreadyCompleted
+        ) {
+
+            data.success =
+                false;
+
+            data.message =
+                'This claim cannot be withdrawn because the item has already been collected.';
+
+            data.claim =
+                buildClaim(
+                    claimToWithdraw
+                );
+
+            return;
+        }
+
+
+        /* --------------------------------------------------
+           ALREADY WITHDRAWN
+        -------------------------------------------------- */
+
+        if (
+            currentClaimStatus ===
+            'withdrawn'
+        ) {
+
+            data.success =
+                false;
+
+            data.message =
+                'This claim has already been withdrawn.';
+
+            data.claim =
+                buildClaim(
+                    claimToWithdraw
+                );
+
+            return;
+        }
+
+
+        /* --------------------------------------------------
+           REJECTED CLAIM
+        -------------------------------------------------- */
+
+        if (
+            currentClaimStatus ===
+            'rejected'
+        ) {
+
+            data.success =
+                false;
+
+            data.message =
+                'A rejected claim cannot be withdrawn.';
+
+            data.claim =
+                buildClaim(
+                    claimToWithdraw
+                );
+
+            return;
+        }
+
+
+        /* --------------------------------------------------
+           WITHDRAWAL FIELDS REQUIRED
+        -------------------------------------------------- */
+
+        if (
+            !CLAIM_WITHDRAWAL_REASON ||
+            !CLAIM_WITHDRAWN_BY ||
+            !CLAIM_WITHDRAWN_ON
+        ) {
+
+            data.success =
+                false;
+
+            data.message =
+                'Withdrawal audit fields are not configured on the Claim table.';
+
+            return;
+        }
+
+
+        /* --------------------------------------------------
+           WITHDRAWAL REASON
+        -------------------------------------------------- */
+
+        var withdrawalReason =
+            (
+                input.withdrawal_reason ||
+                ''
+            )
+            .toString()
+            .trim();
+
+
+        if (
+            withdrawalReason.length >
+            500
+        ) {
+
+            withdrawalReason =
+                withdrawalReason.substring(
+                    0,
+                    500
+                );
+        }
+
+
+        /* --------------------------------------------------
+           UPDATE CLAIM
+        -------------------------------------------------- */
+
+        claimToWithdraw.setValue(
+            CLAIM_STATUS,
+            'withdrawn'
+        );
+
+
+        claimToWithdraw.setValue(
+            CLAIM_WITHDRAWAL_REASON,
+            withdrawalReason
+        );
+
+
+        claimToWithdraw.setValue(
+            CLAIM_WITHDRAWN_BY,
+            userId
+        );
+
+
+        claimToWithdraw.setValue(
+            CLAIM_WITHDRAWN_ON,
+            new GlideDateTime()
+        );
+
+
+        var withdrawnClaimId =
+            claimToWithdraw.update();
+
+
+        if (
+            !withdrawnClaimId
+        ) {
+
+            data.success =
+                false;
+
+            data.message =
+                'The claim could not be withdrawn.';
+
+            return;
+        }
+
+
+        claimToWithdraw.get(
+            withdrawnClaimId
+        );
+
+
+        /* ==================================================
+           UPDATE MATCH
+
+           DO NOT touch AI scores.
+           DO NOT touch Match Level.
+           Only lifecycle Status changes.
+        ================================================== */
+
+        if (
+            match.isValidField(
+                'status'
+            )
+        ) {
+
+            match.setValue(
+                'status',
+                'withdrawn'
+            );
+
+
+            match.update();
+        }
+
+
+        /* ==================================================
+           IMPORTANT
+
+           Collection Token is intentionally NOT deleted.
+
+           The QR Collection widget must reject the token
+           because Claim Status is no longer Approved.
+
+           Handover Completed remains FALSE.
+
+           Lost / Found records are NOT resolved here.
+        ================================================== */
+
+
+        data.success =
+            true;
+
+
+        data.message =
+            'Your ownership claim has been withdrawn.';
+
+
+        data.claim =
+            buildClaim(
+                claimToWithdraw
+            );
+
+
+        data.canVerify =
+            false;
+
+        return;
+    }
+
+
+    /* ======================================================
+       SUBMIT OWNERSHIP CLAIM
+    ====================================================== */
+
+    if (
+        input &&
+        input.action ===
+        'submitClaim'
+    ) {
+
+        /* --------------------------------------------------
+           CLOSED MATCH CANNOT BE CLAIMED AGAIN
+        -------------------------------------------------- */
+
+        if (
+            matchStatus ===
+            'withdrawn' ||
+            matchStatus ===
+            'rejected'
+        ) {
+
+            data.success =
+                false;
+
+
+            data.message =
+                'This Match is no longer available for a new ownership claim.';
+
+
+            data.claim =
+                buildClaim(
+                    findClaim()
+                );
+
+
+            data.canVerify =
+                false;
+
+            return;
+        }
+
+
+        /* --------------------------------------------------
+           ANSWERS
+        -------------------------------------------------- */
+
+        var answer1 =
+            (
+                input.answer1 || ''
+            )
+            .toString()
+            .trim();
+
+
+        var answer2 =
+            (
+                input.answer2 || ''
+            )
+            .toString()
+            .trim();
+
+
+        var answer3 =
+            (
+                input.answer3 || ''
+            )
+            .toString()
+            .trim();
+
+
+        /* --------------------------------------------------
+           FIRST TWO QUESTIONS REQUIRED
+        -------------------------------------------------- */
+
+        if (
+            !answer1 ||
+            !answer2
+        ) {
+
+            data.success =
+                false;
+
+            data.message =
+                'Please answer the first two ownership questions.';
+
+            return;
+        }
+
+
+        /* --------------------------------------------------
+           EXISTING CLAIM CHECK
+        -------------------------------------------------- */
+
+        var claim =
+            findClaim();
+
+
+        /*
+         * IMPORTANT:
+         *
+         * ONE USER + ONE MATCH = ONE CLAIM ONLY.
+         *
+         * This prevents:
+         *
+         * Rejected → claim again
+         * Withdrawn → claim again
+         * Approved → claim again
+         * Submitted → duplicate claim
+         */
+        if (
+            claim
+        ) {
+
+            data.success =
+                false;
+
+
+            data.message =
+                'You already have an ownership claim for this Match.';
+
+
+            data.claim =
+                buildClaim(
+                    claim
+                );
+
+
+            data.canVerify =
+                false;
+
+            return;
+        }
+
+
+        /* ==================================================
+           CREATE NEW CLAIM
+        ================================================== */
+
+        claim =
+            new GlideRecord(
+                CLAIM_TABLE
+            );
+
+
+        claim.initialize();
+
+
+        claim.setValue(
+            CLAIM_MATCH,
+            matchId
+        );
+
+
+        claim.setValue(
+            CLAIM_ITEM,
+            foundId
+        );
+
+
+        claim.setValue(
+            CLAIM_CLAIMANT,
+            userId
+        );
+
+
+        claim.setValue(
+            CLAIM_STATUS,
+            'Submitted'
+        );
+
+
+        claim.setValue(
+            CLAIM_DATE,
+            new GlideDateTime()
+        );
+
+
+        /*
+         * Insert first.
+         *
+         * Then save answers so your existing verification
+         * Business Rule can process the updated Claim.
+         */
+
+        var insertedId =
+            claim.insert();
+
+
+        if (
+            !insertedId
+        ) {
+
+            data.success =
+                false;
+
+            data.message =
+                'Claim could not be created.';
+
+            return;
+        }
+
+
+        claim.get(
+            insertedId
+        );
+
+
+        /* ==================================================
+           SAVE ANSWERS
+        ================================================== */
+
+        claim.setValue(
+            CLAIM_ANSWER_1,
+            answer1
+        );
+
+
+        claim.setValue(
+            CLAIM_ANSWER_2,
+            answer2
+        );
+
+
+        claim.setValue(
+            CLAIM_ANSWER_3,
+            answer3
+        );
+
+
+        var updatedId =
+            claim.update();
+
+
+        if (
+            !updatedId
+        ) {
+
+            data.success =
+                false;
+
+            data.message =
+                'Verification answers could not be saved.';
+
+            return;
+        }
+
+
+        claim.get(
+            updatedId
+        );
+
+
+        /* ==================================================
+           RESPONSE
+        ================================================== */
+
+        data.success =
+            true;
+
+
+        data.message =
+            'Ownership verification submitted.';
+
+
+        data.claim =
+            buildClaim(
+                claim
+            );
+
+
+        data.canVerify =
+            false;
+
+        return;
+    }
+
+
+    /* ======================================================
+       NORMAL PAGE LOAD
+    ====================================================== */
+
+    var existingClaim =
+        findClaim();
+
+
+    data.claim =
+        buildClaim(
+            existingClaim
+        );
+
+
+    /*
+     * Only show the verification form when NO Claim
+     * exists for this current user + Match.
+     *
+     * Rejected / Withdrawn users cannot reclaim.
+     */
+    data.canVerify =
+        (
+            !data.claim.exists &&
+            matchStatus !==
+            'withdrawn' &&
+            matchStatus !==
+            'rejected'
+        );
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 12:39:13</sys_created_on>
+        <sys_id>9d43f22f559f03107f4447f82ce732e7</sys_id>
+        <sys_mod_count>20</sys_mod_count>
+        <sys_name>CampusMatch Ownership Verification</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_9d43f22f559f03107f4447f82ce732e7</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-27 12:36:07</sys_updated_on>
+        <template><![CDATA[<section class="cm-verify-page">
+
+  <div class="cm-verify-container">
+
+
+    <!-- ==========================================
+         BACK
+    =========================================== -->
+
+    <a
+      class="cm-back-link"
+      ng-href="?id=campusmatch_match&match_id={{data.match.sys_id}}"
+      ng-if="data.match">
+
+      ← Back to Match
+
+    </a>
+
+
+    <!-- ==========================================
+         ERROR / ACCESS
+    =========================================== -->
+
+    <div
+      class="cm-state-card"
+      ng-if="data.error">
+
+      <div class="cm-state-icon">
+        !
+      </div>
+
+      <h2>
+        Verification unavailable
+      </h2>
+
+      <p>
+        {{data.error}}
+      </p>
+
+      <a href="?id=campusmatch_dashboard">
+        Return to Dashboard
+      </a>
+
+    </div>
+
+
+    <!-- ==========================================
+         MAIN
+    =========================================== -->
+
+    <div
+      ng-if="!data.error && data.match">
+
+
+      <!-- ========================================
+           HEADER
+      ========================================= -->
+
+      <div class="cm-verify-header">
+
+        <span class="cm-eyebrow">
+          ✦ Secure Ownership Verification
+        </span>
+
+        <h1>
+          Is this your item?
+        </h1>
+
+        <p ng-if="data.canVerify">
+          Answer a few private questions.
+          Your answers will be compared securely with
+          details provided by the finder.
+        </p>
+
+        <p
+          ng-if="
+            !data.canVerify &&
+            data.claim.exists &&
+            data.claim.statusValue !== 'withdrawn'
+          ">
+          Your ownership claim has been submitted.
+          Track its progress below.
+        </p>
+
+        <p
+          ng-if="
+            data.claim.exists &&
+            data.claim.statusValue === 'withdrawn'
+          ">
+          You withdrew this ownership claim.
+          The item can no longer be collected through this claim.
+        </p>
+
+      </div>
+
+
+      <!-- ========================================
+           ITEM SUMMARY
+      ========================================= -->
+
+      <div class="cm-item-summary">
+
+        <div class="cm-item-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7">
+
+            <rect
+              x="5"
+              y="6"
+              width="14"
+              height="14"
+              rx="3">
+            </rect>
+
+            <path
+              d="M8 6V5a4 4 0 0 1 8 0v1">
+            </path>
+
+          </svg>
+
+        </div>
+
+
+        <div class="cm-item-summary-main">
+
+          <span>
+            Potential Found Match
+          </span>
+
+          <h2>
+            {{data.match.publicTitle}}
+          </h2>
+
+          <div class="cm-item-meta">
+
+            <span>
+              {{data.match.category}}
+            </span>
+
+            <span>
+              {{data.match.location}}
+            </span>
+
+            <span>
+              Match {{data.match.overallScore}}%
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ========================================
+           PRIVACY NOTICE
+      ========================================= -->
+
+      <div class="cm-privacy-note">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2">
+
+          <rect
+            x="3"
+            y="11"
+            width="18"
+            height="10"
+            rx="2">
+          </rect>
+
+          <path
+            d="M7 11V7a5 5 0 0 1 10 0v4">
+          </path>
+
+        </svg>
+
+
+        <div>
+
+          <strong>
+            The finder's answers are never shown to you.
+          </strong>
+
+          <p>
+            Describe what you already know about the item.
+            CampusMatch compares your answers privately.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- ========================================
+           QUESTION FORM
+      ========================================= -->
+
+      <div
+        class="cm-question-card"
+        ng-if="data.canVerify && !c.submitted">
+
+
+        <!-- QUESTION 1 -->
+
+        <div class="cm-question-heading">
+
+          <div class="cm-question-number">
+            1
+          </div>
+
+          <div>
+
+            <h3>
+              {{data.questions.question1 || 'Describe a distinctive detail'}}
+            </h3>
+
+            <p>
+              Answer in your own words using only details
+              you already know about the item.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <textarea
+          ng-model="c.answers.answer1"
+          placeholder="Enter your answer in your own words...">
+        </textarea>
+
+
+        <!-- QUESTION 2 -->
+
+        <div class="cm-question-divider"></div>
+
+        <div class="cm-question-heading">
+
+          <div class="cm-question-number">
+            2
+          </div>
+
+          <div>
+
+            <h3>
+              {{data.questions.question2 || 'Describe another identifying detail'}}
+            </h3>
+
+            <p>
+              Be as specific as you can without guessing.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <textarea
+          ng-model="c.answers.answer2"
+          placeholder="Enter your answer in your own words...">
+        </textarea>
+
+
+        <!-- QUESTION 3 -->
+
+        <div ng-if="data.questions.question3">
+
+          <div class="cm-question-divider"></div>
+
+          <div class="cm-question-heading">
+
+            <div class="cm-question-number">
+              3
+            </div>
+
+            <div>
+
+              <h3>
+                {{data.questions.question3}}
+              </h3>
+
+              <p>
+                Optional — answer this if you remember the detail.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <textarea
+            ng-model="c.answers.answer3"
+            placeholder="Optional answer...">
+          </textarea>
+
+        </div>
+
+
+        <!-- ERROR -->
+
+        <div
+          class="cm-form-error"
+          ng-if="c.errorMessage">
+
+          {{c.errorMessage}}
+
+        </div>
+
+
+        <!-- SUBMIT -->
+
+        <button
+          class="cm-submit-button"
+          type="button"
+          ng-disabled="c.submitting"
+          ng-click="c.submitClaim()">
+
+          <span ng-if="!c.submitting">
+            Submit for Verification →
+          </span>
+
+          <span ng-if="c.submitting">
+            Verifying...
+          </span>
+
+        </button>
+
+
+        <p class="cm-submit-note">
+          Submission does not automatically release the
+          item. Campus staff complete the final handover.
+        </p>
+
+      </div>
+
+
+      <!-- ========================================
+           CLAIM STATUS
+      ========================================= -->
+
+      <div
+        class="cm-status-card"
+        ng-if="
+          data.claim.exists &&
+          (!data.canVerify || c.submitted)
+        ">
+
+
+        <!-- ========================================
+             STATUS ICON
+        ========================================= -->
+
+        <div
+          class="cm-result-icon"
+          ng-class="c.resultClass()">
+
+
+          <!-- WITHDRAWN -->
+
+          <svg
+            ng-if="
+              data.claim.statusValue === 'withdrawn' &&
+              !data.claim.handoverCompleted
+            "
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2">
+
+            <circle
+              cx="12"
+              cy="12"
+              r="9">
+            </circle>
+
+            <path
+              d="M8.5 8.5l7 7">
+            </path>
+
+            <path
+              d="M15.5 8.5l-7 7">
+            </path>
+
+          </svg>
+
+
+          <!-- APPROVED / HANDED OVER -->
+
+          <svg
+            ng-if="
+              data.claim.statusValue === 'approved' ||
+              data.claim.handoverCompleted
+            "
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2">
+
+            <path
+              d="M20 6 9 17l-5-5">
+            </path>
+
+          </svg>
+
+
+          <!-- PASS -->
+
+          <svg
+            ng-if="
+              data.claim.verificationResult === 'pass' &&
+              data.claim.statusValue !== 'approved' &&
+              data.claim.statusValue !== 'withdrawn' &&
+              !data.claim.handoverCompleted
+            "
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2">
+
+            <path
+              d="M20 6 9 17l-5-5">
+            </path>
+
+          </svg>
+
+
+          <!-- REVIEW -->
+
+          <svg
+            ng-if="
+              data.claim.verificationResult === 'review' &&
+              data.claim.statusValue !== 'approved' &&
+              data.claim.statusValue !== 'withdrawn' &&
+              !data.claim.handoverCompleted
+            "
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2">
+
+            <circle
+              cx="12"
+              cy="12"
+              r="9">
+            </circle>
+
+            <path d="M12 7v6"></path>
+            <path d="M12 17h.01"></path>
+
+          </svg>
+
+
+          <!-- FAIL -->
+
+          <svg
+            ng-if="
+              data.claim.verificationResult === 'fail' &&
+              data.claim.statusValue !== 'approved' &&
+              data.claim.statusValue !== 'withdrawn' &&
+              !data.claim.handoverCompleted
+            "
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2">
+
+            <circle
+              cx="12"
+              cy="12"
+              r="9">
+            </circle>
+
+            <path d="m9 9 6 6"></path>
+            <path d="m15 9-6 6"></path>
+
+          </svg>
+
+
+          <!-- PENDING -->
+
+          <span
+            ng-if="
+              (
+                data.claim.verificationResult === 'pending' ||
+                !data.claim.verificationResult
+              ) &&
+              data.claim.statusValue !== 'approved' &&
+              data.claim.statusValue !== 'withdrawn' &&
+              !data.claim.handoverCompleted
+            ">
+
+            …
+
+          </span>
+
+        </div>
+
+
+        <span class="cm-status-eyebrow">
+          Claim {{data.claim.number}}
+        </span>
+
+
+        <!-- ========================================
+             WITHDRAWN
+        ========================================= -->
+
+        <div
+          ng-if="
+            data.claim.statusValue === 'withdrawn' &&
+            !data.claim.handoverCompleted
+          ">
+
+          <h2>
+            Claim withdrawn
+          </h2>
+
+          <p>
+            You withdrew your ownership claim for this Match.
+            Any collection pass linked to this claim is no longer valid.
+          </p>
+
+          <div
+            class="cm-withdrawal-meta"
+            ng-if="
+              data.claim.withdrawnOn ||
+              data.claim.withdrawalReason
+            ">
+
+            <span ng-if="data.claim.withdrawnOn">
+              Withdrawn on {{data.claim.withdrawnOn}}
+            </span>
+
+            <span ng-if="data.claim.withdrawalReason">
+              Reason: {{data.claim.withdrawalReason}}
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- ========================================
+             PASS
+             NO MANUAL STAFF REVIEW REQUIRED
+        ========================================= -->
+
+        <div
+          ng-if="
+            data.claim.verificationResult === 'pass' &&
+            data.claim.statusValue !== 'approved' &&
+            data.claim.statusValue !== 'withdrawn' &&
+            !data.claim.handoverCompleted
+          ">
+
+          <h2>
+            Ownership check passed
+          </h2>
+
+          <p>
+            Your answers matched strongly.
+            No manual staff review is required.
+            CampusMatch is preparing your item for secure collection.
+          </p>
+
+        </div>
+
+
+        <!-- ========================================
+             REVIEW - WAITING FOR STAFF
+        ========================================= -->
+
+        <div
+          ng-if="
+            data.claim.verificationResult === 'review' &&
+            data.claim.statusValue !== 'approved' &&
+            data.claim.statusValue !== 'rejected' &&
+            data.claim.statusValue !== 'withdrawn' &&
+            !data.claim.handoverCompleted
+          ">
+
+          <h2>
+            Staff review required
+          </h2>
+
+          <p>
+            Some details matched, but the claim needs a
+            human review before a decision is made.
+          </p>
+
+        </div>
+
+
+        <!-- ========================================
+             APPROVED - READY FOR COLLECTION
+        ========================================= -->
+
+        <div
+          ng-if="
+            data.claim.statusValue === 'approved' &&
+            !data.claim.handoverCompleted
+          ">
+
+          <h2>
+            Claim approved
+          </h2>
+
+          <p>
+            Your ownership claim has been approved.
+            The item is ready for secure collection
+            at the Security Desk.
+          </p>
+
+        </div>
+
+
+        <!-- ========================================
+             HANDOVER COMPLETED
+        ========================================= -->
+
+        <div
+          ng-if="
+            data.claim.handoverCompleted
+          ">
+
+          <h2>
+            Item collected
+          </h2>
+
+          <p>
+            The secure physical handover has been
+            completed successfully.
+          </p>
+
+        </div>
+
+
+        <!-- ========================================
+             FAIL / REJECTED
+        ========================================= -->
+
+        <div
+          ng-if="
+            (
+              data.claim.verificationResult === 'fail' ||
+              data.claim.statusValue === 'rejected'
+            ) &&
+            data.claim.statusValue !== 'approved' &&
+            data.claim.statusValue !== 'withdrawn' &&
+            !data.claim.handoverCompleted
+          ">
+
+          <h2>
+            Ownership could not be verified
+          </h2>
+
+          <p>
+            The submitted details did not sufficiently
+            match the private information for this item.
+          </p>
+
+        </div>
+
+
+        <!-- ========================================
+             PENDING
+        ========================================= -->
+
+        <div
+          ng-if="
+            (
+              data.claim.verificationResult === 'pending' ||
+              !data.claim.verificationResult
+            ) &&
+            data.claim.statusValue !== 'approved' &&
+            data.claim.statusValue !== 'rejected' &&
+            data.claim.statusValue !== 'withdrawn' &&
+            !data.claim.handoverCompleted
+          ">
+
+          <h2>
+            Verification in progress
+          </h2>
+
+          <p>
+            Your answers have been submitted securely.
+            CampusMatch is processing the ownership check.
+          </p>
+
+        </div>
+
+
+        <!-- ========================================
+             CURRENT STATUS
+        ========================================= -->
+
+        <div class="cm-current-status">
+
+          <span>
+            Current Status
+          </span>
+
+          <strong>
+            {{
+              data.claim.handoverCompleted
+                ? 'Completed'
+                : (
+                    data.claim.statusDisplay ||
+                    'Verification Pending'
+                  )
+            }}
+          </strong>
+
+        </div>
+
+
+        <!-- ========================================
+             PROGRESS TIMELINE
+        ========================================= -->
+
+        <div class="cm-timeline">
+
+
+          <!-- CLAIM SUBMITTED -->
+
+          <div class="cm-timeline-item completed">
+
+            <span class="cm-timeline-dot"></span>
+
+            <div>
+
+              <strong>
+                Claim submitted
+              </strong>
+
+              <small>
+                Complete
+              </small>
+
+            </div>
+
+          </div>
+
+
+          <!-- OWNERSHIP VERIFICATION -->
+
+          <div
+            class="cm-timeline-item"
+            ng-class="{
+              'completed':
+                data.claim.verificationResult === 'pass' ||
+                data.claim.verificationResult === 'review' ||
+                data.claim.verificationResult === 'fail',
+
+              'active':
+                data.claim.verificationResult === 'pending'
+            }">
+
+            <span class="cm-timeline-dot"></span>
+
+            <div>
+
+              <strong>
+                Ownership verification
+              </strong>
+
+              <small>
+
+                {{
+                  data.claim.verificationResult === 'pending'
+                    ? 'In progress'
+                    : data.claim.verificationDisplay
+                }}
+
+              </small>
+
+            </div>
+
+          </div>
+
+
+          <!-- ========================================
+               STAFF REVIEW
+
+               PASS   -> NOT REQUIRED
+               REVIEW -> MANUAL REVIEW
+               FAIL   -> NOT REQUIRED
+          ========================================= -->
+
+          <div
+            class="cm-timeline-item"
+            ng-class="{
+
+              'completed':
+                data.claim.verificationResult === 'pass' ||
+                (
+                  data.claim.verificationResult === 'review' &&
+                  data.claim.statusValue === 'approved'
+                ),
+
+              'active':
+                data.claim.verificationResult === 'review' &&
+                (
+                  data.claim.statusValue === 'under review' ||
+                  data.claim.statusValue === 'submitted'
+                )
+
+            }">
+
+            <span class="cm-timeline-dot"></span>
+
+            <div>
+
+              <strong>
+                Staff review
+              </strong>
+
+              <small>
+
+                {{
+
+                  data.claim.verificationResult === 'pass'
+
+                    ? 'Not required'
+
+                    : (
+                        data.claim.verificationResult === 'fail'
+
+                          ? 'Not required'
+
+                          : (
+                              data.claim.verificationResult === 'review' &&
+                              data.claim.statusValue === 'approved'
+
+                                ? 'Approved'
+
+                                : (
+                                    data.claim.verificationResult === 'review' &&
+                                    data.claim.statusValue === 'rejected'
+
+                                      ? 'Rejected'
+
+                                      : (
+                                          data.claim.verificationResult === 'review'
+
+                                            ? 'In progress'
+
+                                            : 'Pending'
+                                        )
+                                  )
+                            )
+                      )
+
+                }}
+
+              </small>
+
+            </div>
+
+          </div>
+
+
+          <!-- ========================================
+               SECURE HANDOVER
+          ========================================= -->
+
+          <div
+            class="cm-timeline-item"
+            ng-class="{
+
+              'completed':
+                data.claim.handoverCompleted,
+
+              'active':
+                data.claim.statusValue === 'approved' &&
+                !data.claim.handoverCompleted
+
+            }">
+
+            <span class="cm-timeline-dot"></span>
+
+            <div>
+
+              <strong>
+                Secure handover
+              </strong>
+
+              <small>
+
+                {{
+
+                  data.claim.handoverCompleted
+
+                    ? 'Completed'
+
+                    : (
+                        data.claim.statusValue === 'approved'
+
+                          ? 'Ready for collection'
+
+                          : (
+                              data.claim.statusValue === 'withdrawn'
+
+                                ? 'Cancelled'
+
+                                : (
+                                    data.claim.verificationResult === 'fail' ||
+                                    data.claim.statusValue === 'rejected'
+
+                                      ? 'Not available'
+
+                                      : 'Pending'
+                                  )
+                            )
+                      )
+
+                }}
+
+              </small>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+
+        <!-- ========================================
+             ACTIONS
+        ========================================= -->
+
+        <div class="cm-status-actions">
+
+          <button
+            class="cm-withdraw-button"
+            type="button"
+            ng-if="data.claim.canWithdraw"
+            ng-click="c.openWithdrawModal()">
+            Withdraw Claim
+          </button>
+
+
+          <button
+            type="button"
+            ng-click="c.refreshStatus()"
+            ng-disabled="c.refreshing">
+
+            {{
+              c.refreshing
+                ? 'Refreshing...'
+                : 'Refresh Status'
+            }}
+
+          </button>
+
+
+          <a href="?id=campusmatch_dashboard">
+            Back to Dashboard
+          </a>
+
+        </div>
+
+
+      </div>
+
+
+      <!-- ========================================
+           WITHDRAW CONFIRMATION MODAL
+      ========================================= -->
+
+      <div
+        class="cm-modal-backdrop"
+        ng-if="c.showWithdrawModal"
+        ng-click="c.closeWithdrawModal()">
+
+        <div
+          class="cm-withdraw-modal"
+          ng-click="$event.stopPropagation()">
+
+          <div class="cm-withdraw-modal-icon">
+            !
+          </div>
+
+          <h2>
+            Withdraw this claim?
+          </h2>
+
+          <p>
+            If this item is not yours, you can withdraw your claim.
+            Any collection QR or collection pass for this claim will
+            no longer be valid.
+          </p>
+
+          <label for="cm-withdraw-reason">
+            Reason (optional)
+          </label>
+
+          <textarea
+            id="cm-withdraw-reason"
+            ng-model="c.withdrawReason"
+            maxlength="500"
+            placeholder="For example: I realised this is not my item.">
+          </textarea>
+
+          <div
+            class="cm-modal-error"
+            ng-if="c.errorMessage">
+
+            {{c.errorMessage}}
+
+          </div>
+
+          <div class="cm-withdraw-modal-actions">
+
+            <button
+              class="cm-modal-cancel"
+              type="button"
+              ng-click="c.closeWithdrawModal()"
+              ng-disabled="c.withdrawing">
+              Cancel
+            </button>
+
+            <button
+              class="cm-modal-confirm"
+              type="button"
+              ng-click="c.withdrawClaim()"
+              ng-disabled="c.withdrawing">
+
+              {{
+                c.withdrawing
+                  ? 'Withdrawing...'
+                  : 'Withdraw Claim'
+              }}
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+</section>]]></template>
+    </sp_widget>
+</record_update>

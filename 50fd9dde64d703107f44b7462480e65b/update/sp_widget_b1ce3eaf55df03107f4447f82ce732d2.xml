@@ -1,0 +1,2004 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function() {
+  /* widget controller */
+  var c = this;
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ==========================================================
+   CAMPUSMATCH ABOUT
+   WEBSITE + NOW MOBILE APP
+   FULL-BLEED SAFE VERSION
+========================================================== */
+
+.cm-about-page {
+  position: relative;
+  display: block;
+
+  /* FULL WIDTH OUTSIDE SERVICENOW WRAPPER */
+  width: 100vw !important;
+  max-width: 100vw !important;
+
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+
+  min-height: 100vh;
+  min-height: 100svh;
+
+  padding:
+    68px
+    20px
+    90px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #FBF8EF 0%,
+      #F5F7F0 100%
+    );
+
+  /*
+     Covers ServiceNow's external top/bottom white spacing
+     WITHOUT using negative margins and WITHOUT touching header.
+  */
+  box-shadow:
+    0 -60px 0 #FBF8EF,
+    0 60px 0 #F5F7F0;
+
+  color: #102E34;
+
+  font-family:
+    "DM Sans",
+    "Segoe UI",
+    sans-serif;
+
+  box-sizing: border-box !important;
+
+  overflow-x: hidden;
+}
+
+
+/* ==========================================================
+   SAFE BOX SIZING
+========================================================== */
+
+.cm-about-page,
+.cm-about-page *,
+.cm-about-page *::before,
+.cm-about-page *::after {
+  box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   MAIN CONTAINER
+========================================================== */
+
+.cm-about-container {
+  position: relative;
+
+  width: 100%;
+
+  max-width: 1180px;
+
+  margin: 0 auto;
+}
+
+
+/* ==========================================================
+   HERO
+========================================================== */
+
+.cm-about-hero {
+  max-width: 790px;
+
+  margin:
+    0
+    auto
+    75px;
+
+  text-align: center;
+}
+
+
+.cm-eyebrow,
+.cm-section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+
+  padding:
+    8px
+    16px;
+
+  margin-bottom: 16px;
+
+  border-radius: 999px;
+
+  background: #EDF5E9;
+
+  color: #15564B;
+
+  font-size: 13px;
+
+  font-weight: 800;
+}
+
+
+.cm-about-hero h1 {
+  margin:
+    0
+    0
+    16px;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 58px;
+
+  line-height: 1.06;
+
+  font-weight: 700;
+
+  letter-spacing: -2.2px;
+}
+
+
+.cm-about-hero h1 span {
+  color: #249D78;
+}
+
+
+.cm-about-hero &gt; p {
+  max-width: 690px;
+
+  margin:
+    0
+    auto
+    28px;
+
+  color: #617477;
+
+  font-size: 17px;
+
+  line-height: 1.75;
+}
+
+
+.cm-hero-actions {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 10px;
+}
+
+
+.cm-hero-actions a {
+  padding:
+    12px
+    20px;
+
+  border-radius: 999px;
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  text-decoration: none !important;
+}
+
+
+.cm-primary-btn {
+  background: #104E45;
+
+  color: #FFFFFF !important;
+}
+
+
+.cm-secondary-btn {
+  border: 1.5px solid #D2DED8;
+
+  background: #FFFFFF;
+
+  color: #104E45 !important;
+}
+
+
+/* ==========================================================
+   PROBLEM / SOLUTION STORY
+========================================================== */
+
+.cm-story-section {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    70px
+    minmax(0,1fr);
+
+  align-items: center;
+
+  gap: 16px;
+
+  margin-bottom: 90px;
+}
+
+
+.cm-story-card {
+  min-height: 285px;
+
+  padding: 34px;
+
+  border-radius: 27px;
+}
+
+
+.cm-problem-card {
+  border: 1px solid #E6D6CF;
+
+  background: #FBF2EE;
+}
+
+
+.cm-solution-card {
+  border: 1px solid #CCE0D5;
+
+  background: #EDF5E9;
+}
+
+
+.cm-story-label {
+  display: inline-flex;
+
+  margin-bottom: 16px;
+
+  color: #718185;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: .75px;
+}
+
+
+.cm-story-card h2 {
+  max-width: 430px;
+
+  margin:
+    0
+    0
+    14px;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 27px;
+
+  line-height: 1.35;
+}
+
+
+.cm-story-card p {
+  margin: 0;
+
+  color: #617477;
+
+  font-size: 14px;
+
+  line-height: 1.75;
+}
+
+
+.cm-story-arrow {
+  width: 53px;
+
+  height: 53px;
+
+  margin: auto;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #104E45;
+
+  color: #FFFFFF;
+
+  font-size: 23px;
+
+  box-shadow:
+    0 8px 20px rgba(16,78,69,.15);
+}
+
+
+/* ==========================================================
+   DIFFERENCE SECTION
+========================================================== */
+
+.cm-difference-section {
+  margin-bottom: 90px;
+}
+
+
+.cm-section-heading {
+  max-width: 690px;
+
+  margin:
+    0
+    auto
+    38px;
+
+  text-align: center;
+}
+
+
+.cm-section-heading h2 {
+  margin:
+    0
+    0
+    11px;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 35px;
+}
+
+
+.cm-section-heading p {
+  margin: 0;
+
+  color: #687A7E;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+
+.cm-feature-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0,1fr));
+
+  gap: 16px;
+}
+
+
+.cm-feature-card {
+  position: relative;
+
+  min-width: 0;
+
+  min-height: 290px;
+
+  padding: 24px;
+
+  border: 1px solid #D2DED8;
+
+  border-radius: 22px;
+
+  background: #FFFFFF;
+
+  box-shadow:
+    0 5px 18px rgba(16,78,69,.05);
+
+  transition:
+    transform .22s ease,
+    box-shadow .22s ease;
+}
+
+
+.cm-feature-card:hover {
+  transform: translateY(-4px);
+
+  box-shadow:
+    0 13px 28px rgba(16,78,69,.09);
+}
+
+
+.cm-feature-icon {
+  width: 53px;
+
+  height: 53px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  margin-bottom: 22px;
+
+  border-radius: 17px;
+
+  background: #EDF5E9;
+
+  color: #15564B;
+}
+
+
+.cm-feature-icon svg {
+  width: 26px;
+
+  height: 26px;
+}
+
+
+/* NUMBER - MATCH CARD HEADING COLOUR, SIZE +2PX, ALIGNED */
+
+.cm-feature-number {
+  position: absolute;
+
+  top: 27px;
+
+  right: 24px;
+
+  color: #104E45;
+
+  font-size: 14px;
+
+  font-weight: 800;
+}
+
+
+.cm-feature-card h3 {
+  margin:
+    0
+    0
+    9px;
+
+  color: #104E45;
+
+  font-size: 18px;
+}
+
+
+.cm-feature-card p {
+  margin: 0;
+
+  color: #6A7C80;
+
+  font-size: 13px;
+
+  line-height: 1.7;
+}
+
+
+/* ==========================================================
+   PRINCIPLES
+========================================================== */
+
+.cm-principles {
+  padding: 48px;
+
+  display: grid;
+
+  grid-template-columns:
+    .85fr
+    1.15fr;
+
+  gap: 55px;
+
+  margin-bottom: 75px;
+
+  border-radius: 29px;
+
+  background: #104E45;
+
+  color: #FFFFFF;
+
+  box-shadow:
+    0 15px 38px rgba(16,78,69,.14);
+}
+
+
+.cm-principles-copy .cm-section-eyebrow {
+  background:
+    rgba(255,255,255,.10);
+
+  color: #BDE8D8;
+}
+
+
+.cm-principles-copy h2 {
+  margin:
+    0
+    0
+    12px;
+
+  color: #FFFFFF;
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 30px;
+
+  line-height: 1.35;
+}
+
+
+.cm-principles-copy p {
+  margin: 0;
+
+  color:
+    rgba(255,255,255,.66);
+
+  font-size: 14px;
+
+  line-height: 1.7;
+}
+
+
+.cm-principle-list {
+  display: grid;
+
+  gap: 10px;
+}
+
+
+.cm-principle-list article {
+  padding:
+    15px
+    17px;
+
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 13px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.12);
+
+  border-radius: 15px;
+
+  background:
+    rgba(255,255,255,.06);
+}
+
+
+.cm-principle-index {
+  min-width: 31px;
+
+  width: 31px;
+
+  height: 31px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 10px;
+
+  background:
+    rgba(255,255,255,.10);
+
+  color: #BDE8D8;
+
+  font-size: 11px;
+
+  font-weight: 800;
+}
+
+
+.cm-principle-list h3 {
+  margin:
+    0
+    0
+    3px;
+
+  color: #FFFFFF;
+
+  font-size: 15px;
+}
+
+
+.cm-principle-list p {
+  margin: 0;
+
+  color:
+    rgba(255,255,255,.63);
+
+  font-size: 12px;
+
+  line-height: 1.55;
+}
+
+
+/* ==========================================================
+   PLATFORM
+========================================================== */
+
+.cm-platform-section {
+  padding:
+    30px
+    34px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 23px;
+
+  margin-bottom: 65px;
+
+  border: 1px solid #D2DED8;
+
+  border-radius: 23px;
+
+  background: #FFFFFF;
+
+  box-shadow:
+    0 6px 20px rgba(16,78,69,.05);
+}
+
+
+.cm-platform-icon {
+  width: 70px;
+
+  height: 70px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 22px;
+
+  background: #EDF5E9;
+
+  color: #15564B;
+}
+
+
+.cm-platform-icon svg {
+  width: 34px;
+
+  height: 34px;
+}
+
+
+.cm-platform-section span {
+  color: #168C70;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: .6px;
+}
+
+
+.cm-platform-section h2 {
+  margin:
+    4px
+    0
+    6px;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 23px;
+}
+
+
+.cm-platform-section p {
+  margin: 0;
+
+  color: #687A7E;
+
+  font-size: 13px;
+
+  line-height: 1.65;
+}
+
+
+/* ==========================================================
+   MISSION
+========================================================== */
+
+.cm-mission {
+  max-width: 780px;
+
+  margin:
+    0
+    auto
+    70px;
+
+  text-align: center;
+}
+
+
+.cm-mission &gt; span {
+  color: #168C70;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: .8px;
+}
+
+
+.cm-mission blockquote {
+  margin:
+    13px
+    0
+    0;
+
+  padding: 0;
+
+  border: 0;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 30px;
+
+  line-height: 1.45;
+
+  font-weight: 600;
+}
+
+
+/* ==========================================================
+   CTA
+========================================================== */
+
+.cm-about-cta {
+  padding:
+    34px
+    38px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 30px;
+
+  border-radius: 26px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #104E45,
+      #156B5B
+    );
+
+  color: #FFFFFF;
+
+  box-shadow:
+    0 13px 33px rgba(16,78,69,.15);
+}
+
+
+.cm-about-cta &gt; div:first-child &gt; span {
+  color: #BDE8D8;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+}
+
+
+.cm-about-cta h2 {
+  max-width: 530px;
+
+  margin:
+    5px
+    0
+    0;
+
+  color: #FFFFFF;
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 24px;
+}
+
+
+.cm-cta-actions {
+  display: flex;
+
+  gap: 9px;
+
+  flex-shrink: 0;
+}
+
+
+.cm-cta-actions a {
+  padding:
+    11px
+    17px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+  text-decoration: none !important;
+
+  white-space: nowrap;
+}
+
+
+.cm-cta-primary {
+  background: #FFFFFF;
+
+  color: #104E45 !important;
+}
+
+
+.cm-cta-secondary {
+  border:
+    1px solid
+    rgba(255,255,255,.48);
+
+  color: #FFFFFF !important;
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 950px) {
+
+  .cm-about-page {
+    padding:
+      56px
+      20px
+      80px;
+  }
+
+
+  .cm-feature-grid {
+    grid-template-columns:
+      repeat(2, minmax(0,1fr));
+  }
+
+
+  .cm-principles {
+    grid-template-columns: 1fr;
+
+    gap: 35px;
+  }
+
+}
+
+
+/* ==========================================================
+   MOBILE
+   WEBSITE MOBILE + NOW MOBILE APP
+========================================================== */
+
+@media (max-width: 700px) {
+
+  .cm-about-page {
+    min-height: 100svh;
+
+    padding:
+      44px
+      15px
+      70px;
+
+    /*
+       Same external-gap coverage on mobile.
+    */
+    box-shadow:
+      0 -60px 0 #FBF8EF,
+      0 60px 0 #F5F7F0;
+  }
+
+
+  .cm-about-hero {
+    margin-bottom: 55px;
+  }
+
+
+  .cm-about-hero h1 {
+    font-size: 38px;
+
+    letter-spacing: -1.4px;
+  }
+
+
+  .cm-eyebrow,
+  .cm-section-eyebrow {
+    font-size: 12px;
+  }
+
+
+  .cm-about-hero &gt; p {
+    font-size: 15px;
+  }
+
+
+  .cm-hero-actions {
+    flex-direction: column;
+
+    width: 100%;
+  }
+
+
+  .cm-hero-actions a {
+    width: 100%;
+
+    font-size: 13px;
+
+    text-align: center;
+  }
+
+
+  .cm-story-section {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+    margin-bottom: 65px;
+  }
+
+
+  .cm-story-card {
+    width: 100%;
+
+    min-height: 0;
+
+    padding:
+      27px
+      22px;
+  }
+
+
+  .cm-story-label {
+    font-size: 11px;
+  }
+
+
+  .cm-story-card h2 {
+    font-size: 25px;
+  }
+
+
+  .cm-story-card p {
+    font-size: 14px;
+  }
+
+
+  .cm-story-arrow {
+    transform:
+      rotate(90deg);
+  }
+
+
+  .cm-section-heading h2 {
+    font-size: 30px;
+  }
+
+
+  .cm-section-heading p {
+    font-size: 14px;
+  }
+
+
+  .cm-feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .cm-feature-card {
+    min-height: 0;
+  }
+
+
+  .cm-feature-card h3 {
+    font-size: 18px;
+  }
+
+
+  .cm-feature-card p {
+    font-size: 13px;
+  }
+
+
+  .cm-principles {
+    padding:
+      31px
+      21px;
+
+    gap: 28px;
+  }
+
+
+  .cm-principles-copy h2 {
+    font-size: 25px;
+  }
+
+
+  .cm-principles-copy p {
+    font-size: 13px;
+  }
+
+
+  .cm-principle-list h3 {
+    font-size: 14px;
+  }
+
+
+  .cm-principle-list p {
+    font-size: 12px;
+  }
+
+
+  .cm-platform-section {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    padding:
+      25px
+      22px;
+  }
+
+
+  .cm-platform-section h2 {
+    font-size: 22px;
+  }
+
+
+  .cm-platform-section p {
+    font-size: 13px;
+  }
+
+
+  .cm-mission blockquote {
+    font-size: 24px;
+  }
+
+
+  .cm-about-cta {
+    align-items: stretch;
+
+    flex-direction: column;
+
+    padding:
+      28px
+      22px;
+  }
+
+
+  .cm-about-cta h2 {
+    font-size: 22px;
+  }
+
+
+  .cm-cta-actions {
+    width: 100%;
+
+    flex-direction: column;
+  }
+
+
+  .cm-cta-actions a {
+    width: 100%;
+
+    font-size: 12px;
+
+    text-align: center;
+  }
+
+}
+
+
+/* ==========================================================
+   SMALL PHONE
+========================================================== */
+
+@media (max-width: 480px) {
+
+  .cm-about-page {
+    padding:
+      38px
+      14px
+      62px;
+  }
+
+
+  .cm-about-hero {
+    margin-bottom: 48px;
+  }
+
+
+  .cm-about-hero h1 {
+    font-size: 33px;
+
+    line-height: 1.08;
+
+    letter-spacing: -1.1px;
+  }
+
+
+  .cm-about-hero &gt; p {
+    font-size: 14px;
+
+    line-height: 1.65;
+  }
+
+
+  .cm-story-section {
+    margin-bottom: 55px;
+  }
+
+
+  .cm-story-card {
+    padding:
+      24px
+      19px;
+
+    border-radius: 22px;
+  }
+
+
+  .cm-story-card h2 {
+    font-size: 23px;
+  }
+
+
+  .cm-story-card p {
+    font-size: 13px;
+  }
+
+
+  .cm-difference-section {
+    margin-bottom: 65px;
+  }
+
+
+  .cm-section-heading {
+    margin-bottom: 30px;
+  }
+
+
+  .cm-section-heading h2 {
+    font-size: 29px;
+  }
+
+
+  .cm-section-heading p {
+    font-size: 13px;
+  }
+
+
+  .cm-feature-card {
+    padding: 21px;
+
+    border-radius: 19px;
+  }
+
+
+  .cm-feature-card h3 {
+    font-size: 17px;
+  }
+
+
+  .cm-feature-card p {
+    font-size: 13px;
+  }
+
+
+  .cm-principles {
+    margin-bottom: 60px;
+
+    padding:
+      28px
+      18px;
+
+    border-radius: 23px;
+  }
+
+
+  .cm-principles-copy h2 {
+    font-size: 24px;
+  }
+
+
+  .cm-principles-copy p {
+    font-size: 13px;
+  }
+
+
+  .cm-principle-list h3 {
+    font-size: 14px;
+  }
+
+
+  .cm-principle-list p {
+    font-size: 12px;
+  }
+
+
+  .cm-platform-section {
+    margin-bottom: 55px;
+
+    padding:
+      22px
+      19px;
+
+    border-radius: 20px;
+  }
+
+
+  .cm-platform-icon {
+    width: 60px;
+
+    height: 60px;
+
+    border-radius: 18px;
+  }
+
+
+  .cm-platform-icon svg {
+    width: 29px;
+
+    height: 29px;
+  }
+
+
+  .cm-platform-section h2 {
+    font-size: 21px;
+  }
+
+
+  .cm-platform-section p {
+    font-size: 13px;
+  }
+
+
+  .cm-mission {
+    margin-bottom: 55px;
+  }
+
+
+  .cm-mission blockquote {
+    font-size: 22px;
+  }
+
+
+  .cm-about-cta {
+    padding:
+      25px
+      19px;
+
+    border-radius: 22px;
+  }
+
+
+  .cm-about-cta h2 {
+    font-size: 21px;
+  }
+
+}
+
+
+/* ==========================================================
+   VERY SMALL PHONE
+========================================================== */
+
+@media (max-width: 390px) {
+
+  .cm-about-page {
+    padding:
+      34px
+      12px
+      58px;
+  }
+
+
+  .cm-about-hero h1 {
+    font-size: 29px;
+  }
+
+
+  .cm-about-hero &gt; p {
+    font-size: 13px;
+  }
+
+
+  .cm-story-card h2 {
+    font-size: 22px;
+  }
+
+
+  .cm-story-card p {
+    font-size: 13px;
+  }
+
+
+  .cm-section-heading h2 {
+    font-size: 27px;
+  }
+
+
+  .cm-section-heading p {
+    font-size: 13px;
+  }
+
+
+  .cm-feature-card h3 {
+    font-size: 17px;
+  }
+
+
+  .cm-feature-card p {
+    font-size: 12px;
+  }
+
+
+  .cm-principles-copy h2 {
+    font-size: 23px;
+  }
+
+
+  .cm-principles-copy p {
+    font-size: 12px;
+  }
+
+
+  .cm-principle-list h3 {
+    font-size: 14px;
+  }
+
+
+  .cm-principle-list p {
+    font-size: 12px;
+  }
+
+
+  .cm-platform-section p {
+    font-size: 12px;
+  }
+
+
+  .cm-mission blockquote {
+    font-size: 21px;
+  }
+
+
+  .cm-about-cta h2 {
+    font-size: 20px;
+  }
+
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>About page explaining the purpose, principles and vision of CampusMatch</description>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_about</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch About</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 13:29:02</sys_created_on>
+        <sys_id>b1ce3eaf55df03107f4447f82ce732d2</sys_id>
+        <sys_mod_count>8</sys_mod_count>
+        <sys_name>CampusMatch About</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_b1ce3eaf55df03107f4447f82ce732d2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-28 14:15:03</sys_updated_on>
+        <template><![CDATA[<section class="cm-about-page">
+
+  <div class="cm-about-container">
+
+
+    <!-- =========================================
+         HERO
+    ========================================== -->
+
+    <section class="cm-about-hero">
+
+      <span class="cm-eyebrow">
+        ✦ About CampusMatch
+      </span>
+
+      <h1>
+        Lost &amp; Found,
+        <span>made smarter.</span>
+      </h1>
+
+      <p>
+        CampusMatch is a privacy-aware campus Lost &amp; Found
+        platform that helps connect Lost and Found reports
+        through intelligent matching, secure ownership
+        verification and staff-controlled handover.
+      </p>
+
+
+      <div class="cm-hero-actions">
+
+        <a
+          href="?id=campusmatch_report&type=lost"
+          class="cm-primary-btn">
+
+          Report Lost Item →
+
+        </a>
+
+        <a
+          href="?id=campusmatch_explore"
+          class="cm-secondary-btn">
+
+          Explore Reports
+
+        </a>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================================
+         PROBLEM → SOLUTION
+    ========================================== -->
+
+    <section class="cm-story-section">
+
+      <div class="cm-story-card cm-problem-card">
+
+        <span class="cm-story-label">
+          The Problem
+        </span>
+
+        <h2>
+          Traditional Lost &amp; Found depends too much on chance.
+        </h2>
+
+        <p>
+          Reports can be scattered across notice boards,
+          messages, spreadsheets or informal groups.
+          Even when the right Lost and Found reports exist,
+          connecting them can still depend on someone
+          manually noticing the similarity.
+        </p>
+
+      </div>
+
+
+      <div class="cm-story-arrow">
+
+        <span>→</span>
+
+      </div>
+
+
+      <div class="cm-story-card cm-solution-card">
+
+        <span class="cm-story-label">
+          The CampusMatch Approach
+        </span>
+
+        <h2>
+          Turn separate reports into meaningful matches.
+        </h2>
+
+        <p>
+          CampusMatch brings reporting, intelligent comparison,
+          ownership verification and staff review into one
+          structured recovery journey.
+        </p>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================================
+         DIFFERENTIATORS
+    ========================================== -->
+
+    <section class="cm-difference-section">
+
+      <div class="cm-section-heading">
+
+        <span class="cm-section-eyebrow">
+          What Makes It Different
+        </span>
+
+        <h2>
+          More than an item listing board.
+        </h2>
+
+        <p>
+          CampusMatch is designed around the full recovery
+          journey rather than simply storing Lost and Found reports.
+        </p>
+
+      </div>
+
+
+      <div class="cm-feature-grid">
+
+
+        <!-- SMART MATCHING -->
+
+        <article class="cm-feature-card">
+
+          <div class="cm-feature-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8">
+
+              <circle
+                cx="8"
+                cy="12"
+                r="4">
+              </circle>
+
+              <circle
+                cx="16"
+                cy="12"
+                r="4">
+              </circle>
+
+              <path
+                d="M10.5 9h3M10.5 15h3">
+              </path>
+
+            </svg>
+
+          </div>
+
+
+          <span class="cm-feature-number">
+            01
+          </span>
+
+          <h3>
+            Multi-Signal Matching
+          </h3>
+
+          <p>
+            Lost and Found reports are compared using
+            image attributes, descriptions, location,
+            time, category and unique attributes.
+          </p>
+
+        </article>
+
+
+
+        <!-- EXPLAINABLE -->
+
+        <article class="cm-feature-card">
+
+          <div class="cm-feature-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8">
+
+              <path d="M4 19V9"></path>
+              <path d="M10 19V5"></path>
+              <path d="M16 19v-7"></path>
+              <path d="M22 19V3"></path>
+
+            </svg>
+
+          </div>
+
+
+          <span class="cm-feature-number">
+            02
+          </span>
+
+          <h3>
+            Explainable Scores
+          </h3>
+
+          <p>
+            Instead of showing only a final score,
+            CampusMatch provides a factor-level breakdown
+            so staff can understand why two reports matched.
+          </p>
+
+        </article>
+
+
+
+        <!-- PRIVACY -->
+
+        <article class="cm-feature-card">
+
+          <div class="cm-feature-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8">
+
+              <rect
+                x="3"
+                y="11"
+                width="18"
+                height="10"
+                rx="2">
+              </rect>
+
+              <path
+                d="M7 11V7a5 5 0 0 1 10 0v4">
+              </path>
+
+            </svg>
+
+          </div>
+
+
+          <span class="cm-feature-number">
+            03
+          </span>
+
+          <h3>
+            Privacy-Safe Discovery
+          </h3>
+
+          <p>
+            Public listings reveal enough information
+            to discover relevant reports without exposing
+            private ownership evidence.
+          </p>
+
+        </article>
+
+
+
+        <!-- HUMAN REVIEW -->
+
+        <article class="cm-feature-card">
+
+          <div class="cm-feature-icon">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8">
+
+              <circle
+                cx="12"
+                cy="8"
+                r="4">
+              </circle>
+
+              <path
+                d="M5 21c0-4 3-6 7-6s7 2 7 6">
+              </path>
+
+              <path
+                d="m18 11 1.5 1.5L22 10">
+              </path>
+
+            </svg>
+
+          </div>
+
+
+          <span class="cm-feature-number">
+            04
+          </span>
+
+          <h3>
+            Human-Controlled Handover
+          </h3>
+
+          <p>
+            AI supports matching and verification,
+            but authorized staff remain responsible for
+            the final ownership decision and handover.
+          </p>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================================
+         PRINCIPLES
+    ========================================== -->
+
+    <section class="cm-principles">
+
+      <div class="cm-principles-copy">
+
+        <span class="cm-section-eyebrow">
+          Built Around Trust
+        </span>
+
+        <h2>
+          Three principles guide every CampusMatch interaction.
+        </h2>
+
+        <p>
+          The system is designed to make item recovery easier
+          without weakening privacy or ownership safeguards.
+        </p>
+
+      </div>
+
+
+      <div class="cm-principle-list">
+
+
+        <article>
+
+          <span class="cm-principle-index">
+            01
+          </span>
+
+          <div>
+
+            <h3>
+              Match intelligently
+            </h3>
+
+            <p>
+              Use multiple independent signals instead of
+              relying on one attribute alone.
+            </p>
+
+          </div>
+
+        </article>
+
+
+
+        <article>
+
+          <span class="cm-principle-index">
+            02
+          </span>
+
+          <div>
+
+            <h3>
+              Reveal carefully
+            </h3>
+
+            <p>
+              Keep ownership clues private while still making
+              public discovery useful.
+            </p>
+
+          </div>
+
+        </article>
+
+
+
+        <article>
+
+          <span class="cm-principle-index">
+            03
+          </span>
+
+          <div>
+
+            <h3>
+              Verify before handover
+            </h3>
+
+            <p>
+              A high match score alone never automatically
+              proves ownership.
+            </p>
+
+          </div>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================================
+         PLATFORM SECTION
+    ========================================== -->
+
+    <section class="cm-platform-section">
+
+      <div class="cm-platform-icon">
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7">
+
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="4">
+          </rect>
+
+          <path
+            d="M7 8h10M7 12h7M7 16h5">
+          </path>
+
+        </svg>
+
+      </div>
+
+
+      <div>
+
+        <span>
+          Powered by ServiceNow
+        </span>
+
+        <h2>
+          One connected workflow from report to resolution.
+        </h2>
+
+        <p>
+          CampusMatch uses ServiceNow to connect reports,
+          intelligent processing, match records, claims,
+          verification workflows, staff review and lifecycle
+          management in one platform.
+        </p>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================================
+         FINAL MESSAGE
+    ========================================== -->
+
+    <section class="cm-mission">
+
+      <span>
+        Our Goal
+      </span>
+
+      <blockquote>
+        “Make recovering a lost item feel less like luck
+        and more like a secure, guided process.”
+      </blockquote>
+
+    </section>
+
+
+
+    <!-- =========================================
+         FINAL CTA
+    ========================================== -->
+
+    <section class="cm-about-cta">
+
+      <div>
+
+        <span>
+          Start with a report
+        </span>
+
+        <h2>
+          CampusMatch can only connect what the campus shares.
+        </h2>
+
+      </div>
+
+
+      <div class="cm-cta-actions">
+
+        <a
+          href="?id=campusmatch_report&type=lost"
+          class="cm-cta-primary">
+
+          I Lost Something →
+
+        </a>
+
+
+        <a
+          href="?id=campusmatch_report&type=found"
+          class="cm-cta-secondary">
+
+          I Found Something →
+
+        </a>
+
+      </div>
+
+    </section>
+
+
+  </div>
+
+</section>]]></template>
+    </sp_widget>
+</record_update>

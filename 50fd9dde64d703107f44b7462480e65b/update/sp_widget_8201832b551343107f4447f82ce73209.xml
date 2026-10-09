@@ -1,0 +1,1533 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function() {
+  /* widget controller */
+  var c = this;
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ==========================================================&#13;
+   CAMPUSMATCH HOW IT WORKS&#13;
+   WEBSITE + NOW MOBILE APP&#13;
+   FULL-BLEED SAFE VERSION&#13;
+========================================================== */&#13;
+&#13;
+.cm-how-page {&#13;
+  position: relative;&#13;
+  display: block;&#13;
+&#13;
+  width: 100vw !important;&#13;
+  max-width: 100vw !important;&#13;
+&#13;
+  margin-left: calc(50% - 50vw) !important;&#13;
+  margin-right: calc(50% - 50vw) !important;&#13;
+&#13;
+  margin-top: 0 !important;&#13;
+  margin-bottom: 0 !important;&#13;
+&#13;
+  min-height: 100vh;&#13;
+  min-height: 100svh;&#13;
+&#13;
+  padding: 65px 20px 90px;&#13;
+&#13;
+  background:&#13;
+    linear-gradient(&#13;
+      180deg,&#13;
+      #FBF8EF 0%,&#13;
+      #F6F8F1 100%&#13;
+    ) !important;&#13;
+&#13;
+  box-shadow:&#13;
+    0 -60px 0 #FBF8EF,&#13;
+    0 60px 0 #F6F8F1;&#13;
+&#13;
+  color: #102E34;&#13;
+&#13;
+  font-family:&#13;
+    "DM Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  box-sizing: border-box !important;&#13;
+  overflow-x: hidden;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-how-page,&#13;
+.cm-how-page *,&#13;
+.cm-how-page *::before,&#13;
+.cm-how-page *::after {&#13;
+  box-sizing: border-box;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-how-container {&#13;
+  position: relative;&#13;
+&#13;
+  width: 100%;&#13;
+  max-width: 1200px;&#13;
+&#13;
+  margin: 0 auto;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   HERO&#13;
+========================================================== */&#13;
+&#13;
+.cm-how-hero {&#13;
+  max-width: 720px;&#13;
+  margin: 0 auto 55px;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-eyebrow,&#13;
+.cm-section-eyebrow {&#13;
+  display: inline-flex;&#13;
+&#13;
+  padding: 8px 15px;&#13;
+&#13;
+  margin-bottom: 15px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+&#13;
+  font-size: 11px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  letter-spacing: .25px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-how-hero h1 {&#13;
+  margin: 0 0 13px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    "Segoe UI",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 47px;&#13;
+  font-weight: 700;&#13;
+&#13;
+  letter-spacing: -1.6px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-how-hero p {&#13;
+  max-width: 650px;&#13;
+&#13;
+  margin: 0 auto;&#13;
+&#13;
+  color: #617477;&#13;
+&#13;
+  font-size: 15px;&#13;
+  line-height: 1.7;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   JOURNEY&#13;
+========================================================== */&#13;
+&#13;
+.cm-journey {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    1fr 42px&#13;
+    1fr 42px&#13;
+    1fr 42px&#13;
+    1fr;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 8px;&#13;
+&#13;
+  margin-bottom: 85px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-card {&#13;
+  min-width: 0;&#13;
+  min-height: 330px;&#13;
+&#13;
+  padding: 23px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 22px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 7px 22px rgba(16,78,69,.06);&#13;
+&#13;
+  transition:&#13;
+    transform .22s ease,&#13;
+    box-shadow .22s ease;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-card:hover {&#13;
+  transform: translateY(-4px);&#13;
+&#13;
+  box-shadow:&#13;
+    0 13px 28px rgba(16,78,69,.10);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-top {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  margin-bottom: 25px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-number {&#13;
+  color: #A7B5B0;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 13px;&#13;
+  font-weight: 800;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-icon {&#13;
+  width: 49px;&#13;
+  height: 49px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  border-radius: 16px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-icon svg {&#13;
+  width: 25px;&#13;
+  height: 25px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-card h2 {&#13;
+  margin: 0 0 9px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 18px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-card &gt; p {&#13;
+  min-height: 74px;&#13;
+&#13;
+  margin: 0 0 20px;&#13;
+&#13;
+  color: #6A7C80;&#13;
+&#13;
+  font-size: 11px;&#13;
+  line-height: 1.65;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-points {&#13;
+  display: flex;&#13;
+  flex-wrap: wrap;&#13;
+&#13;
+  gap: 6px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-step-points span {&#13;
+  padding: 6px 9px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  background: #F3F7F1;&#13;
+&#13;
+  color: #506267;&#13;
+&#13;
+  font-size: 8px;&#13;
+  font-weight: 700;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-flow-arrow {&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  color: #87BDA8;&#13;
+&#13;
+  font-size: 26px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   EXPLAINABILITY&#13;
+========================================================== */&#13;
+&#13;
+.cm-explain-section {&#13;
+  padding: 48px;&#13;
+&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    1fr .9fr;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 55px;&#13;
+&#13;
+  margin-bottom: 80px;&#13;
+&#13;
+  border-radius: 30px;&#13;
+&#13;
+  background: #104E45;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 15px 40px rgba(16,78,69,.14);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-explain-copy .cm-section-eyebrow {&#13;
+  background:&#13;
+    rgba(255,255,255,.12);&#13;
+&#13;
+  color: #BDE8D8;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-explain-copy h2 {&#13;
+  margin: 0 0 14px;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 31px;&#13;
+  line-height: 1.25;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-explain-copy p {&#13;
+  max-width: 520px;&#13;
+&#13;
+  margin: 0;&#13;
+&#13;
+  color:&#13;
+    rgba(255,255,255,.70);&#13;
+&#13;
+  font-size: 12px;&#13;
+  line-height: 1.7;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SCORE CARD&#13;
+========================================================== */&#13;
+&#13;
+.cm-score-card {&#13;
+  padding: 27px;&#13;
+&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    150px 1fr;&#13;
+&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 25px;&#13;
+&#13;
+  border:&#13;
+    1px solid&#13;
+    rgba(255,255,255,.15);&#13;
+&#13;
+  border-radius: 23px;&#13;
+&#13;
+  background:&#13;
+    rgba(255,255,255,.08);&#13;
+&#13;
+  backdrop-filter:&#13;
+    blur(10px);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-score-center {&#13;
+  width: 145px;&#13;
+  height: 145px;&#13;
+&#13;
+  display: flex;&#13;
+  flex-direction: column;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  border:&#13;
+    12px solid&#13;
+    #65C3A3;&#13;
+&#13;
+  border-radius: 50%;&#13;
+&#13;
+  background:&#13;
+    rgba(255,255,255,.06);&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-score-center strong {&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 38px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-score-center &gt; span {&#13;
+  margin-top: -7px;&#13;
+&#13;
+  color: #BDE8D8;&#13;
+&#13;
+  font-size: 12px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-score-center small {&#13;
+  max-width: 80px;&#13;
+&#13;
+  margin-top: 5px;&#13;
+&#13;
+  color:&#13;
+    rgba(255,255,255,.58);&#13;
+&#13;
+  font-size: 7px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-score-factors {&#13;
+  display: grid;&#13;
+&#13;
+  gap: 8px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-score-factors &gt; div {&#13;
+  padding: 8px 11px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  border-radius: 10px;&#13;
+&#13;
+  background:&#13;
+    rgba(255,255,255,.07);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-score-factors span {&#13;
+  color:&#13;
+    rgba(255,255,255,.72);&#13;
+&#13;
+  font-size: 9px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-score-factors strong {&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  font-size: 10px;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   PRIVACY&#13;
+========================================================== */&#13;
+&#13;
+.cm-privacy-section {&#13;
+  margin-bottom: 80px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-section-header {&#13;
+  max-width: 720px;&#13;
+&#13;
+  margin: 0 auto 35px;&#13;
+&#13;
+  text-align: center;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-section-header h2 {&#13;
+  margin: 0 0 12px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 31px;&#13;
+  line-height: 1.25;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-section-header &gt; p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 13px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-grid {&#13;
+  display: grid;&#13;
+&#13;
+  grid-template-columns:&#13;
+    repeat(3,1fr);&#13;
+&#13;
+  gap: 18px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-card {&#13;
+  padding: 27px 23px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 22px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 5px 18px rgba(16,78,69,.05);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-icon {&#13;
+  width: 53px;&#13;
+  height: 53px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  margin-bottom: 18px;&#13;
+&#13;
+  border-radius: 17px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-icon svg {&#13;
+  width: 26px;&#13;
+  height: 26px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-icon.public {&#13;
+  background: #E9F1FF;&#13;
+&#13;
+  color: #2B5FA8;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-icon.private {&#13;
+  background: #FDF3DC;&#13;
+&#13;
+  color: #8D6A1E;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-icon.staff {&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-label {&#13;
+  color: #8B989B;&#13;
+&#13;
+  font-size: 8px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-transform: uppercase;&#13;
+&#13;
+  letter-spacing: .7px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-card h3 {&#13;
+  margin: 5px 0 8px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-size: 16px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-privacy-card p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #6B7D80;&#13;
+&#13;
+  font-size: 10px;&#13;
+  line-height: 1.65;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   FOUND FLOW&#13;
+========================================================== */&#13;
+&#13;
+.cm-found-flow {&#13;
+  padding: 31px 35px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+&#13;
+  gap: 22px;&#13;
+&#13;
+  margin-bottom: 75px;&#13;
+&#13;
+  border: 1px solid #D2DED8;&#13;
+&#13;
+  border-radius: 24px;&#13;
+&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 6px 20px rgba(16,78,69,.06);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-found-icon {&#13;
+  width: 72px;&#13;
+  height: 72px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: center;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+&#13;
+  border-radius: 22px;&#13;
+&#13;
+  background: #EDF5E9;&#13;
+&#13;
+  color: #15564B;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-found-icon svg {&#13;
+  width: 35px;&#13;
+  height: 35px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-found-flow span {&#13;
+  color: #168C70;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-transform: uppercase;&#13;
+&#13;
+  letter-spacing: .5px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-found-flow h2 {&#13;
+  margin: 4px 0 7px;&#13;
+&#13;
+  color: #104E45;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 21px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-found-flow p {&#13;
+  margin: 0;&#13;
+&#13;
+  color: #687A7E;&#13;
+&#13;
+  font-size: 11px;&#13;
+  line-height: 1.65;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   CTA&#13;
+========================================================== */&#13;
+&#13;
+.cm-how-cta {&#13;
+  padding: 37px 40px;&#13;
+&#13;
+  display: flex;&#13;
+  align-items: center;&#13;
+  justify-content: space-between;&#13;
+&#13;
+  gap: 35px;&#13;
+&#13;
+  border-radius: 27px;&#13;
+&#13;
+  background:&#13;
+    linear-gradient(&#13;
+      135deg,&#13;
+      #104E45,&#13;
+      #156B5B&#13;
+    );&#13;
+&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  box-shadow:&#13;
+    0 14px 35px rgba(16,78,69,.16);&#13;
+}&#13;
+&#13;
+&#13;
+.cm-how-cta &gt; div:first-child &gt; span {&#13;
+  color: #BDE8D8;&#13;
+&#13;
+  font-size: 9px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-transform: uppercase;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-how-cta h2 {&#13;
+  margin: 5px 0;&#13;
+&#13;
+  color: #FFFFFF;&#13;
+&#13;
+  font-family:&#13;
+    "Plus Jakarta Sans",&#13;
+    sans-serif;&#13;
+&#13;
+  font-size: 25px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-how-cta p {&#13;
+  margin: 0;&#13;
+&#13;
+  color:&#13;
+    rgba(255,255,255,.68);&#13;
+&#13;
+  font-size: 11px;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-cta-actions {&#13;
+  display: flex;&#13;
+&#13;
+  gap: 10px;&#13;
+&#13;
+  flex-shrink: 0;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-cta-actions a {&#13;
+  padding: 12px 18px;&#13;
+&#13;
+  border-radius: 999px;&#13;
+&#13;
+  font-size: 10px;&#13;
+  font-weight: 800;&#13;
+&#13;
+  text-decoration: none !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-cta-primary {&#13;
+  background: #FFFFFF;&#13;
+&#13;
+  color: #104E45 !important;&#13;
+}&#13;
+&#13;
+&#13;
+.cm-cta-secondary {&#13;
+  border:&#13;
+    1px solid&#13;
+    rgba(255,255,255,.48);&#13;
+&#13;
+  color: #FFFFFF !important;&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   TABLET&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 1000px) {&#13;
+&#13;
+  .cm-how-page {&#13;
+    padding:&#13;
+      56px&#13;
+      18px&#13;
+      80px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #F6F8F1;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-journey {&#13;
+    grid-template-columns:&#13;
+      1fr 32px 1fr;&#13;
+&#13;
+    gap:&#13;
+      15px 7px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explain-section {&#13;
+    grid-template-columns:&#13;
+      1fr;&#13;
+&#13;
+    gap:&#13;
+      35px;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   MOBILE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 700px) {&#13;
+&#13;
+  .cm-how-page {&#13;
+    min-height: 100svh;&#13;
+&#13;
+    padding:&#13;
+      43px&#13;
+      15px&#13;
+      70px;&#13;
+&#13;
+    box-shadow:&#13;
+      0 -60px 0 #FBF8EF,&#13;
+      0 60px 0 #F6F8F1;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-how-hero {&#13;
+    margin-bottom: 38px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-how-hero h1 {&#13;
+    font-size: 34px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-how-hero p {&#13;
+    font-size: 13px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-journey {&#13;
+    display: flex;&#13;
+&#13;
+    flex-direction: column;&#13;
+&#13;
+    gap: 10px;&#13;
+&#13;
+    margin-bottom: 60px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-step-card {&#13;
+    width: 100%;&#13;
+&#13;
+    min-height: 0;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-step-card &gt; p {&#13;
+    min-height: 0;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-flow-arrow {&#13;
+    height: 28px;&#13;
+&#13;
+    transform: rotate(90deg);&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explain-section {&#13;
+    padding: 30px 20px;&#13;
+&#13;
+    margin-bottom: 60px;&#13;
+&#13;
+    border-radius: 23px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explain-copy h2 {&#13;
+    font-size: 25px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-score-card {&#13;
+    grid-template-columns: 1fr;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-score-center {&#13;
+    margin: 0 auto;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-privacy-grid {&#13;
+    grid-template-columns: 1fr;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-section-header h2 {&#13;
+    font-size: 25px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-found-flow {&#13;
+    align-items: flex-start;&#13;
+&#13;
+    flex-direction: column;&#13;
+&#13;
+    padding: 25px 21px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-how-cta {&#13;
+    align-items: stretch;&#13;
+&#13;
+    flex-direction: column;&#13;
+&#13;
+    padding: 29px 22px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-cta-actions {&#13;
+    width: 100%;&#13;
+&#13;
+    flex-direction: column;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-cta-actions a {&#13;
+    width: 100%;&#13;
+&#13;
+    text-align: center;&#13;
+  }&#13;
+&#13;
+}&#13;
+&#13;
+&#13;
+/* ==========================================================&#13;
+   SMALL MOBILE&#13;
+========================================================== */&#13;
+&#13;
+@media (max-width: 420px) {&#13;
+&#13;
+  .cm-how-page {&#13;
+    padding:&#13;
+      36px&#13;
+      12px&#13;
+      62px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-how-hero h1 {&#13;
+    font-size: 30px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-how-hero p {&#13;
+    font-size: 12px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-step-card {&#13;
+    padding: 20px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-explain-section {&#13;
+    padding:&#13;
+      27px&#13;
+      17px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-score-card {&#13;
+    padding: 21px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-score-center {&#13;
+    width: 130px;&#13;
+    height: 130px;&#13;
+&#13;
+    border-width: 10px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-score-center strong {&#13;
+    font-size: 33px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-privacy-card {&#13;
+    padding:&#13;
+      24px&#13;
+      20px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-found-flow {&#13;
+    padding:&#13;
+      23px&#13;
+      18px;&#13;
+  }&#13;
+&#13;
+&#13;
+  .cm-how-cta {&#13;
+    padding:&#13;
+      26px&#13;
+      18px;&#13;
+  }&#13;
+&#13;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description>Explains the CampusMatch reporting, matching, ownership verification, trust, privacy and secure handover process.</description>
+        <docs/>
+        <field_list/>
+        <has_preview>false</has_preview>
+        <id>campusmatch_how_it_works</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch How It Works</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 13:41:19</sys_created_on>
+        <sys_id>8201832b551343107f4447f82ce73209</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>CampusMatch How It Works</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_8201832b551343107f4447f82ce73209</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-27 12:30:35</sys_updated_on>
+        <template><![CDATA[<section class="cm-how-page">
+
+  <div class="cm-how-container">
+
+    <!-- HERO -->
+    <div class="cm-how-hero">
+
+      <span class="cm-eyebrow">
+        ✦ Simple. Intelligent. Secure.
+      </span>
+
+      <h1>How CampusMatch Works</h1>
+
+      <p>
+        From the moment an item is reported to the moment it is safely
+        returned, CampusMatch combines intelligent matching with private
+        ownership verification and human approval.
+      </p>
+
+    </div>
+
+
+    <!-- HOW IT WORKS -->
+    <section class="cm-journey">
+
+      <!-- STEP 1 -->
+      <article class="cm-step-card">
+
+        <div class="cm-step-top">
+          <span class="cm-step-number">01</span>
+
+          <div class="cm-step-icon">
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round">
+
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+
+            </svg>
+          </div>
+        </div>
+
+        <h2>Report the Item</h2>
+
+        <p>
+          Students report a Lost or Found item with the basic information
+          they remember.
+        </p>
+
+        <div class="cm-step-points">
+          <span>Item details</span>
+          <span>Campus location</span>
+          <span>Optional photo</span>
+        </div>
+
+      </article>
+
+
+      <div class="cm-flow-arrow">→</div>
+
+
+      <!-- STEP 2 -->
+      <article class="cm-step-card">
+
+        <div class="cm-step-top">
+          <span class="cm-step-number">02</span>
+
+          <div class="cm-step-icon">
+
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round">
+
+              <circle cx="8" cy="12" r="4"></circle>
+              <circle cx="16" cy="12" r="4"></circle>
+              <path d="M10.5 9h3M10.5 15h3"></path>
+
+            </svg>
+
+          </div>
+        </div>
+
+        <h2>CampusMatch Compares</h2>
+
+        <p>
+          Relevant Lost and Found reports are compared across multiple
+          matching signals.
+        </p>
+
+        <div class="cm-step-points">
+          <span>Image attributes</span>
+          <span>Description</span>
+          <span>Location &amp; time</span>
+          <span>Category</span>
+          <span>Unique attributes</span>
+        </div>
+
+      </article>
+
+
+      <div class="cm-flow-arrow">→</div>
+
+
+      <!-- STEP 3 -->
+      <article class="cm-step-card">
+
+        <div class="cm-step-top">
+          <span class="cm-step-number">03</span>
+
+          <div class="cm-step-icon">
+
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8">
+
+              <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+
+            </svg>
+
+          </div>
+        </div>
+
+        <h2>Verify Ownership</h2>
+
+        <p>
+          A claimant answers private ownership questions without seeing
+          the finder's hidden details.
+        </p>
+
+        <div class="cm-step-points">
+          <span>Secure questions</span>
+          <span>Private comparison</span>
+          <span>Pass / Review / Fail</span>
+        </div>
+
+      </article>
+
+
+      <div class="cm-flow-arrow">→</div>
+
+
+      <!-- STEP 4 -->
+      <article class="cm-step-card">
+
+        <div class="cm-step-top">
+          <span class="cm-step-number">04</span>
+
+          <div class="cm-step-icon">
+
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round">
+
+              <path d="M20 6 9 17l-5-5"></path>
+
+            </svg>
+
+          </div>
+        </div>
+
+        <h2>Staff Approves Handover</h2>
+
+        <p>
+          Authorized campus staff review the evidence before completing
+          the final handover.
+        </p>
+
+        <div class="cm-step-points">
+          <span>Human review</span>
+          <span>Secure approval</span>
+          <span>Item resolved</span>
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- EXPLAINABLE MATCHING -->
+    <section class="cm-explain-section">
+
+      <div class="cm-explain-copy">
+
+        <span class="cm-section-eyebrow">
+          Explainable Matching
+        </span>
+
+        <h2>
+          Not just a match score.
+          <br />
+          A reason behind it.
+        </h2>
+
+        <p>
+          CampusMatch doesn't simply say two reports look similar.
+          Staff can inspect the individual signals that contributed
+          to a potential match.
+        </p>
+
+      </div>
+
+
+      <div class="cm-score-card">
+
+        <div class="cm-score-center">
+
+          <strong>87</strong>
+          <span>/100</span>
+
+          <small>
+            Example Match Score
+          </small>
+
+        </div>
+
+
+        <div class="cm-score-factors">
+
+          <div>
+            <span>Image Attributes</span>
+            <strong>35%</strong>
+          </div>
+
+          <div>
+            <span>Description</span>
+            <strong>20%</strong>
+          </div>
+
+          <div>
+            <span>Location</span>
+            <strong>15%</strong>
+          </div>
+
+          <div>
+            <span>Time</span>
+            <strong>10%</strong>
+          </div>
+
+          <div>
+            <span>Category</span>
+            <strong>10%</strong>
+          </div>
+
+          <div>
+            <span>Unique Attributes</span>
+            <strong>10%</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- TRUST & PRIVACY -->
+    <section class="cm-privacy-section">
+
+      <div class="cm-section-header">
+
+        <span class="cm-section-eyebrow">
+          Privacy by Design
+        </span>
+
+        <h2>
+          Enough information to match.
+          <br />
+          Not enough information to cheat.
+        </h2>
+
+        <p>
+          CampusMatch separates public discovery information from
+          ownership-verification information.
+        </p>
+
+      </div>
+
+
+      <div class="cm-privacy-grid">
+
+        <!-- PUBLIC -->
+        <article class="cm-privacy-card">
+
+          <div class="cm-privacy-icon public">
+
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8">
+
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M3 12h18"></path>
+              <path d="M12 3c3 3 4 6 4 9s-1 6-4 9"></path>
+              <path d="M12 3c-3 3-4 6-4 9s1 6 4 9"></path>
+
+            </svg>
+
+          </div>
+
+          <span class="cm-privacy-label">Public</span>
+
+          <h3>Safe to browse</h3>
+
+          <p>
+            Public listings use privacy-safe titles and generic information
+            so students can discover relevant reports without exposing
+            sensitive details.
+          </p>
+
+        </article>
+
+
+        <!-- PRIVATE -->
+        <article class="cm-privacy-card">
+
+          <div class="cm-privacy-icon private">
+
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8">
+
+              <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+
+            </svg>
+
+          </div>
+
+          <span class="cm-privacy-label">Private</span>
+
+          <h3>Hidden ownership details</h3>
+
+          <p>
+            Private identifying details provided with a Found report stay
+            hidden from potential claimants and are used only for secure
+            ownership verification.
+          </p>
+
+        </article>
+
+
+        <!-- STAFF -->
+        <article class="cm-privacy-card">
+
+          <div class="cm-privacy-icon staff">
+
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8">
+
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M5 21c0-4 3-6 7-6s7 2 7 6"></path>
+              <path d="m18 11 1.5 1.5L22 10"></path>
+
+            </svg>
+
+          </div>
+
+          <span class="cm-privacy-label">Staff</span>
+
+          <h3>Human-controlled handover</h3>
+
+          <p>
+            Matching and verification support the decision, but authorized
+            staff complete the final ownership review and item handover.
+          </p>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- FOUND ITEM PRIVACY -->
+    <section class="cm-found-flow">
+
+      <div class="cm-found-icon">
+
+        <svg viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8">
+
+          <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6Z"></path>
+          <path d="m9 12 2 2 4-4"></path>
+
+        </svg>
+
+      </div>
+
+
+      <div>
+
+        <span>
+          Why Found reports ask for private details
+        </span>
+
+        <h2>
+          The finder helps create the verification key.
+        </h2>
+
+        <p>
+          When reporting a Found item, the finder can provide details such
+          as a hidden mark, attachment or other identifying feature.
+          Those details are kept private and later compared against
+          a claimant's answers.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- FINAL CTA -->
+    <section class="cm-how-cta">
+
+      <div>
+
+        <span>Ready to use CampusMatch?</span>
+
+        <h2>
+          Lost something? Found something?
+        </h2>
+
+        <p>
+          Create a report and let CampusMatch connect the right
+          information securely.
+        </p>
+
+      </div>
+
+      <div class="cm-cta-actions">
+
+        <a href="?id=campusmatch_report&amp;type=lost"
+           class="cm-cta-primary">
+          Report Lost Item →
+        </a>
+
+        <a href="?id=campusmatch_report&amp;type=found"
+           class="cm-cta-secondary">
+          Report Found Item →
+        </a>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</section>]]></template>
+    </sp_widget>
+</record_update>

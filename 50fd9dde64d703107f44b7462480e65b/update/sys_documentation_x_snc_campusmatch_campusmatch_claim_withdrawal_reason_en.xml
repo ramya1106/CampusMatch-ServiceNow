@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="withdrawal_reason" label="Withdrawal Reason" language="en" table="x_snc_campusmatch_campusmatch_claim">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>withdrawal_reason</element>
+            <help/>
+            <hint/>
+            <label>Withdrawal Reason</label>
+            <language>en</language>
+            <name>x_snc_campusmatch_campusmatch_claim</name>
+            <plural/>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-25 15:03:46</sys_created_on>
+            <sys_id>961e0e65b5eb03107f44519593582000</sys_id>
+            <sys_mod_count>3</sys_mod_count>
+            <sys_name>Withdrawal Reason</sys_name>
+            <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+            <sys_update_name>sys_documentation_x_snc_campusmatch_campusmatch_claim_withdrawal_reason_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-25 15:03:46</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

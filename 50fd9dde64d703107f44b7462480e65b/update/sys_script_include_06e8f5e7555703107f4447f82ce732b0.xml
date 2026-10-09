@@ -1,0 +1,878 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_campusmatch.CampusMatchClaimVerification</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <mobile_callable>false</mobile_callable>
+        <name>CampusMatchClaimVerification</name>
+        <sandbox_callable>false</sandbox_callable>
+        <script><![CDATA[var CampusMatchClaimVerification = Class.create();
+
+CampusMatchClaimVerification.prototype = {
+
+    initialize: function() {
+
+        /* ==============================================
+           TASK 18 — OWNERSHIP SEMANTIC SIMILARITY
+        ============================================== */
+
+        this.DETAIL_1_SOLUTION =
+            'ml_x_snc_x_snc_campusmatch_global_campusmatch_ownership_detail_1_similarity';
+
+        this.DETAIL_2_SOLUTION =
+            'ml_x_snc_x_snc_campusmatch_global_campusmatch_ownership_detail_2_similarity';
+
+        this.DETAIL_3_SOLUTION =
+            'ml_x_snc_x_snc_campusmatch_global_campusmatch_ownership_detail_3_similarity';
+
+    },
+
+
+    /* ======================================================
+       SEMANTIC SIMILARITY
+
+       claimant answer
+            ↓
+       Predictive Intelligence
+            ↓
+       restrict result to THIS Found Item
+            ↓
+       confidence 0–100
+    ====================================================== */
+
+    getSemanticSimilarity: function(
+        solutionName,
+        inputField,
+        answer,
+        itemSysId
+    ) {
+
+        answer =
+            (
+                answer ||
+                ''
+            )
+            .toString()
+            .trim();
+
+
+        /*
+         * If a private detail exists but the claimant
+         * leaves its answer blank, it receives 0.
+         */
+        if (!answer) {
+
+            return {
+                available: true,
+                score: 0
+            };
+
+        }
+
+
+        try {
+
+            /* ==========================================
+               LOAD TRAINED SOLUTION
+            ========================================== */
+
+            var solution =
+                sn_ml.MLSolutionFactory.getSolution(
+                    solutionName
+                );
+
+
+            if (
+                !solution ||
+                !solution.isActive()
+            ) {
+
+                gs.warn(
+                    'CampusMatch Verification: ' +
+                    'Similarity solution is not active: ' +
+                    solutionName
+                );
+
+                return {
+                    available: false,
+                    score: null
+                };
+
+            }
+
+
+
+            /* ==========================================
+               BUILD INPUT
+
+               Example:
+               {
+                   private_detail_1:
+                       "AK initials on inner label"
+               }
+            ========================================== */
+
+            var inputRecord = {};
+
+            inputRecord[inputField] =
+                answer;
+
+
+            var input = [
+                inputRecord
+            ];
+
+
+
+            /* ==========================================
+               ONLY ALLOW THIS FOUND ITEM AS RESULT
+            ========================================== */
+
+            var options = {};
+
+            options.top_n = 1;
+
+            /*
+             * We need the actual confidence even when
+             * it falls below the PI threshold.
+             */
+            options.apply_threshold =
+                false;
+
+
+            options.custom_results_filter =
+                'sys_id=' +
+                itemSysId;
+
+
+
+            /* ==========================================
+               RUN PREDICTION
+            ========================================== */
+
+            var rawResult =
+                solution.predict(
+                    input,
+                    options
+                );
+
+
+            if (!rawResult) {
+
+                return {
+                    available: false,
+                    score: null
+                };
+
+            }
+
+
+
+            /* ==========================================
+               PARSE RESULT
+            ========================================== */
+
+            var parsed =
+                rawResult;
+
+
+            if (
+                typeof rawResult ===
+                    'string'
+            ) {
+
+                parsed =
+                    JSON.parse(
+                        rawResult
+                    );
+
+            }
+
+
+
+            /*
+             * Typical PI result:
+             *
+             * {
+             *   "1": [
+             *      {
+             *        "confidence": 94.33,
+             *        "predictedSysId": "...",
+             *        "threshold": 80
+             *      }
+             *   ]
+             * }
+             */
+
+            var predictions = [];
+
+
+            for (
+                var key in parsed
+            ) {
+
+                if (
+                    parsed.hasOwnProperty(key) &&
+                    parsed[key] &&
+                    parsed[key].length
+                ) {
+
+                    predictions =
+                        parsed[key];
+
+                    break;
+
+                }
+
+            }
+
+
+
+            if (
+                predictions.length === 0
+            ) {
+
+                /*
+                 * This can happen when a newly created
+                 * Found Item has not entered the
+                 * similarity index yet.
+                 */
+                return {
+                    available: false,
+                    score: null
+                };
+
+            }
+
+
+
+            var best =
+                predictions[0];
+
+
+            /*
+             * Extra security/correctness check:
+             * prediction must correspond to THIS item.
+             */
+            if (
+                !best.predictedSysId ||
+                best.predictedSysId.toString() !==
+                    itemSysId.toString()
+            ) {
+
+                gs.warn(
+                    'CampusMatch Verification: ' +
+                    'PI returned a different Found Item.'
+                );
+
+                return {
+                    available: false,
+                    score: null
+                };
+
+            }
+
+
+
+            var confidence =
+                parseFloat(
+                    best.confidence
+                );
+
+
+            if (
+                isNaN(confidence)
+            ) {
+
+                return {
+                    available: false,
+                    score: null
+                };
+
+            }
+
+
+
+            /* ==========================================
+               SAFETY CLAMP
+            ========================================== */
+
+            if (confidence < 0) {
+                confidence = 0;
+            }
+
+
+            if (confidence > 100) {
+                confidence = 100;
+            }
+
+
+            confidence =
+                Math.round(
+                    confidence * 100
+                ) / 100;
+
+
+
+            return {
+
+                available: true,
+
+                score:
+                    confidence
+
+            };
+
+        }
+        catch (ex) {
+
+            gs.error(
+                'CampusMatch Verification PI error [' +
+                solutionName +
+                ']: ' +
+                ex.message
+            );
+
+
+            return {
+
+                available: false,
+
+                score:
+                    null
+
+            };
+
+        }
+
+    },
+
+
+
+    /* ======================================================
+       VERIFY CLAIM
+    ====================================================== */
+
+    verifyClaim: function(claim) {
+
+
+        /* ==============================================
+           FIELD NAMES
+        ============================================== */
+
+        var CLAIM_ITEM_FIELD =
+            'item';
+
+
+        /*
+         * Protection in case the Item field uses
+         * the u_ prefix in another version.
+         */
+        if (
+            !claim.isValidField(
+                CLAIM_ITEM_FIELD
+            ) &&
+            claim.isValidField(
+                'u_item'
+            )
+        ) {
+
+            CLAIM_ITEM_FIELD =
+                'u_item';
+
+        }
+
+
+
+        var PRIVATE_DETAIL_1 =
+            'private_detail_1';
+
+        var PRIVATE_DETAIL_2 =
+            'private_detail_2';
+
+        var PRIVATE_DETAIL_3 =
+            'private_detail_3';
+
+
+
+        /* ==============================================
+           GET FOUND ITEM
+        ============================================== */
+
+        var itemId =
+            claim.getValue(
+                CLAIM_ITEM_FIELD
+            );
+
+
+        if (!itemId) {
+
+            return {
+
+                similarity1: null,
+                similarity2: null,
+                similarity3: null,
+
+                score: 0,
+
+                result:
+                    'review',
+
+                semanticAvailable:
+                    false
+
+            };
+
+        }
+
+
+
+        var item =
+            claim
+                .getElement(
+                    CLAIM_ITEM_FIELD
+                )
+                .getRefRecord();
+
+
+        if (
+            !item ||
+            !item.isValidRecord()
+        ) {
+
+            return {
+
+                similarity1: null,
+                similarity2: null,
+                similarity3: null,
+
+                score: 0,
+
+                result:
+                    'review',
+
+                semanticAvailable:
+                    false
+
+            };
+
+        }
+
+
+
+        var itemSysId =
+            item.getUniqueValue();
+
+
+
+        /* ==============================================
+           FINDER'S PRIVATE DETAILS
+        ============================================== */
+
+        var expected1 =
+            (
+                item.getValue(
+                    PRIVATE_DETAIL_1
+                ) ||
+                ''
+            )
+            .toString()
+            .trim();
+
+
+        var expected2 =
+            (
+                item.getValue(
+                    PRIVATE_DETAIL_2
+                ) ||
+                ''
+            )
+            .toString()
+            .trim();
+
+
+        var expected3 =
+            (
+                item.getValue(
+                    PRIVATE_DETAIL_3
+                ) ||
+                ''
+            )
+            .toString()
+            .trim();
+
+
+
+        /* ==============================================
+           CLAIMANT ANSWERS
+        ============================================== */
+
+        var answer1 =
+            (
+                claim.getValue(
+                    'u_claimant_answer_1'
+                ) ||
+                ''
+            )
+            .toString()
+            .trim();
+
+
+        var answer2 =
+            (
+                claim.getValue(
+                    'u_claimant_answer_2'
+                ) ||
+                ''
+            )
+            .toString()
+            .trim();
+
+
+        var answer3 =
+            (
+                claim.getValue(
+                    'u_claimant_answer_3'
+                ) ||
+                ''
+            )
+            .toString()
+            .trim();
+
+
+
+        /* ==============================================
+           INDIVIDUAL SEMANTIC SCORES
+        ============================================== */
+
+        var similarity1 =
+            null;
+
+        var similarity2 =
+            null;
+
+        var similarity3 =
+            null;
+
+
+        var semanticUnavailable =
+            false;
+
+
+        var scores = [];
+
+
+
+        /* ==============================================
+           DETAIL 1
+
+           Ignore only when FINDER did not provide it.
+        ============================================== */
+
+        if (expected1) {
+
+            var result1 =
+                this.getSemanticSimilarity(
+
+                    this.DETAIL_1_SOLUTION,
+
+                    PRIVATE_DETAIL_1,
+
+                    answer1,
+
+                    itemSysId
+
+                );
+
+
+            if (result1.available) {
+
+                similarity1 =
+                    result1.score;
+
+                scores.push(
+                    similarity1
+                );
+
+            }
+            else {
+
+                semanticUnavailable =
+                    true;
+
+            }
+
+        }
+
+
+
+        /* ==============================================
+           DETAIL 2
+        ============================================== */
+
+        if (expected2) {
+
+            var result2 =
+                this.getSemanticSimilarity(
+
+                    this.DETAIL_2_SOLUTION,
+
+                    PRIVATE_DETAIL_2,
+
+                    answer2,
+
+                    itemSysId
+
+                );
+
+
+            if (result2.available) {
+
+                similarity2 =
+                    result2.score;
+
+                scores.push(
+                    similarity2
+                );
+
+            }
+            else {
+
+                semanticUnavailable =
+                    true;
+
+            }
+
+        }
+
+
+
+        /* ==============================================
+           DETAIL 3
+        ============================================== */
+
+        if (expected3) {
+
+            var result3 =
+                this.getSemanticSimilarity(
+
+                    this.DETAIL_3_SOLUTION,
+
+                    PRIVATE_DETAIL_3,
+
+                    answer3,
+
+                    itemSysId
+
+                );
+
+
+            if (result3.available) {
+
+                similarity3 =
+                    result3.score;
+
+                scores.push(
+                    similarity3
+                );
+
+            }
+            else {
+
+                semanticUnavailable =
+                    true;
+
+            }
+
+        }
+
+
+
+        /* ==============================================
+           NO PRIVATE EVIDENCE
+        ============================================== */
+
+        if (
+            !expected1 &&
+            !expected2 &&
+            !expected3
+        ) {
+
+            return {
+
+                similarity1: null,
+                similarity2: null,
+                similarity3: null,
+
+                score: 0,
+
+                result:
+                    'review',
+
+                semanticAvailable:
+                    false
+
+            };
+
+        }
+
+
+
+        /* ==============================================
+           CALCULATE OVERALL SCORE
+        ============================================== */
+
+        var overall = 0;
+
+
+        if (
+            scores.length > 0
+        ) {
+
+            var total = 0;
+
+
+            for (
+                var i = 0;
+                i < scores.length;
+                i++
+            ) {
+
+                total +=
+                    scores[i];
+
+            }
+
+
+            overall =
+                total /
+                scores.length;
+
+
+            overall =
+                Math.round(
+                    overall * 100
+                ) / 100;
+
+        }
+
+
+
+        /* ==============================================
+           IMPORTANT FAIL-SAFE
+
+           If PI could not evaluate one of the supplied
+           private details, do NOT automatically PASS
+           or FAIL the claimant.
+
+           Send it to staff review instead.
+        ============================================== */
+
+        if (
+            semanticUnavailable
+        ) {
+
+            return {
+
+                similarity1:
+                    similarity1,
+
+                similarity2:
+                    similarity2,
+
+                similarity3:
+                    similarity3,
+
+                score:
+                    overall,
+
+                result:
+                    'review',
+
+                semanticAvailable:
+                    false
+
+            };
+
+        }
+
+
+
+        /* ==============================================
+           PASS / REVIEW / FAIL
+        ============================================== */
+
+        var verificationResult;
+
+
+        if (
+            overall >= 80
+        ) {
+
+            verificationResult =
+                'pass';
+
+        }
+        else if (
+            overall >= 50
+        ) {
+
+            verificationResult =
+                'review';
+
+        }
+        else {
+
+            verificationResult =
+                'fail';
+
+        }
+
+
+
+        return {
+
+            similarity1:
+                similarity1,
+
+            similarity2:
+                similarity2,
+
+            similarity3:
+                similarity3,
+
+            score:
+                overall,
+
+            result:
+                verificationResult,
+
+            semanticAvailable:
+                true
+
+        };
+
+    },
+
+
+    type:
+        'CampusMatchClaimVerification'
+
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 08:24:17</sys_created_on>
+        <sys_id>06e8f5e7555703107f4447f82ce732b0</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>CampusMatchClaimVerification</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_include_06e8f5e7555703107f4447f82ce732b0</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-21 16:17:35</sys_updated_on>
+    </sys_script_include>
+</record_update>

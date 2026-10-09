@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="received_at_security_desk" label="Received at Security Desk" language="en" table="x_snc_campusmatch_campusmatch_item">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>received_at_security_desk</element>
+            <help/>
+            <hint/>
+            <label>Received at Security Desk</label>
+            <language>en</language>
+            <name>x_snc_campusmatch_campusmatch_item</name>
+            <plural>Received at Security Desks</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-20 14:21:11</sys_created_on>
+            <sys_id>b964904c3c6343107f440dd077ef637f</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Received at Security Desk</sys_name>
+            <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+            <sys_update_name>sys_documentation_x_snc_campusmatch_campusmatch_item_received_at_security_desk_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-20 14:21:11</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_ui_form_sections form_id="8bab5e5e641343107f44b7462480e682" sys_domain="global" table="x_snc_campusmatch_campusmatch_claim" version="3">
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>0</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-15 13:47:53</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>85dc1212645343107f44b7462480e64d</sys_id>
+            <sys_mod_count>1</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="x_snc_campusmatch_campusmatch_claim" name="x_snc_campusmatch_campusmatch_claim" sys_domain="global" view="Default view">8bab5e5e641343107f44b7462480e682</sys_ui_form>
+            <sys_ui_section caption="CampusMatch Claim" display_value="CampusMatch Claim" name="x_snc_campusmatch_campusmatch_claim" sys_domain="global" view="Default view">01dc1212645343107f44b7462480e644</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-15 13:47:54</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>1</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-15 13:42:50</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>c7ab5e5e641343107f44b7462480e6b9</sys_id>
+            <sys_mod_count>1</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="x_snc_campusmatch_campusmatch_claim" name="x_snc_campusmatch_campusmatch_claim" sys_domain="global" view="Default view">8bab5e5e641343107f44b7462480e682</sys_ui_form>
+            <sys_ui_section caption="Claim Information" display_value="Claim Information" name="x_snc_campusmatch_campusmatch_claim" sys_domain="global" view="Default view">8ff8de1a641343107f44b7462480e678</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-15 13:47:54</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>2</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-15 13:47:54</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>99dc1212645343107f44b7462480e651</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="x_snc_campusmatch_campusmatch_claim" name="x_snc_campusmatch_campusmatch_claim" sys_domain="global" view="Default view">8bab5e5e641343107f44b7462480e682</sys_ui_form>
+            <sys_ui_section caption="Verification" display_value="Verification" name="x_snc_campusmatch_campusmatch_claim" sys_domain="global" view="Default view">49dc1212645343107f44b7462480e64a</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-15 13:47:54</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form_section action="INSERT_OR_UPDATE">
+            <position>3</position>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-15 13:47:54</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>9ddc1212645343107f44b7462480e655</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_overrides/>
+            <sys_ui_form display_value="x_snc_campusmatch_campusmatch_claim" name="x_snc_campusmatch_campusmatch_claim" sys_domain="global" view="Default view">8bab5e5e641343107f44b7462480e682</sys_ui_form>
+            <sys_ui_section caption="Review" display_value="Review" name="x_snc_campusmatch_campusmatch_claim" sys_domain="global" view="Default view">0ddc1212645343107f44b7462480e64b</sys_ui_section>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-15 13:47:54</sys_updated_on>
+        </sys_ui_form_section>
+        <sys_ui_form action="INSERT_OR_UPDATE">
+            <name>x_snc_campusmatch_campusmatch_claim</name>
+            <roles/>
+            <sys_class_name>sys_ui_form</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-15 13:42:50</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>8bab5e5e641343107f44b7462480e682</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>x_snc_campusmatch_campusmatch_claim</sys_name>
+            <sys_overrides/>
+            <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+            <sys_update_name>sys_ui_form_sections_8bab5e5e641343107f44b7462480e682</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-15 13:42:50</sys_updated_on>
+            <sys_user/>
+            <view display_value="Default view" name="NULL">Default view</view>
+            <view_name/>
+        </sys_ui_form>
+    </sys_ui_form_sections>
+</record_update>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sysauto_script">
+    <sysauto_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <advanced>true</advanced>
+        <business_calendar/>
+        <condition/>
+        <conditional>false</conditional>
+        <entered_run_end/>
+        <entered_run_start/>
+        <entered_time>1970-01-01 00:00:00</entered_time>
+        <max_drift/>
+        <name>CampusMatch - Deadline Reminders</name>
+        <offset/>
+        <offset_type>0</offset_type>
+        <repeat_every/>
+        <run_as display_value="System Administrator">6816f79cc0a8016401c5a33be04be441</run_as>
+        <run_as_tz/>
+        <run_dayofmonth>1</run_dayofmonth>
+        <run_dayofweek>1</run_dayofweek>
+        <run_daysofweek/>
+        <run_end/>
+        <run_month>1</run_month>
+        <run_period>1970-01-01 01:00:00</run_period>
+        <run_start>2026-09-30 18:03:07</run_start>
+        <run_time>1970-01-01 00:00:00</run_time>
+        <run_type>periodically</run_type>
+        <run_weekinmonth>1</run_weekinmonth>
+        <script><![CDATA[var d = new GlideRecord(
+    'x_snc_campusmatch_campusmatch_deadline'
+);
+
+d.addQuery('status', 'active');
+d.addQuery('deadline_type', 'collection');
+d.addQuery('reminder_sent', false);
+d.query();
+
+while (d.next()) {
+
+    var now = new GlideDateTime();
+    var due = new GlideDateTime(
+        d.getValue('due_date_time')
+    );
+
+    var secondsLeft =
+        (due.getNumericValue() - now.getNumericValue()) / 1000;
+
+    // Due within next 24 hours, but NOT already expired
+    if (secondsLeft > 0 && secondsLeft <= 86400) {
+
+        gs.eventQueue(
+            'x_snc_campusmatch.collection.deadline.reminder',
+            d,
+            d.getValue('user'),
+            d.getValue('claim')
+        );
+
+        d.setValue('reminder_sent', true);
+        d.update();
+
+        gs.info(
+            'CampusMatch Reminder sent for ' +
+            d.getValue('number')
+        );
+    }
+}]]></script>
+        <sys_class_name>sysauto_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-30 18:04:30</sys_created_on>
+        <sys_id>de17e05fe16703107f44ae7e9de110eb</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>CampusMatch - Deadline Reminders</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sysauto_script_de17e05fe16703107f44ae7e9de110eb</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-30 18:30:59</sys_updated_on>
+        <time_zone/>
+        <upgrade_safe>false</upgrade_safe>
+    </sysauto_script>
+</record_update>

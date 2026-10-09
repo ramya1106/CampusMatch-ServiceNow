@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_campusmatch.CampusMatchPIRefreshManager</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <mobile_callable>false</mobile_callable>
+        <name>CampusMatchPIRefreshManager</name>
+        <sandbox_callable>false</sandbox_callable>
+        <script><![CDATA[var CampusMatchPIRefreshManager = Class.create();
+
+CampusMatchPIRefreshManager.prototype = {
+
+    initialize: function() {
+    },
+
+
+    /*
+     * ============================================================
+     * REQUEST PI REFRESH FOR A FOUND ITEM
+     * ============================================================
+     *
+     * Lost items are used directly as prediction/test input.
+     * Found items need to enter the PI lookup windows.
+     *
+     * Therefore this method deliberately refreshes PI ONLY
+     * for FOUND reports.
+     * ============================================================
+     */
+
+    refreshForFoundItem: function(itemSysId) {
+
+        var result = {
+
+            itemSysId: itemSysId,
+
+            isFound: false,
+
+            description: false,
+
+            image: false,
+
+            unique: false,
+
+            success: false,
+
+            message: ''
+        };
+
+
+        try {
+
+            /*
+             * ----------------------------------------------------
+             * LOAD ITEM
+             * ----------------------------------------------------
+             */
+
+            var item =
+                new GlideRecord(
+                    'x_snc_campusmatch_campusmatch_item'
+                );
+
+
+            if (!item.get(itemSysId)) {
+
+                result.message =
+                    'Item not found';
+
+                gs.warn(
+                    'CampusMatchPIRefreshManager: ' +
+                    result.message +
+                    ' | Sys ID: ' +
+                    itemSysId
+                );
+
+                return result;
+            }
+
+
+            /*
+             * ----------------------------------------------------
+             * ONLY FOUND REPORTS REQUIRE LOOKUP-WINDOW REFRESH
+             * ----------------------------------------------------
+             */
+
+            if (
+                item.getValue('report_type') !=
+                'found'
+            ) {
+
+                result.message =
+                    'Skipped - item is not a Found report';
+
+                gs.info(
+                    'CampusMatchPIRefreshManager: ' +
+                    result.message +
+                    ' | Item: ' +
+                    item.getDisplayValue()
+                );
+
+                return result;
+            }
+
+
+            result.isFound = true;
+
+
+            /*
+             * ----------------------------------------------------
+             * CALL GLOBAL BRIDGE
+             * ----------------------------------------------------
+             */
+
+            var bridge =
+                new global.CampusMatchMLRefreshBridge();
+
+
+            /*
+             * DESCRIPTION SIMILARITY
+             */
+
+            result.description =
+                bridge.refreshSimilarityDefinition(
+                    '332416668d9303107f4432c7efccb493'
+                );
+
+
+            /*
+             * IMAGE ATTRIBUTE SIMILARITY
+             */
+
+            result.image =
+                bridge.refreshSimilarityDefinition(
+                    '2cc4e12f559303107f4447f82ce732e8'
+                );
+
+
+            /*
+             * UNIQUE FEATURE SIMILARITY
+             */
+
+            result.unique =
+                bridge.refreshSimilarityDefinition(
+                    '738891e3555303107f4447f82ce732b1'
+                );
+
+
+            /*
+             * ----------------------------------------------------
+             * FINAL RESULT
+             * ----------------------------------------------------
+             */
+
+            result.success =
+                result.description === true &&
+                result.image === true &&
+                result.unique === true;
+
+
+            if (result.success) {
+
+                result.message =
+                    'All PI refresh requests submitted';
+
+            } else {
+
+                result.message =
+                    'One or more PI refresh requests failed';
+            }
+
+
+            gs.info(
+                'CampusMatchPIRefreshManager: ' +
+                'Item=' +
+                item.getDisplayValue() +
+                ' | Description=' +
+                result.description +
+                ' | Image=' +
+                result.image +
+                ' | Unique=' +
+                result.unique +
+                ' | Success=' +
+                result.success
+            );
+
+
+        } catch (e) {
+
+            result.message =
+                'ERROR: ' +
+                e.message;
+
+
+            gs.error(
+                'CampusMatchPIRefreshManager ERROR: ' +
+                e.message
+            );
+        }
+
+
+        return result;
+    },
+
+
+    type: 'CampusMatchPIRefreshManager'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-26 13:56:07</sys_created_on>
+        <sys_id>3237837d94ef03107f4415a92745385b</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatchPIRefreshManager</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_include_3237837d94ef03107f4415a92745385b</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-26 13:56:07</sys_updated_on>
+    </sys_script_include>
+</record_update>

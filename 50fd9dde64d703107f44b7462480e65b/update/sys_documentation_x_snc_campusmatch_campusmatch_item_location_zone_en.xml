@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="location_zone" label="Location Zone" language="en" table="x_snc_campusmatch_campusmatch_item">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>location_zone</element>
+            <help/>
+            <hint/>
+            <label>Location Zone</label>
+            <language>en</language>
+            <name>x_snc_campusmatch_campusmatch_item</name>
+            <plural/>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-16 06:51:03</sys_created_on>
+            <sys_id>49078e6a8d1303107f4432c7efccb456</sys_id>
+            <sys_mod_count>5</sys_mod_count>
+            <sys_name>Location Zone</sys_name>
+            <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+            <sys_update_name>sys_documentation_x_snc_campusmatch_campusmatch_item_location_zone_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-17 14:21:05</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

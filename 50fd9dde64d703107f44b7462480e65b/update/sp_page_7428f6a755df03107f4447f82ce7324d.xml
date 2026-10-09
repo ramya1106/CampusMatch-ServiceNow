@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_page">
+    <sp_page action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <css>/* =========================================================
+   CAMPUSMATCH ADMIN PAGE
+   RESPONSIVE ANALYTICS FINAL
+========================================================= */
+
+
+/* =========================================================
+   SHARED WIDTH
+
+   Normal / tab-sized browser:
+   940px
+
+   Large full-screen browser:
+   expands automatically
+========================================================= */
+
+.cm-analytics-heading,
+.cm-dashboard-section,
+.cm-hotspots-section {
+  width: 100% !important;
+  max-width: 940px !important;
+
+  margin-left: auto !important;
+  margin-right: auto !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   LARGE DESKTOP / FULL SCREEN
+
+   This fixes the problem where 940px looks too narrow
+   after maximizing the browser.
+========================================================= */
+
+@media (min-width: 1400px) {
+
+  .cm-analytics-heading,
+  .cm-dashboard-section,
+  .cm-hotspots-section {
+    max-width: 1140px !important;
+  }
+
+}
+
+
+/* Very wide desktop */
+
+@media (min-width: 1750px) {
+
+  .cm-analytics-heading,
+  .cm-dashboard-section,
+  .cm-hotspots-section {
+    max-width: 1240px !important;
+  }
+
+}
+
+
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+.cm-analytics-heading,
+.cm-dashboard-section {
+  background: #FBF8EF !important;
+}
+
+
+/* =========================================================
+   RECOVERY INSIGHTS HEADER
+========================================================= */
+
+.cm-analytics-heading {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+
+  padding:
+    14px
+    14px
+    10px
+    14px !important;
+
+  background: #FBF8EF !important;
+
+  box-sizing: border-box !important;
+}
+
+
+.cm-analytics-eyebrow {
+  display: block;
+
+  margin-bottom: 4px !important;
+
+  color: #168C70 !important;
+
+  font-size: 10px !important;
+  font-weight: 800 !important;
+
+  line-height: 1.2 !important;
+
+  letter-spacing: 1.25px !important;
+
+  text-transform: uppercase;
+}
+
+
+.cm-analytics-heading h2 {
+  margin:
+    0
+    0
+    5px
+    0 !important;
+
+  color: #104E45 !important;
+
+  font-size: 24px !important;
+  font-weight: 800 !important;
+
+  line-height: 1.15 !important;
+}
+
+
+.cm-analytics-heading p {
+  margin: 0 !important;
+
+  color: #506267 !important;
+
+  font-size: 12px !important;
+  font-weight: 400 !important;
+
+  line-height: 1.45 !important;
+}
+
+
+/* =========================================================
+   SHARED DASHBOARD SECTION
+========================================================= */
+
+.cm-dashboard-section {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   KPI SECTION
+========================================================= */
+
+.cm-kpi-section {
+  padding-top: 4px !important;
+  padding-bottom: 3px !important;
+}
+
+
+/* =========================================================
+   FOUR DONUT SECTION
+========================================================= */
+
+.cm-donut-section {
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+
+
+/* =========================================================
+   COMBINATION SECTION
+========================================================= */
+
+.cm-combo-section {
+  padding-top: 3px !important;
+  padding-bottom: 8px !important;
+
+  margin-bottom: 0 !important;
+}
+
+
+/* =========================================================
+   GRID
+========================================================= */
+
+.cm-dashboard-section .row {
+  margin-left: -3px !important;
+  margin-right: -3px !important;
+
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+
+.cm-dashboard-section [class*="col-"] {
+  padding-left: 3px !important;
+  padding-right: 3px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   REPORT CARDS
+========================================================= */
+
+.cm-dashboard-section .panel,
+.cm-dashboard-section .panel-default {
+  background: #FFFFFF !important;
+
+  border: 1px solid #D2DED8 !important;
+
+  border-radius: 0 !important;
+
+  box-shadow: none !important;
+
+  margin-top: 0 !important;
+  margin-bottom: 6px !important;
+
+  overflow: hidden !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   REPORT HEADER
+========================================================= */
+
+.cm-dashboard-section .panel-heading {
+  background: #FFFFFF !important;
+
+  border-bottom: 1px solid #EDF2EE !important;
+
+  padding: 5px 7px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   OUTER REPORT TITLE FALLBACK
+========================================================= */
+
+.cm-dashboard-section .panel-title,
+.cm-dashboard-section .panel-heading h2,
+.cm-dashboard-section .panel-heading h3,
+.cm-dashboard-section .panel-heading h4 {
+  margin: 0 !important;
+
+  color: #102E34 !important;
+
+  font-size: 4px !important;
+  font-weight: 700 !important;
+
+  line-height: 1.2 !important;
+}
+
+
+/* =========================================================
+   NATIVE REPORT / HIGHCHARTS TITLE
+========================================================= */
+
+.cm-dashboard-section .highcharts-title,
+.cm-dashboard-section .highcharts-title text {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+}
+
+
+/* =========================================================
+   REPORT BODY
+========================================================= */
+
+.cm-dashboard-section .panel-body {
+  padding: 4px 6px !important;
+
+  background: #FFFFFF !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   KPI AREA
+========================================================= */
+
+.cm-kpi-section .report_content {
+  height: 88px !important;
+
+  min-height: 88px !important;
+  max-height: 88px !important;
+
+  overflow: hidden !important;
+}
+
+
+/* KPI NUMBERS */
+
+.cm-kpi-section .highcharts-data-label text,
+.cm-kpi-section .highcharts-data-labels text,
+.cm-kpi-section .single-score,
+.cm-kpi-section .single-score-value,
+.cm-kpi-section .score,
+.cm-kpi-section .number {
+  font-size: 24px !important;
+
+  font-weight: 500 !important;
+
+  line-height: 1 !important;
+}
+
+
+/* =========================================================
+   FOUR DONUTS
+
+   Slight increase compared with previous version.
+========================================================= */
+
+.cm-donut-section .report_content {
+  height: 210px !important;
+
+  min-height: 210px !important;
+  max-height: 210px !important;
+
+  overflow: hidden !important;
+
+  box-sizing: border-box !important;
+}
+
+
+.cm-donut-section .chart-container {
+  height: 200px !important;
+  min-height: 200px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   SECOND ROW
+
+   Security Desk
+   Collection
+   Reports by Category
+========================================================= */
+
+.cm-combo-section .report_content {
+  height: 195px !important;
+
+  min-height: 195px !important;
+  max-height: 195px !important;
+
+  overflow: hidden !important;
+
+  box-sizing: border-box !important;
+}
+
+
+.cm-combo-section .chart-container {
+  height: 185px !important;
+  min-height: 185px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   SMALLER LEGEND TEXT
+
+   Gives the donut more available room.
+========================================================= */
+
+.cm-dashboard-section g.highcharts-legend-item &gt; text,
+.cm-dashboard-section .highcharts-legend-item text {
+  font-size: 9px !important;
+}
+
+
+/* =========================================================
+   REMOVE SERVICENOW EXCESS HEIGHT
+========================================================= */
+
+.cm-dashboard-section .widget,
+.cm-dashboard-section .widget-body,
+.cm-dashboard-section .report-widget {
+  min-height: 0 !important;
+}
+
+
+/* =========================================================
+   FINAL ROW
+========================================================= */
+
+.cm-combo-section .panel,
+.cm-combo-section .panel-default {
+  margin-bottom: 0 !important;
+}
+
+
+/* =========================================================
+   HOTSPOTS
+========================================================= */
+
+.cm-hotspots-section {
+  margin-top: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 991px) {
+
+  .cm-analytics-heading,
+  .cm-dashboard-section,
+  .cm-hotspots-section {
+    width: calc(100% - 20px) !important;
+    max-width: 940px !important;
+  }
+
+
+  .cm-donut-section .report_content,
+  .cm-combo-section .report_content {
+    height: auto !important;
+
+    min-height: 200px !important;
+    max-height: none !important;
+
+    overflow: visible !important;
+  }
+
+
+  .cm-donut-section .chart-container,
+  .cm-combo-section .chart-container {
+    height: auto !important;
+
+    min-height: 190px !important;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 767px) {
+
+  .cm-analytics-heading,
+  .cm-dashboard-section,
+  .cm-hotspots-section {
+    width: calc(100% - 12px) !important;
+    max-width: 100% !important;
+  }
+
+
+  .cm-analytics-heading {
+    padding:
+      12px
+      10px
+      9px
+      10px !important;
+  }
+
+
+  .cm-analytics-heading h2 {
+    font-size: 21px !important;
+  }
+
+
+  .cm-analytics-heading p {
+    font-size: 11px !important;
+  }
+
+
+  .cm-dashboard-section {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+}</css>
+        <draft>false</draft>
+        <dynamic_title_structure/>
+        <human_readable_url_structure/>
+        <id>campusmatch_admin</id>
+        <internal>false</internal>
+        <omit_watcher>false</omit_watcher>
+        <public>false</public>
+        <roles/>
+        <seo_script/>
+        <short_description/>
+        <sys_class_name>sp_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 13:02:42</sys_created_on>
+        <sys_id>7428f6a755df03107f4447f82ce7324d</sys_id>
+        <sys_mod_count>23</sys_mod_count>
+        <sys_name>campusmatch_admin</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_page_7428f6a755df03107f4447f82ce7324d</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-26 06:23:55</sys_updated_on>
+        <title>CampusMatch Staff Dashboard</title>
+        <use_seo_script>false</use_seo_script>
+    </sp_page>
+    <sys_translated_text action="delete_multiple" query="documentkey=7428f6a755df03107f4447f82ce7324d"/>
+</record_update>

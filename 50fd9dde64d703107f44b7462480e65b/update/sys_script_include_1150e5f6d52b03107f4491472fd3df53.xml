@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_campusmatch.CampusMatchNotificationService</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <mobile_callable>false</mobile_callable>
+        <name>CampusMatchNotificationService</name>
+        <sandbox_callable>false</sandbox_callable>
+        <script><![CDATA[var CampusMatchNotificationService = Class.create();
+
+CampusMatchNotificationService.prototype = {
+
+    initialize: function() {
+
+        this.TABLE =
+            'x_snc_campusmatch_campusmatch_notification';
+
+    },
+
+
+    /* =====================================================
+       CREATE NOTIFICATION FOR ONE USER
+    ===================================================== */
+
+    createForUser: function(
+        userId,
+        audience,
+        title,
+        message,
+        targetUrl,
+        notificationType,
+        sourceTable,
+        sourceSysId,
+        dedupeKey,
+        emailSubject
+    ) {
+
+        userId =
+            (userId || '')
+            .toString()
+            .trim();
+
+
+        if (!userId) {
+
+            return '';
+
+        }
+
+
+        title =
+            (title || '')
+            .toString()
+            .substring(
+                0,
+                160
+            );
+
+
+        message =
+            (message || '')
+            .toString()
+            .substring(
+                0,
+                500
+            );
+
+
+        targetUrl =
+            (targetUrl || '')
+            .toString()
+            .substring(
+                0,
+                500
+            );
+
+
+        dedupeKey =
+            (dedupeKey || '')
+            .toString()
+            .substring(
+                0,
+                200
+            );
+
+
+        /* =================================================
+           PREVENT DUPLICATE NOTIFICATIONS
+        ================================================= */
+
+        if (dedupeKey) {
+
+            var existing =
+                new GlideRecord(
+                    this.TABLE
+                );
+
+
+            existing.addQuery(
+                'recipient',
+                userId
+            );
+
+
+            existing.addQuery(
+                'dedupe_key',
+                dedupeKey
+            );
+
+
+            existing.setLimit(
+                1
+            );
+
+
+            existing.query();
+
+
+            if (
+                existing.next()
+            ) {
+
+                return existing
+                    .getUniqueValue();
+
+            }
+
+        }
+
+
+        /* =================================================
+           CREATE NOTIFICATION
+        ================================================= */
+
+        var notification =
+            new GlideRecord(
+                this.TABLE
+            );
+
+
+        notification.initialize();
+
+
+        notification.setValue(
+            'recipient',
+            userId
+        );
+
+
+        notification.setValue(
+            'audience',
+            audience || 'student'
+        );
+
+
+        notification.setValue(
+            'title',
+            title
+        );
+
+
+        notification.setValue(
+            'message',
+            message
+        );
+
+
+        notification.setValue(
+            'target_url',
+            targetUrl
+        );
+
+
+        notification.setValue(
+            'notification_type',
+            notificationType || 'claim'
+        );
+
+
+        notification.setValue(
+            'source_table',
+            sourceTable || ''
+        );
+
+
+        notification.setValue(
+            'source_sys_id',
+            sourceSysId || ''
+        );
+
+
+        notification.setValue(
+            'dedupe_key',
+            dedupeKey
+        );
+
+
+        /*
+         * IMPORTANT:
+         * Actual field name is "read"
+         */
+
+        notification.setValue(
+            'read',
+            false
+        );
+
+
+        notification.setValue(
+            'email_subject',
+            emailSubject || title
+        );
+
+
+        return notification.insert();
+
+    },
+
+
+    /* =====================================================
+       CREATE NOTIFICATION FOR CAMPUSMATCH STAFF
+    ===================================================== */
+
+    notifyAdmins: function(
+        title,
+        message,
+        targetUrl,
+        notificationType,
+        sourceTable,
+        sourceSysId,
+        dedupeKey,
+        emailSubject
+    ) {
+
+        var roleUser =
+            new GlideRecord(
+                'sys_user_has_role'
+            );
+
+
+        /*
+         * CampusMatch staff only
+         */
+
+        roleUser.addQuery(
+            'role.name',
+            'x_snc_campusmatch.staff'
+        );
+
+
+        roleUser.addQuery(
+            'user.active',
+            true
+        );
+
+
+        roleUser.query();
+
+
+        var alreadyProcessed =
+            {};
+
+
+        while (
+            roleUser.next()
+        ) {
+
+            var userId =
+                roleUser.getValue(
+                    'user'
+                );
+
+
+            if (
+                !userId ||
+                alreadyProcessed[
+                    userId
+                ]
+            ) {
+
+                continue;
+
+            }
+
+
+            alreadyProcessed[
+                userId
+            ] =
+                true;
+
+
+            this.createForUser(
+                userId,
+                'staff',
+                title,
+                message,
+                targetUrl,
+                notificationType,
+                sourceTable,
+                sourceSysId,
+                dedupeKey,
+                emailSubject
+            );
+
+        }
+
+    },
+
+
+    type:
+        'CampusMatchNotificationService'
+
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-29 08:57:55</sys_created_on>
+        <sys_id>1150e5f6d52b03107f4491472fd3df53</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>CampusMatchNotificationService</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_include_1150e5f6d52b03107f4491472fd3df53</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-29 12:38:16</sys_updated_on>
+    </sys_script_include>
+</record_update>

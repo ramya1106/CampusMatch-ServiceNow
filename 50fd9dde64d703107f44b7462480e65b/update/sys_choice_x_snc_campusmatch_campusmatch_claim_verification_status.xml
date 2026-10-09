@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_choice action="INSERT_OR_UPDATE" field="verification_status" table="x_snc_campusmatch_campusmatch_claim" version="3">
+        <sys_choice_set action="INSERT_OR_UPDATE">
+            <element>verification_status</element>
+            <name>x_snc_campusmatch_campusmatch_claim</name>
+            <sys_class_name>sys_choice_set</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-18 05:22:22</sys_created_on>
+            <sys_id>25e5c85ba85303107f44bd86c8568bba</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>verification_status</sys_name>
+            <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+            <sys_update_name>sys_choice_x_snc_campusmatch_campusmatch_claim_verification_status</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-18 05:22:22</sys_updated_on>
+        </sys_choice_set>
+        <sys_choice action="INSERT_OR_UPDATE">
+            <dependent_value/>
+            <element>verification_status</element>
+            <hint/>
+            <inactive>false</inactive>
+            <label>Under Review</label>
+            <language>en</language>
+            <name>x_snc_campusmatch_campusmatch_claim</name>
+            <sequence>0</sequence>
+            <synonyms/>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-18 05:22:22</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>e9e5c85ba85303107f44bd86c8568bb9</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-18 05:22:22</sys_updated_on>
+            <value>under_review</value>
+        </sys_choice>
+        <sys_choice action="INSERT_OR_UPDATE">
+            <dependent_value/>
+            <element>verification_status</element>
+            <hint/>
+            <inactive>false</inactive>
+            <label>Verified</label>
+            <language>en</language>
+            <name>x_snc_campusmatch_campusmatch_claim</name>
+            <sequence>1</sequence>
+            <synonyms/>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-18 05:22:22</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>a1e5c85ba85303107f44bd86c8568bbc</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-18 05:22:22</sys_updated_on>
+            <value>verified</value>
+        </sys_choice>
+        <sys_choice action="INSERT_OR_UPDATE">
+            <dependent_value/>
+            <element>verification_status</element>
+            <hint/>
+            <inactive>false</inactive>
+            <label>Failed</label>
+            <language>en</language>
+            <name>x_snc_campusmatch_campusmatch_claim</name>
+            <sequence>2</sequence>
+            <synonyms/>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2026-09-18 05:22:22</sys_created_on>
+            <sys_domain>global</sys_domain>
+            <sys_domain_path>/</sys_domain_path>
+            <sys_id>29e5c85ba85303107f44bd86c8568bbd</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2026-09-18 05:22:22</sys_updated_on>
+            <value>failed</value>
+        </sys_choice>
+    </sys_choice>
+</record_update>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_generative_ai_config">
+    <sys_generative_ai_config action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <additional_configurations>{"skill_config_id":"587edc53a85703107f44bd86c8568b0c"}</additional_configurations>
+        <ai_suggested>false</ai_suggested>
+        <definition>8c7e9c53a85703107f44bd86c8568baf</definition>
+        <definition_table>sys_one_extend_capability_definition</definition_table>
+        <documentation/>
+        <max_tokens>500</max_tokens>
+        <min_word_count>-1</min_word_count>
+        <model>llm_generic_small</model>
+        <name>Incident Summarization</name>
+        <parent/>
+        <prompt>You are the privacy-safe public title generator for CampusMatch, a campus lost-and-found application.
+
+Generate exactly ONE short public-facing title for the supplied item.
+
+Use the supplied item information only to identify the generic type of item.
+
+PRIVACY RULES:
+- Never reveal brand or manufacturer.
+- Never reveal model names or model numbers.
+- Never reveal color.
+- Never reveal location or floor.
+- Never reveal names, initials, IDs, serial numbers, contact information, stickers, scratches, damage, labels, visible text, keychains, or other identifying features.
+- Do not copy the private Title directly if it contains identifying information.
+- Do not expose ownership-verification details.
+- Do not include any detail that could help someone falsely claim ownership.
+
+Determine the generic item type mainly from Category, Title and Description.
+
+Examples of safe generic item types:
+Backpack
+Phone
+Laptop
+Wallet
+Earbuds
+Notebook
+Bottle
+Hoodie
+Book
+ID Card
+Keys
+
+Use Report Type to determine whether the item is Lost or Found.
+
+OUTPUT FORMAT:
+Found [Generic item]
+or
+Lost [Generic item]
+
+Examples:
+Found Backpack
+Lost Phone
+Found Wallet
+Lost Notebook
+
+Maximum 4 words.
+
+Return ONLY the final title.
+Do not return explanations, quotation marks, headings, punctuation, location information, or additional text.
+
+ITEM INFORMATION:
+
+Report Type:  {{campusmatch_item.report_type}} 
+Title:  {{campusmatch_item.title}} 
+Description:  {{campusmatch_item.description}} 
+Category:  {{campusmatch_item.category}} </prompt>
+        <prompt_template_role>user</prompt_template_role>
+        <provider_company/>
+        <request_tokens>32018</request_tokens>
+        <show_in_prompt_library>true</show_in_prompt_library>
+        <state>published</state>
+        <structured_output_enabled>false</structured_output_enabled>
+        <structured_output_schema/>
+        <sys_class_name>sys_generative_ai_config</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 07:09:36</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>c47e9c53a85703107f44bd86c8568bd8</sys_id>
+        <sys_mod_count>6</sys_mod_count>
+        <sys_name>8c7e9c53a85703107f44bd86c8568baf</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_generative_ai_config_c47e9c53a85703107f44bd86c8568bd8</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 07:25:11</sys_updated_on>
+        <temperature>0.2</temperature>
+        <thinking_tokens>0</thinking_tokens>
+        <version>1</version>
+    </sys_generative_ai_config>
+</record_update>

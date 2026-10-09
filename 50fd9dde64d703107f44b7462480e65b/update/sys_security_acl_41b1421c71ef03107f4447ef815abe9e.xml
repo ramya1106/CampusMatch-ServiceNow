@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_security_acl">
+    <sys_security_acl action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <admin_overrides>true</admin_overrides>
+        <advanced>true</advanced>
+        <applies_to/>
+        <condition/>
+        <controlled_by_refs/>
+        <decision_type>deny</decision_type>
+        <description>Deny read for records in x_snc_campusmatch_campusmatch_match, unless the ACL script returns true.</description>
+        <local_or_existing>Existing</local_or_existing>
+        <name>x_snc_campusmatch_campusmatch_match</name>
+        <operation display_value="read">read</operation>
+        <script><![CDATA[answer = false;
+
+var access =
+    new CampusMatchAccess();
+
+if (access.isStaff()) {
+
+    answer = true;
+
+}
+else {
+
+    var lostId =
+        current.getValue(
+            'lost_item'
+        );
+
+    var foundId =
+        current.getValue(
+            'found_item'
+        );
+
+
+    if (
+        lostId &&
+        foundId
+    ) {
+
+        var lost =
+            new GlideRecord(
+                'x_snc_campusmatch_campusmatch_item'
+            );
+
+        var found =
+            new GlideRecord(
+                'x_snc_campusmatch_campusmatch_item'
+            );
+
+
+        if (
+            lost.get(lostId) &&
+            found.get(foundId)
+        ) {
+
+            answer =
+                access.canViewMatch(
+                    lost,
+                    found
+                );
+
+        }
+
+    }
+
+}]]></script>
+        <security_attribute/>
+        <sys_class_name>sys_security_acl</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-21 16:59:04</sys_created_on>
+        <sys_id>41b1421c71ef03107f4447ef815abe9e</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>x_snc_campusmatch_campusmatch_match</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_security_acl_41b1421c71ef03107f4447ef815abe9e</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-21 16:59:05</sys_updated_on>
+        <type display_value="record">record</type>
+    </sys_security_acl>
+</record_update>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_snc_campusmatch_campusmatch_claim</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>CampusMatch - Create Collection Deadline</name>
+        <order>200</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /* null when async */) {
+
+    /* =====================================================
+       CAMPUSMATCH — CREATE COLLECTION DEADLINE
+    ===================================================== */
+
+    // Run ONLY when Claim becomes Approved
+    if (!current.claim_status.changesTo('Approved')) {
+        return;
+    }
+
+    // Safety checks
+    if (!current.item || !current.claimant) {
+        return;
+    }
+
+    var DEADLINE_TABLE =
+        'x_snc_campusmatch_campusmatch_deadline';
+
+
+    /* -----------------------------------------------------
+       PREVENT DUPLICATE ACTIVE COLLECTION DEADLINES
+    ----------------------------------------------------- */
+
+    var existing =
+        new GlideRecord(DEADLINE_TABLE);
+
+    existing.addQuery(
+        'claim',
+        current.getUniqueValue()
+    );
+
+    existing.addQuery(
+        'deadline_type',
+        'collection'
+    );
+
+    existing.addQuery(
+        'status',
+        'active'
+    );
+
+    existing.setLimit(1);
+    existing.query();
+
+    if (existing.hasNext()) {
+        return;
+    }
+
+
+    /* -----------------------------------------------------
+       CALCULATE DEADLINE
+
+       HACKATHON / DEMO:
+       3 DAYS FROM APPROVAL
+    ----------------------------------------------------- */
+
+    var start =
+        new GlideDateTime();
+
+    var due =
+        new GlideDateTime(start);
+
+    due.addDaysUTC(3);
+
+
+    /* -----------------------------------------------------
+       CREATE DEADLINE
+    ----------------------------------------------------- */
+
+    var deadline =
+        new GlideRecord(DEADLINE_TABLE);
+
+    deadline.initialize();
+
+    deadline.setValue(
+        'deadline_type',
+        'collection'
+    );
+
+    deadline.setValue(
+        'item',
+        current.getValue('item')
+    );
+
+    deadline.setValue(
+        'claim',
+        current.getUniqueValue()
+    );
+
+    deadline.setValue(
+        'user',
+        current.getValue('claimant')
+    );
+
+    deadline.setValue(
+        'start_date_time',
+        start
+    );
+
+    deadline.setValue(
+        'due_date_time',
+        due
+    );
+
+    deadline.setValue(
+        'status',
+        'active'
+    );
+
+    deadline.setValue(
+        'reminder_sent',
+        false
+    );
+
+    deadline.setValue(
+        'expiry_processed',
+        false
+    );
+
+    deadline.insert();
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-30 17:05:35</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>a1d7501fe1e303107f44ae7e9de11069</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch - Create Collection Deadline</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_a1d7501fe1e303107f44ae7e9de11069</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-30 17:05:35</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=a1d7501fe1e303107f44ae7e9de11069"/>
+</record_update>

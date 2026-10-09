@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_container">
+    <sp_container action="INSERT_OR_UPDATE">
+        <aria_label/>
+        <background_color/>
+        <background_image/>
+        <background_style>default</background_style>
+        <bootstrap_alt>false</bootstrap_alt>
+        <class_name/>
+        <container_class_name/>
+        <name>CampusMatch Deadlines - Container 1</name>
+        <order>1</order>
+        <semantic_tag/>
+        <sp_page display_value="campusmatch_deadlines">5e28c0afe5ab03107f440b8398d33a03</sp_page>
+        <subheader>false</subheader>
+        <sys_class_name>sp_container</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-10-01 10:27:54</sys_created_on>
+        <sys_id>6778046fe56b03107f440b8398d33a57</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch Deadlines - Container 1</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_container_6778046fe56b03107f440b8398d33a57</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-10-01 10:27:54</sys_updated_on>
+        <title/>
+        <width>container</width>
+    </sp_container>
+</record_update>

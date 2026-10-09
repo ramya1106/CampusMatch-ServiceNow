@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_campusmatch.CampusMatchAccess</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description>Centralized access control helper for CampusMatch staff, item ownership, and match access.</description>
+        <mobile_callable>false</mobile_callable>
+        <name>CampusMatchAccess</name>
+        <sandbox_callable>false</sandbox_callable>
+        <script><![CDATA[var CampusMatchAccess = Class.create();
+
+CampusMatchAccess.prototype = {
+
+    initialize: function() {
+    },
+
+
+    /* =========================================
+       STAFF ACCESS
+    ========================================= */
+
+    isStaff: function() {
+
+        return (
+            gs.hasRole('x_snc_campusmatch.staff') ||
+            gs.hasRole('admin')
+        );
+
+    },
+
+
+    /* =========================================
+       CURRENT USER
+    ========================================= */
+
+    getUserId: function() {
+
+        return gs.getUserID();
+
+    },
+
+
+    /* =========================================
+       ITEM OWNER
+    ========================================= */
+
+    ownsItem: function(item) {
+
+        if (!item) {
+            return false;
+        }
+
+        return (
+            item.getValue('reporter') ===
+            gs.getUserID()
+        );
+
+    },
+
+
+    /* =========================================
+       MATCH PARTICIPANT
+    ========================================= */
+
+    canViewMatch: function(lostItem, foundItem) {
+
+        if (this.isStaff()) {
+            return true;
+        }
+
+        if (!lostItem || !foundItem) {
+            return false;
+        }
+
+        var userId =
+            gs.getUserID();
+
+        return (
+            lostItem.getValue('reporter') === userId ||
+            foundItem.getValue('reporter') === userId
+        );
+
+    },
+
+
+    type: 'CampusMatchAccess'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-21 14:49:29</sys_created_on>
+        <sys_id>fd0421dc71eb03107f4447ef815abe12</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatchAccess</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_include_fd0421dc71eb03107f4447ef815abe12</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-21 14:49:29</sys_updated_on>
+    </sys_script_include>
+</record_update>

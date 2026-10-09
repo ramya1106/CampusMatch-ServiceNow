@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_snc_campusmatch_campusmatch_claim</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>CampusMatch - Auto Approve Passed Claim</name>
+        <order>200</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous /* null when async */) {
+
+    /* ======================================================
+       CAMPUSMATCH — AUTO APPROVE PASSED CLAIM
+    ====================================================== */
+
+
+    /* ======================================================
+       1. READ VERIFICATION RESULT
+    ====================================================== */
+
+    var verificationResult =
+        (
+            current.getValue(
+                'u_verification_result'
+            ) || ''
+        )
+        .toString()
+        .trim()
+        .toLowerCase();
+
+
+    /*
+     * Only high-confidence Pass claims.
+     */
+    if (
+        verificationResult !==
+            'pass'
+    ) {
+
+        return;
+    }
+
+
+
+    /* ======================================================
+       2. RUN ONLY WHEN RESULT BECOMES PASS
+    ====================================================== */
+
+    if (previous) {
+
+        var previousResult =
+            (
+                previous.getValue(
+                    'u_verification_result'
+                ) || ''
+            )
+            .toString()
+            .trim()
+            .toLowerCase();
+
+
+        /*
+         * Prevent recursion after our automatic
+         * Claim update.
+         */
+        if (
+            previousResult ===
+                'pass'
+        ) {
+
+            return;
+        }
+    }
+
+
+
+    /* ======================================================
+       3. CHECK CURRENT CLAIM STATUS
+    ====================================================== */
+
+    var currentStatus =
+        (
+            current.getValue(
+                'claim_status'
+            ) || ''
+        )
+        .toString()
+        .trim()
+        .toLowerCase();
+
+
+    if (
+        currentStatus ===
+            'approved' ||
+        currentStatus ===
+            'rejected' ||
+        currentStatus ===
+            'cancelled'
+    ) {
+
+        return;
+    }
+
+
+
+    /* ======================================================
+       4. RELOAD CLAIM
+    ====================================================== */
+
+    var claim =
+        new GlideRecord(
+            'x_snc_campusmatch_campusmatch_claim'
+        );
+
+
+    if (
+        !claim.get(
+            current.getUniqueValue()
+        )
+    ) {
+
+        gs.error(
+            'CampusMatch Auto Approve: Claim could not be reloaded.'
+        );
+
+        return;
+    }
+
+
+
+    /* ======================================================
+       5. AUTO APPROVE
+    ====================================================== */
+
+    claim.setValue(
+        'claim_status',
+        'Approved'
+    );
+
+
+
+    /* ======================================================
+       6. VERIFIED BY = SYSTEM ADMINISTRATOR
+
+       IMPORTANT:
+       Do NOT use gs.getUserID().
+       That would store the claimant as the verifier.
+    ====================================================== */
+
+    if (
+        claim.isValidField(
+            'verified_by'
+        )
+    ) {
+
+        var systemUser =
+            new GlideRecord(
+                'sys_user'
+            );
+
+
+        /*
+         * Find the ServiceNow admin account.
+         */
+        systemUser.addQuery(
+            'user_name',
+            'admin'
+        );
+
+
+        systemUser.setLimit(
+            1
+        );
+
+
+        systemUser.query();
+
+
+        if (
+            systemUser.next()
+        ) {
+
+            claim.setValue(
+                'verified_by',
+                systemUser.getUniqueValue()
+            );
+
+        }
+    }
+
+
+
+    /* ======================================================
+       7. VERIFIED ON
+    ====================================================== */
+
+    if (
+        claim.isValidField(
+            'verified_on'
+        )
+    ) {
+
+        claim.setValue(
+            'verified_on',
+            new GlideDateTime()
+        );
+
+    }
+
+
+
+    /* ======================================================
+       8. UPDATE CLAIM
+
+       Existing Collection Token BR will run because
+       we DO NOT disable workflow.
+    ====================================================== */
+
+    var claimUpdateId =
+        claim.update();
+
+
+    if (!claimUpdateId) {
+
+        gs.error(
+            'CampusMatch Auto Approve: Unable to approve Claim ' +
+            current.getUniqueValue()
+        );
+
+        return;
+    }
+
+
+
+    /* ======================================================
+       9. CONFIRM RELATED MATCH
+    ====================================================== */
+
+    var matchId =
+        current.getValue(
+            'match'
+        );
+
+
+    if (matchId) {
+
+        var match =
+            new GlideRecord(
+                'x_snc_campusmatch_campusmatch_match'
+            );
+
+
+        if (
+            match.get(
+                matchId
+            )
+        ) {
+
+            match.setValue(
+                'status',
+                'confirmed'
+            );
+
+
+            match.update();
+
+        }
+        else {
+
+            gs.error(
+                'CampusMatch Auto Approve: Related Match could not be found: ' +
+                matchId
+            );
+
+        }
+    }
+
+
+})(current, previous);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-23 14:12:52</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>9dbee33c41a703107f44b631ebeb5e88</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>CampusMatch - Auto Approve Passed Claim</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_9dbee33c41a703107f44b631ebeb5e88</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-23 14:38:41</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=9dbee33c41a703107f44b631ebeb5e88"/>
+</record_update>

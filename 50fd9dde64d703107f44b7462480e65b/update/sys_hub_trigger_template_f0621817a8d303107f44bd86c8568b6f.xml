@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_hub_trigger_template">
+    <sys_hub_trigger_template action="INSERT_OR_UPDATE">
+        <accessible_from>public</accessible_from>
+        <active>false</active>
+        <annotation/>
+        <attributes/>
+        <category display_value="Record">8886dd64c3d322002841b63b12d3aed4</category>
+        <comment/>
+        <description>Triggers when a CampusMatch Item is created with a description for similarity prediction.</description>
+        <designer_source display_value="Workflow Studio">a1fb8738ff0032108282ffffffffff37</designer_source>
+        <name>CampusMatch Item Created</name>
+        <order>0</order>
+        <published_trigger_id/>
+        <source_trigger/>
+        <state>draft</state>
+        <sys_class_name>sys_hub_trigger_template</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:16:56</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>f0621817a8d303107f44bd86c8568b6f</sys_id>
+        <sys_mod_count>4</sys_mod_count>
+        <sys_name>CampusMatch Item Created</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_hub_trigger_template_f0621817a8d303107f44bd86c8568b6f</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:19:48</sys_updated_on>
+        <template_properties/>
+        <trigger_category/>
+        <trigger_definition display_value="Created">798916a0c31322002841b63b12d3ae7c</trigger_definition>
+        <trigger_values>[{"name":"condition","label":"Condition","type":"conditions","displayValue":"descriptionISNOTEMPTY","value":"descriptionISNOTEMPTY","readOnly":false,"extendable":false},{"name":"table","label":"Table","type":"table_name","displayValue":"CampusMatch Item","value":"x_snc_campusmatch_campusmatch_item","readOnly":false,"extendable":false}]</trigger_values>
+        <type>record_create</type>
+    </sys_hub_trigger_template>
+    <sys_translated_text action="delete_multiple" query="documentkey=f0621817a8d303107f44bd86c8568b6f"/>
+</record_update>

@@ -1,0 +1,1059 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_snc_campusmatch.CampusMatchMatchOrchestrator</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <mobile_callable>false</mobile_callable>
+        <name>CampusMatchMatchOrchestrator</name>
+        <sandbox_callable>false</sandbox_callable>
+        <script><![CDATA[var CampusMatchMatchOrchestrator = Class.create();
+
+CampusMatchMatchOrchestrator.prototype = {
+
+    initialize: function() {
+    },
+
+
+    /* ======================================================
+       TABLES / FIELDS
+    ====================================================== */
+
+    ITEM_TABLE:
+        'x_snc_campusmatch_campusmatch_item',
+
+
+    MATCH_TABLE:
+        'x_snc_campusmatch_campusmatch_match',
+
+
+    PI_PENDING:
+        'pi_pending',
+
+
+
+    /* ======================================================
+       SCORE ONE LOST + FOUND PAIR
+    ====================================================== */
+
+    scorePair: function(
+        lostItem,
+        foundItem
+    ) {
+
+        if (
+            !lostItem ||
+            !foundItem
+        ) {
+
+            return {
+                ready: false,
+                reason:
+                    'Invalid Lost or Found Item.'
+            };
+        }
+
+
+        var engine =
+            new CampusMatchScoringEngine();
+
+
+        var scores =
+            {};
+
+
+        /* ==================================================
+           IMAGE EVIDENCE
+
+           IMPORTANT FIX:
+
+           Do NOT depend on the raw "image" field.
+
+           CampusMatch's actual image pipeline produces
+           AI Attribute Text after successful image
+           extraction.
+
+           Therefore:
+
+           AI Attribute Text on BOTH reports
+           = comparable image evidence exists.
+        ================================================== */
+
+        var lostHasImageEvidence =
+            engine.hasImageEvidence(
+                lostItem
+            );
+
+
+        var foundHasImageEvidence =
+            engine.hasImageEvidence(
+                foundItem
+            );
+
+
+        scores.imageAvailable =
+            (
+                lostHasImageEvidence &&
+                foundHasImageEvidence
+            );
+
+
+
+        /* ==================================================
+           IMAGE ATTRIBUTE PI
+
+           If BOTH sides have image-derived AI attributes,
+           Image PI becomes REQUIRED.
+
+           If PI has not indexed the pair yet:
+           entire Match remains pending.
+        ================================================== */
+
+        if (
+            scores.imageAvailable
+        ) {
+
+            scores.image =
+                engine.calculateImageAttributeScore(
+                    lostItem,
+                    foundItem
+                );
+
+
+            if (
+                scores.image === null
+            ) {
+
+                return {
+                    ready: false,
+                    reason:
+                        'Image Attribute PI similarity is pending.'
+                };
+            }
+
+        }
+        else {
+
+            /*
+             * Genuine no-image / no-comparable-image case.
+             *
+             * Image factor will be excluded from weight.
+             */
+            scores.image =
+                0;
+        }
+
+
+
+        /* ==================================================
+           DESCRIPTION PI
+        ================================================== */
+
+        scores.description =
+            engine.calculateDescriptionScore(
+                lostItem,
+                foundItem
+            );
+
+
+        if (
+            scores.description === null
+        ) {
+
+            return {
+                ready: false,
+                reason:
+                    'Description PI similarity is pending.'
+            };
+        }
+
+
+
+        /* ==================================================
+           UNIQUE ATTRIBUTE PI
+        ================================================== */
+
+        scores.unique =
+            engine.calculateUniqueAttributeScore(
+                lostItem,
+                foundItem
+            );
+
+
+        if (
+            scores.unique === null
+        ) {
+
+            return {
+                ready: false,
+                reason:
+                    'Unique Attribute PI similarity is pending.'
+            };
+        }
+
+
+
+        /* ==================================================
+           ONLY NOW:
+           ALL REQUIRED PI EVIDENCE IS READY
+        ================================================== */
+
+
+        /* ==================================================
+           LOCATION
+        ================================================== */
+
+        scores.location =
+            engine.calculateLocationScore(
+                lostItem,
+                foundItem
+            );
+
+
+        /* ==================================================
+           TIME
+        ================================================== */
+
+        scores.time =
+            engine.calculateTimeScore(
+                lostItem,
+                foundItem
+            );
+
+
+        /* ==================================================
+           CATEGORY
+        ================================================== */
+
+        scores.category =
+            engine.calculateCategoryScore(
+                lostItem,
+                foundItem
+            );
+
+
+        /* ==================================================
+           OVERALL
+        ================================================== */
+
+        scores.overall =
+            engine.calculateOverallScore(
+                scores
+            );
+
+
+        /* ==================================================
+           MATCH LEVEL
+        ================================================== */
+
+        scores.level =
+            engine.getMatchLevel(
+                scores.overall
+            );
+
+
+        scores.ready =
+            true;
+
+
+        scores.reason =
+            'All required PI similarities are ready.';
+
+
+        return scores;
+    },
+
+
+
+    /* ======================================================
+       PROCESS ONE ITEM AGAINST ALL ACTIVE OPPOSITE REPORTS
+    ====================================================== */
+
+    processItem: function(
+        item
+    ) {
+
+        if (
+            !item ||
+            !item.isValidRecord()
+        ) {
+
+            return;
+        }
+
+
+        var reportType =
+            item.getValue(
+                'report_type'
+            );
+
+
+        if (!reportType) {
+
+            return;
+        }
+
+
+        var oppositeType;
+
+
+        if (
+            reportType == 'lost'
+        ) {
+
+            oppositeType =
+                'found';
+        }
+        else if (
+            reportType == 'found'
+        ) {
+
+            oppositeType =
+                'lost';
+        }
+        else {
+
+            return;
+        }
+
+
+        var candidate =
+            new GlideRecord(
+                this.ITEM_TABLE
+            );
+
+
+        candidate.addQuery(
+            'report_type',
+            oppositeType
+        );
+
+
+        candidate.addQuery(
+            'status',
+            'active'
+        );
+
+
+        candidate.query();
+
+
+        while (
+            candidate.next()
+        ) {
+
+            var lostItem;
+            var foundItem;
+
+
+            if (
+                reportType == 'lost'
+            ) {
+
+                lostItem =
+                    item;
+
+                foundItem =
+                    candidate;
+            }
+            else {
+
+                lostItem =
+                    candidate;
+
+                foundItem =
+                    item;
+            }
+
+
+            var scores =
+                this.scorePair(
+                    lostItem,
+                    foundItem
+                );
+
+
+            /* ==============================================
+               PI NOT READY
+
+               Keep/create Pending Match.
+
+               DO NOT save partial scores.
+            ============================================== */
+
+            if (
+                !scores ||
+                scores.ready !== true
+            ) {
+
+                this.savePendingMatch(
+                    lostItem,
+                    foundItem
+                );
+
+
+                gs.info(
+                    'CampusMatch PI Pending: ' +
+                    lostItem.getDisplayValue() +
+                    ' <-> ' +
+                    foundItem.getDisplayValue() +
+                    ' | Reason: ' +
+                    (
+                        scores &&
+                        scores.reason
+                            ? scores.reason
+                            : 'Unknown PI readiness condition.'
+                    )
+                );
+
+
+                continue;
+            }
+
+
+
+            /* ==============================================
+               ALL REQUIRED PI VALUES READY
+            ============================================== */
+
+            gs.info(
+                'CampusMatch Candidate Ready: ' +
+                lostItem.getDisplayValue() +
+                ' <-> ' +
+                foundItem.getDisplayValue() +
+                ' | Image = ' +
+                (
+                    scores.imageAvailable
+                        ? scores.image
+                        : 'N/A'
+                ) +
+                ' | Description = ' +
+                scores.description +
+                ' | Unique = ' +
+                scores.unique +
+                ' | Category = ' +
+                scores.category +
+                ' | Location = ' +
+                scores.location +
+                ' | Time = ' +
+                scores.time +
+                ' | Overall = ' +
+                scores.overall +
+                ' | Level = ' +
+                scores.level
+            );
+
+
+            this.saveMatch(
+                lostItem,
+                foundItem,
+                scores
+            );
+        }
+    },
+
+
+
+    /* ======================================================
+       CREATE / KEEP PENDING MATCH
+    ====================================================== */
+
+    savePendingMatch: function(
+        lostItem,
+        foundItem
+    ) {
+
+        if (
+            !lostItem ||
+            !foundItem
+        ) {
+
+            return '';
+        }
+
+
+        var match =
+            new GlideRecord(
+                this.MATCH_TABLE
+            );
+
+
+        match.addQuery(
+            'lost_item',
+            lostItem.getUniqueValue()
+        );
+
+
+        match.addQuery(
+            'found_item',
+            foundItem.getUniqueValue()
+        );
+
+
+        match.setLimit(
+            1
+        );
+
+
+        match.query();
+
+
+
+        /* ==============================================
+           EXISTING MATCH
+        ============================================== */
+
+        if (
+            match.next()
+        ) {
+
+            /*
+             * Completed Match?
+             *
+             * Never destroy an already-valid Match.
+             */
+            var existingPending =
+                match.getValue(
+                    this.PI_PENDING
+                );
+
+
+            var existingOverall =
+                match.getValue(
+                    'overall_score'
+                );
+
+
+            if (
+                existingPending != '1' &&
+                existingOverall !== null &&
+                existingOverall !== undefined &&
+                existingOverall.toString()
+                    .replace(
+                        /^\s+|\s+$/g,
+                        ''
+                    )
+                    .length > 0
+            ) {
+
+                return match.getUniqueValue();
+            }
+
+
+            match.setValue(
+                this.PI_PENDING,
+                true
+            );
+
+
+            /* ==========================================
+               NO PARTIAL DATA
+
+               Pending means ALL Match-score fields
+               remain empty.
+            ========================================== */
+
+            match.setValue(
+                'image_similarity',
+                ''
+            );
+
+
+            match.setValue(
+                'description_similarity',
+                ''
+            );
+
+
+            match.setValue(
+                'unique_attribute_score',
+                ''
+            );
+
+
+            match.setValue(
+                'location_score',
+                ''
+            );
+
+
+            match.setValue(
+                'time_score',
+                ''
+            );
+
+
+            match.setValue(
+                'category_score',
+                ''
+            );
+
+
+            match.setValue(
+                'overall_score',
+                ''
+            );
+
+
+            match.setValue(
+                'match_level',
+                ''
+            );
+
+
+            match.update();
+
+
+            return match.getUniqueValue();
+        }
+
+
+
+        /* ==============================================
+           NEW PENDING MATCH
+        ============================================== */
+
+        match.initialize();
+
+
+        match.setValue(
+            'lost_item',
+            lostItem.getUniqueValue()
+        );
+
+
+        match.setValue(
+            'found_item',
+            foundItem.getUniqueValue()
+        );
+
+
+        match.setValue(
+            this.PI_PENDING,
+            true
+        );
+
+
+        match.setValue(
+            'image_similarity',
+            ''
+        );
+
+
+        match.setValue(
+            'description_similarity',
+            ''
+        );
+
+
+        match.setValue(
+            'unique_attribute_score',
+            ''
+        );
+
+
+        match.setValue(
+            'location_score',
+            ''
+        );
+
+
+        match.setValue(
+            'time_score',
+            ''
+        );
+
+
+        match.setValue(
+            'category_score',
+            ''
+        );
+
+
+        match.setValue(
+            'overall_score',
+            ''
+        );
+
+
+        match.setValue(
+            'match_level',
+            ''
+        );
+
+
+        return match.insert();
+    },
+
+
+
+    /* ======================================================
+       SAVE COMPLETED MATCH
+    ====================================================== */
+
+    saveMatch: function(
+        lostItem,
+        foundItem,
+        scores
+    ) {
+
+        if (
+            !lostItem ||
+            !foundItem ||
+            !scores ||
+            scores.ready !== true
+        ) {
+
+            return '';
+        }
+
+
+        var match =
+            new GlideRecord(
+                this.MATCH_TABLE
+            );
+
+
+        match.addQuery(
+            'lost_item',
+            lostItem.getUniqueValue()
+        );
+
+
+        match.addQuery(
+            'found_item',
+            foundItem.getUniqueValue()
+        );
+
+
+        match.setLimit(
+            1
+        );
+
+
+        match.query();
+
+
+        var isNew =
+            false;
+
+
+        if (
+            !match.next()
+        ) {
+
+            match.initialize();
+
+
+            match.setValue(
+                'lost_item',
+                lostItem.getUniqueValue()
+            );
+
+
+            match.setValue(
+                'found_item',
+                foundItem.getUniqueValue()
+            );
+
+
+            isNew =
+                true;
+        }
+
+
+
+        /* ==============================================
+           IMAGE
+        ============================================== */
+
+        if (
+            scores.imageAvailable === true
+        ) {
+
+            match.setValue(
+                'image_similarity',
+                scores.image
+            );
+        }
+        else {
+
+            match.setValue(
+                'image_similarity',
+                ''
+            );
+        }
+
+
+
+        /* ==============================================
+           REMAINING SCORES
+        ============================================== */
+
+        match.setValue(
+            'description_similarity',
+            scores.description
+        );
+
+
+        match.setValue(
+            'unique_attribute_score',
+            scores.unique
+        );
+
+
+        match.setValue(
+            'location_score',
+            scores.location
+        );
+
+
+        match.setValue(
+            'time_score',
+            scores.time
+        );
+
+
+        match.setValue(
+            'category_score',
+            scores.category
+        );
+
+
+        match.setValue(
+            'overall_score',
+            scores.overall
+        );
+
+
+        match.setValue(
+            'match_level',
+            scores.level
+        );
+
+
+        match.setValue(
+            this.PI_PENDING,
+            false
+        );
+
+
+        if (
+            isNew
+        ) {
+
+            return match.insert();
+        }
+
+
+        return match.update();
+    },
+
+
+
+    /* ======================================================
+       RECOMPUTE ONE MATCH
+    ====================================================== */
+
+    recomputeMatch: function(
+        matchSysId
+    ) {
+
+        if (!matchSysId) {
+
+            return false;
+        }
+
+
+        var match =
+            new GlideRecord(
+                this.MATCH_TABLE
+            );
+
+
+        if (
+            !match.get(
+                matchSysId
+            )
+        ) {
+
+            gs.error(
+                'CampusMatch Retry: Match not found: ' +
+                matchSysId
+            );
+
+
+            return false;
+        }
+
+
+        var lostId =
+            match.getValue(
+                'lost_item'
+            );
+
+
+        var foundId =
+            match.getValue(
+                'found_item'
+            );
+
+
+        if (
+            !lostId ||
+            !foundId
+        ) {
+
+            gs.error(
+                'CampusMatch Retry: ' +
+                'Lost or Found reference missing for Match ' +
+                match.getDisplayValue(
+                    'number'
+                )
+            );
+
+
+            return false;
+        }
+
+
+        var lostItem =
+            new GlideRecord(
+                this.ITEM_TABLE
+            );
+
+
+        var foundItem =
+            new GlideRecord(
+                this.ITEM_TABLE
+            );
+
+
+        if (
+            !lostItem.get(
+                lostId
+            )
+        ) {
+
+            gs.error(
+                'CampusMatch Retry: Lost Item could not be loaded.'
+            );
+
+
+            return false;
+        }
+
+
+        if (
+            !foundItem.get(
+                foundId
+            )
+        ) {
+
+            gs.error(
+                'CampusMatch Retry: Found Item could not be loaded.'
+            );
+
+
+            return false;
+        }
+
+
+        var scores =
+            this.scorePair(
+                lostItem,
+                foundItem
+            );
+
+
+        /* ==============================================
+           STILL WAITING FOR ONE OR MORE PI RESULTS
+        ============================================== */
+
+        if (
+            !scores ||
+            scores.ready !== true
+        ) {
+
+            this.savePendingMatch(
+                lostItem,
+                foundItem
+            );
+
+
+            gs.info(
+                'CampusMatch Retry: Still waiting for PI. ' +
+                match.getDisplayValue(
+                    'number'
+                ) +
+                ' | Reason: ' +
+                (
+                    scores &&
+                    scores.reason
+                        ? scores.reason
+                        : 'Unknown.'
+                )
+            );
+
+
+            return false;
+        }
+
+
+
+        /* ==============================================
+           ALL PI READY
+        ============================================== */
+
+        this.saveMatch(
+            lostItem,
+            foundItem,
+            scores
+        );
+
+
+        gs.info(
+            'CampusMatch Retry: PI ready. ' +
+            match.getDisplayValue(
+                'number'
+            ) +
+            ' | Image = ' +
+            (
+                scores.imageAvailable
+                    ? scores.image
+                    : 'N/A'
+            ) +
+            ' | Description = ' +
+            scores.description +
+            ' | Unique = ' +
+            scores.unique +
+            ' | Overall = ' +
+            scores.overall +
+            ' | Level = ' +
+            scores.level
+        );
+
+
+        return true;
+    },
+
+
+    type:
+        'CampusMatchMatchOrchestrator'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-19 07:28:42</sys_created_on>
+        <sys_id>915c692f55d303107f4447f82ce732b7</sys_id>
+        <sys_mod_count>8</sys_mod_count>
+        <sys_name>CampusMatchMatchOrchestrator</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_include_915c692f55d303107f4447f82ce732b7</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-23 18:31:37</sys_updated_on>
+    </sys_script_include>
+</record_update>

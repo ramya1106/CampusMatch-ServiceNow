@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sysauto_script">
+    <sysauto_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <advanced>true</advanced>
+        <business_calendar/>
+        <condition/>
+        <conditional>false</conditional>
+        <entered_run_end/>
+        <entered_run_start/>
+        <entered_time>1970-01-01 00:00:00</entered_time>
+        <max_drift/>
+        <name>CampusMatch - Process Expired Deadlines</name>
+        <offset/>
+        <offset_type>0</offset_type>
+        <repeat_every/>
+        <run_as display_value="System Administrator">6816f79cc0a8016401c5a33be04be441</run_as>
+        <run_as_tz/>
+        <run_dayofmonth>1</run_dayofmonth>
+        <run_dayofweek>1</run_dayofweek>
+        <run_daysofweek/>
+        <run_end/>
+        <run_month>1</run_month>
+        <run_period/>
+        <run_start>2026-09-30 17:42:16</run_start>
+        <run_time>1970-01-01 00:00:00</run_time>
+        <run_type>daily</run_type>
+        <run_weekinmonth>1</run_weekinmonth>
+        <script><![CDATA[var DEADLINE_TABLE =
+    'x_snc_campusmatch_campusmatch_deadline';
+
+var CLAIM_TABLE =
+    'x_snc_campusmatch_campusmatch_claim';
+
+var ITEM_TABLE =
+    'x_snc_campusmatch_campusmatch_item';
+
+var now = new GlideDateTime();
+
+
+/* =====================================================
+   PROCESS EXPIRED COLLECTION DEADLINES
+===================================================== */
+
+var deadline = new GlideRecord(DEADLINE_TABLE);
+
+deadline.addQuery('status', 'active');
+deadline.addQuery('deadline_type', 'collection');
+deadline.addQuery('due_date_time', '<=', now);
+deadline.addQuery('expiry_processed', false);
+deadline.query();
+
+while (deadline.next()) {
+
+    var claim = new GlideRecord(CLAIM_TABLE);
+
+    if (!claim.get(deadline.getValue('claim'))) {
+        deadline.setValue('expiry_processed', true);
+        deadline.update();
+        continue;
+    }
+
+
+    /* Already collected → simply complete deadline */
+
+    if (claim.getValue('handover_completed') == 'true') {
+
+        deadline.setValue('status', 'completed');
+        deadline.setValue('expiry_processed', true);
+        deadline.update();
+
+        continue;
+    }
+
+
+    /* ---------------------------------------------
+       COLLECTION EXPIRED
+    --------------------------------------------- */
+
+    claim.setValue(
+        'claim_status',
+        'collection_expired'
+    );
+
+    // Kill old QR/token
+    claim.setValue(
+        'collection_toke0',
+        ''
+    );
+
+    claim.update();
+
+
+    /* ---------------------------------------------
+       ITEM RETURNS TO UNCLAIMED
+    --------------------------------------------- */
+
+    var item = new GlideRecord(ITEM_TABLE);
+
+    if (item.get(deadline.getValue('item'))) {
+
+        item.setValue(
+            'status',
+            'unclaimed'
+        );
+
+        item.update();
+    }
+
+
+    /* ---------------------------------------------
+       CLOSE COLLECTION DEADLINE
+    --------------------------------------------- */
+
+    deadline.setValue(
+        'status',
+        'expired'
+    );
+
+    deadline.setValue(
+        'expiry_processed',
+        true
+    );
+
+    deadline.update();
+
+
+    /* ---------------------------------------------
+       CREATE RETENTION DEADLINE
+       Prevent duplicates
+    --------------------------------------------- */
+
+    var existingRetention =
+        new GlideRecord(DEADLINE_TABLE);
+
+    existingRetention.addQuery(
+        'item',
+        deadline.getValue('item')
+    );
+
+    existingRetention.addQuery(
+        'deadline_type',
+        'retention'
+    );
+
+    existingRetention.addQuery(
+        'status',
+        'active'
+    );
+
+    existingRetention.setLimit(1);
+    existingRetention.query();
+
+    if (!existingRetention.hasNext()) {
+
+        var retentionStart =
+            new GlideDateTime();
+
+        var retentionDue =
+            new GlideDateTime(retentionStart);
+
+        // Demo/final configuration for now
+        retentionDue.addDaysUTC(30);
+
+
+        var retention =
+            new GlideRecord(DEADLINE_TABLE);
+
+        retention.initialize();
+
+        retention.setValue(
+            'deadline_type',
+            'retention'
+        );
+
+        retention.setValue(
+            'item',
+            deadline.getValue('item')
+        );
+
+        // NO claim/user:
+        // retention is an ADMIN deadline
+
+        retention.setValue(
+            'start_date_time',
+            retentionStart
+        );
+
+        retention.setValue(
+            'due_date_time',
+            retentionDue
+        );
+
+        retention.setValue(
+            'status',
+            'active'
+        );
+
+        retention.setValue(
+            'reminder_sent',
+            false
+        );
+
+        retention.setValue(
+            'expiry_processed',
+            false
+        );
+
+        retention.insert();
+    }
+}]]></script>
+        <sys_class_name>sysauto_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-30 17:47:23</sys_created_on>
+        <sys_id>785264d3e16703107f44ae7e9de1102b</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>CampusMatch - Process Expired Deadlines</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sysauto_script_785264d3e16703107f44ae7e9de1102b</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-30 17:49:06</sys_updated_on>
+        <time_zone/>
+        <upgrade_safe>false</upgrade_safe>
+    </sysauto_script>
+</record_update>

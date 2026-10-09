@@ -1,0 +1,790 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_hub_flow">
+    <sys_hub_flow action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <acls/>
+        <active>true</active>
+        <allow_high_security_roles>false</allow_high_security_roles>
+        <annotation/>
+        <attributes>browserActivatedIn=chrome,integrationActivatedIn=standalone,labelCacheCleanUpExecuted=true,timeFromCreateToActivate=30783000,viewActivatedIn=naturalLanguage</attributes>
+        <authored_on_release_version>29000</authored_on_release_version>
+        <callable_by_client_api>false</callable_by_client_api>
+        <category/>
+        <copied_from>e0b9ab9feb702110f2549bf12a5228e6</copied_from>
+        <copied_from_name>Task Processing Flow Template</copied_from_name>
+        <description>DocDataExtractor Flow Template for processing a task</description>
+        <display_name_after_preview/>
+        <flow_priority/>
+        <generation_source/>
+        <internal_name>docintel_task_processing_flow__campusmatch_item_image_extraction__campusmatch_item__process_task</internal_name>
+        <label_cache>[{"name":"6e1fa36a-f09d-4993-afc2-b4d3ade21307.task_id","label":"1 - DocIntel - Create a Document Task➛Task ID","reference_display":"Task ID","type":"string","base_type":"string","attributes":{"uiType":"string","uiTypeLabel":"String","element_mapping_provider":"com.glide.flow_design.action.data.FlowDesignVariableMapper","pwd2droppable":"true","uiUniqueId":"a7335496-1038-4dd2-8efb-a38349d0513f"}},{"name":"Created_1.current.sys_id","label":"Trigger - Record Created➛Incident Record➛Sys ID","reference":"","reference_display":"Sys ID","type":"GUID","base_type":"GUID","parent_table_name":"incident","column_name":"sys_id"},{"name":"Created_1.table_name","label":"Trigger - Record Created➛Incident Table","reference":"incident","reference_display":"Incident","type":"table_name","base_type":"table_name","attributes":{"test_input_hidden":"true"}},{"name":"Created_1.current.image","label":"Trigger - Record Created➛Incident Record➛Image","reference":"","reference_display":"Image","type":"user_image","base_type":"user_image","parent_table_name":"x_snc_campusmatch_campusmatch_item","column_name":"image","usedInstances":{"6e1fa36a-f09d-4993-afc2-b4d3ade21307":[null]}}]</label_cache>
+        <master_snapshot>1a0914d3a81703107f44bd86c8568b9e</master_snapshot>
+        <master_snapshot_digest/>
+        <name>DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task</name>
+        <natlang/>
+        <outputs/>
+        <pre_compiled>false</pre_compiled>
+        <remote_trigger_id>0c44029b599303107f44205ad11fe493</remote_trigger_id>
+        <run_as>user</run_as>
+        <run_with_roles/>
+        <sc_callable>false</sc_callable>
+        <show_draft_actions>false</show_draft_actions>
+        <show_triggered_flows>false</show_triggered_flows>
+        <status>published</status>
+        <substatus/>
+        <sys_class_name>sys_hub_flow</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:19</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>04de805fa89303107f44bd86c8568b5e</sys_id>
+        <sys_mod_count>34</sys_mod_count>
+        <sys_name>DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_hub_flow_04de805fa89303107f44bd86c8568b5e</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:34:24</sys_updated_on>
+        <type>flow</type>
+        <updation_source/>
+        <version>2</version>
+        <version_record>9844029b599303107f44205ad11fe4f1</version_record>
+    </sys_hub_flow>
+    <sys_translated_text action="delete_multiple" query="documentkey=04de805fa89303107f44bd86c8568b5e"/>
+    <sys_variable_value action="delete_multiple" query="document_key=04de805fa89303107f44bd86c8568b5e"/>
+    <sys_flow_record_trigger action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <condition table="x_snc_campusmatch_campusmatch_item">image!=empty<item endquery="false" field="image" goto="false" newquery="false" operator="!=" or="false" value="empty"/>
+        </condition>
+        <name/>
+        <on_delete>false</on_delete>
+        <on_insert>true</on_insert>
+        <on_update>false</on_update>
+        <published_version/>
+        <run_flow_in>background</run_flow_in>
+        <run_on_extended>false</run_on_extended>
+        <run_when_setting>both</run_when_setting>
+        <run_when_user_list/>
+        <run_when_user_setting>any</run_when_user_setting>
+        <sys_class_name>sys_flow_record_trigger</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 14:34:24</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>0c44029b599303107f44205ad11fe493</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_overrides/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:34:24</sys_updated_on>
+        <table>x_snc_campusmatch_campusmatch_item</table>
+        <trigger_definition/>
+    </sys_flow_record_trigger>
+    <sys_trigger_runner_mapping action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <data>{"run_flow_in":"background","run_when_user_list":[],"run_when_setting":"both","run_when_user_setting":"any","run_on_extended":"false"}</data>
+        <identifier>04de805fa89303107f44bd86c8568b5e</identifier>
+        <identifier_type>flow</identifier_type>
+        <runner>FDTriggerRunner</runner>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 14:34:24</sys_created_on>
+        <sys_id>0844029b599303107f44205ad11fe494</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:34:24</sys_updated_on>
+        <trigger display_value="">0c44029b599303107f44205ad11fe493</trigger>
+    </sys_trigger_runner_mapping>
+    <sys_trigger_runner_mapping action="delete_multiple" query="identifier=04de805fa89303107f44bd86c8568b5e^sys_idNOT IN0844029b599303107f44205ad11fe494"/>
+    <sys_hub_flow_stage action="delete_multiple" query="flow=04de805fa89303107f44bd86c8568b5e"/>
+    <sys_flow_cat_variable_model action="delete_multiple" query="id=04de805fa89303107f44bd86c8568b5e^sys_idNOT IN84de805fa89303107f44bd86c8568b61"/>
+    <sys_flow_cat_variable_model action="INSERT_OR_UPDATE">
+        <id>04de805fa89303107f44bd86c8568b5e</id>
+        <name>DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task</name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:19</sys_created_on>
+        <sys_id>84de805fa89303107f44bd86c8568b61</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_scope/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:01:19</sys_updated_on>
+    </sys_flow_cat_variable_model>
+    <sys_flow_cat_variable action="delete_multiple" query="flow_catalog_model=84de805fa89303107f44bd86c8568b61"/>
+    <sys_hub_flow_input action="delete_multiple" query="model=04de805fa89303107f44bd86c8568b5e^sys_idNOT IN5cde805fa89303107f44bd86c8568bb8,88de805fa89303107f44bd86c8568b9d"/>
+    <sys_hub_flow_input action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <array>false</array>
+        <array_denormalized>false</array_denormalized>
+        <attributes>element_mapping_provider=com.glide.flow_design.action.data.FlowDesignVariableMapper,test_input_hidden=true,uiType=table_name,uiTypeLabel=Table Name</attributes>
+        <audit>false</audit>
+        <calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation>
+        <choice/>
+        <choice_field/>
+        <choice_table/>
+        <column_label/>
+        <comments/>
+        <create_roles/>
+        <default_value/>
+        <defaultsort/>
+        <delete_roles/>
+        <dependent/>
+        <dependent_on_field/>
+        <display>false</display>
+        <dynamic_creation>false</dynamic_creation>
+        <dynamic_creation_script/>
+        <dynamic_default_value/>
+        <dynamic_ref_qual/>
+        <element>table_name</element>
+        <element_reference>false</element_reference>
+        <foreign_database/>
+        <formula/>
+        <function_definition/>
+        <function_field>false</function_field>
+        <help/>
+        <hint/>
+        <internal_type display_value="">table_name</internal_type>
+        <label>Table Name</label>
+        <mandatory>false</mandatory>
+        <max_length>200</max_length>
+        <model display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">04de805fa89303107f44bd86c8568b5e</model>
+        <model_id>04de805fa89303107f44bd86c8568b5e</model_id>
+        <model_table>sys_hub_flow</model_table>
+        <name>var__m_sys_hub_flow_input_04de805fa89303107f44bd86c8568b5e</name>
+        <next_element/>
+        <order>101</order>
+        <primary>false</primary>
+        <read_only>false</read_only>
+        <read_only_option/>
+        <read_roles/>
+        <reference/>
+        <reference_cascade_rule/>
+        <reference_floats>false</reference_floats>
+        <reference_key/>
+        <reference_qual/>
+        <reference_qual_condition/>
+        <reference_type/>
+        <sizeclass/>
+        <spell_check>false</spell_check>
+        <staged>false</staged>
+        <sys_class_name>sys_hub_flow_input</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:20</sys_created_on>
+        <sys_id>5cde805fa89303107f44bd86c8568bb8</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name/>
+        <sys_package/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:45:58</sys_updated_on>
+        <table_reference>false</table_reference>
+        <text_index>false</text_index>
+        <unique>false</unique>
+        <use_dependent_field>false</use_dependent_field>
+        <use_dynamic_default>false</use_dynamic_default>
+        <use_reference_qualifier>simple</use_reference_qualifier>
+        <virtual>false</virtual>
+        <virtual_type>script</virtual_type>
+        <widget/>
+        <write_roles/>
+        <xml_view>false</xml_view>
+    </sys_hub_flow_input>
+    <sys_hub_action_input_action_instance action="delete_multiple" query="action_input=5cde805fa89303107f44bd86c8568bb8"/>
+    <sys_hub_flow_input action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <array>false</array>
+        <array_denormalized>false</array_denormalized>
+        <attributes>element_mapping_provider=com.glide.flow_design.action.data.FlowDesignVariableMapper,uiType=document_id,uiTypeLabel=Document ID</attributes>
+        <audit>false</audit>
+        <calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation>
+        <choice/>
+        <choice_field/>
+        <choice_table/>
+        <column_label/>
+        <comments/>
+        <create_roles/>
+        <default_value/>
+        <defaultsort/>
+        <delete_roles/>
+        <dependent>table_name</dependent>
+        <dependent_on_field>table_name</dependent_on_field>
+        <display>false</display>
+        <dynamic_creation>false</dynamic_creation>
+        <dynamic_creation_script/>
+        <dynamic_default_value/>
+        <dynamic_ref_qual/>
+        <element>current</element>
+        <element_reference>false</element_reference>
+        <foreign_database/>
+        <formula/>
+        <function_definition/>
+        <function_field>false</function_field>
+        <help/>
+        <hint/>
+        <internal_type display_value="">document_id</internal_type>
+        <label>Record</label>
+        <mandatory>true</mandatory>
+        <max_length>200</max_length>
+        <model display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">04de805fa89303107f44bd86c8568b5e</model>
+        <model_id>04de805fa89303107f44bd86c8568b5e</model_id>
+        <model_table>sys_hub_flow</model_table>
+        <name>var__m_sys_hub_flow_input_04de805fa89303107f44bd86c8568b5e</name>
+        <next_element/>
+        <order>100</order>
+        <primary>false</primary>
+        <read_only>false</read_only>
+        <read_only_option/>
+        <read_roles/>
+        <reference/>
+        <reference_cascade_rule/>
+        <reference_floats>false</reference_floats>
+        <reference_key/>
+        <reference_qual/>
+        <reference_qual_condition/>
+        <reference_type/>
+        <sizeclass/>
+        <spell_check>false</spell_check>
+        <staged>false</staged>
+        <sys_class_name>sys_hub_flow_input</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:20</sys_created_on>
+        <sys_id>88de805fa89303107f44bd86c8568b9d</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name/>
+        <sys_package/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:45:58</sys_updated_on>
+        <table_reference>false</table_reference>
+        <text_index>false</text_index>
+        <unique>false</unique>
+        <use_dependent_field>true</use_dependent_field>
+        <use_dynamic_default>false</use_dynamic_default>
+        <use_reference_qualifier>simple</use_reference_qualifier>
+        <virtual>false</virtual>
+        <virtual_type>script</virtual_type>
+        <widget/>
+        <write_roles/>
+        <xml_view>false</xml_view>
+    </sys_hub_flow_input>
+    <sys_hub_action_input_action_instance action="delete_multiple" query="action_input=88de805fa89303107f44bd86c8568b9d"/>
+    <sys_hub_flow_output action="delete_multiple" query="model=04de805fa89303107f44bd86c8568b5e"/>
+    <sys_hub_alias_mapping action="delete_multiple" query="source_id=04de805fa89303107f44bd86c8568b5e"/>
+    <sys_hub_trigger_instance_v2 action="delete_multiple" query="flow=04de805fa89303107f44bd86c8568b5e^sys_idNOT IN5cde805fa89303107f44bd86c8568be1"/>
+    <sys_hub_trigger_instance_v2 action="INSERT_OR_UPDATE">
+        <comment/>
+        <display_text/>
+        <flow display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">04de805fa89303107f44bd86c8568b5e</flow>
+        <generation_source/>
+        <name>Created</name>
+        <published_version/>
+        <remote_sys_id/>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:21</sys_created_on>
+        <sys_id>5cde805fa89303107f44bd86c8568be1</sys_id>
+        <sys_mod_count>4</sys_mod_count>
+        <sys_scope/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 07:00:16</sys_updated_on>
+        <trigger_definition display_value="Created">798916a0c31322002841b63b12d3ae7c</trigger_definition>
+        <trigger_inputs>H4sIAAAAAAAA/+VYW2/bNhT+K5qeNiAFdLEtK29dkmIGumZz3O0hywSKIm1hEuVKlBKv8H/foW6RdbOdOIvSvgQRSZPf+c53LuTtV5mH7nJJwhmLOGKY3GyimSOfy4puOBM61oltK5qqKlQbj0ybqhoaa9p0pMhnsods4sHSBbI9At8u4yRkyFts1gSGuRi2GPLFnI+Yg3gQbuRzHsbkTKZh4C+Iv/YQh8UUeREMBqFDQvlcPZPTn+V7wM8T5MXi+8GKGLYw8tdx5COOVzv/u5z4sNhxI9h280f+mxnDrkMYh5k1CmFfLs74KuOV6zkhYfL57R2AF0ZjipGpEQXrqq5pigKGqvZEt1XN0RFR2oyuAeUttj9aRR44YQ5xSoMbtIQEOdfM25QrVsAqbJhS+BC5/8LuU0WsowSwY5LNlZ9Wbnw2jFeBi8n1mrsBy0YynNlk4MU++5ThF7QRimKPF7TBSBzBfmQtIAsQOSJ6swru58WBH1yWWpdPegFGXvmFOKjLjjmJBOHU9YB6K+MmCuIwRT+/urieX1p/vl9c/HI1t+ZXN4v57GJxdSlvU7usL7HYMUOYY7Eyc7alrz+4xBMOZLFvA5ozOcKhu+bvMXeTQl7bs1OI/SJgjpvy2RA8LqaiKtaKOCreLrjsiwJFKeWFK6cWseD6aEl++CtWFN2BLfimKf2/r34/QPWTCUIOQR2qt2mH9S3QeAsRVWv69J+PHBIAI0V5pRDIc9dTI8APHOJdVpWR6dFy2Trmgq17xHhk8cBCjmNVeBRLAdO+kMhs276g/sOYwVFW6clmFKSEl8x/dCMw9Bai/4Z8iTN3vYNUSAuSU2ywnH7MT5jHTApAAfBHwnEIHHOpiCA6E6LPTKe/FbpOuc3lmKDQsnwr2kTWKratHYItw5ya6qRL6QbeITSNM9j6VpbvmuOWj9bi2F7A260QC/EI5hXR089R9etXN4pctqx4qYuqVAINpsozIZakwi8ZgGjYlPUifwp3d8/JsU1lJzWJ1rJrn1D35VxVpdQmVFMMQaqq6BBtiqGMEXV0RcFab8R1Aua1EHyR3Htc5o3S4PcOiO062wV4ERHeMYpPdsMl30fb3pUJ/mKA0GqFSj+qUpUKzYYvDxfqiXs85CSisDiHFqwXr1XUC+4hlT2/TtkI/7MMg5g59RQsjpBcJj2ukH7MHfHTkBNwL+4Tly4ahKSfvd0VQ+esgvZVCtWjrIuUgljLBSAb3FeMdKraJhkRBWqQDuXHHpumjZFGqTExiKZ2hlQroDdRhPbEbNIW9F1Zv1XBSZvwjyhFrw/wWQUpV2NrOcrmvvXCc78izAIjQ8sTpaVRf5ae65Bi7nnJoHFU8niBrSWEA7IBnZp4rBoGNiBxQjagI2IjdaSNkWlM9Ol4n519wHiL7f/LA4GoEwJIR6b4nE0N671smJKOCOeikj27oWJwd0m3QBnaSl8g/CulmSsIpU8Bezd7XCfdECil6XPTILuEg7CfuLs6hEYhcemt8tgJ/sRE2gFfNRpUOP9nGN85X1zvOpw76EeX4415lfa2lmmSXfe0vMM8xUl732jIaDo2qd5eCKnZnx27rRl8g3xg+k06E3lbI3poMkpac1rZmNZb2yf4vaamfGt9T1P+/ZLyrItAEbKdD1NPAftdNFpp33zCbkuAJ1ZAq/XtMpBgQoIzJZdKOXjiSPZG4isCvvHg6gjnSwLMYAvbkVacuGdoslpG9Rvm9CgbTsxo9kDQaMJgWMrvcIOkrIHz9VqnWu7ofSNsoXdfZ0QcA43HescTgVl/MGyDtAfx4HukozNn0paIe3uC4/at79naFVR8vKuJA5ugb9jqF3vubEEx0P7l7j+/G4B5DygAAA==</trigger_inputs>
+        <trigger_outputs/>
+        <trigger_type>record_create</trigger_type>
+        <updation_source/>
+    </sys_hub_trigger_instance_v2>
+    <sys_hub_action_instance_v2 action="delete_multiple" query="flow=04de805fa89303107f44bd86c8568b5e^sys_idNOT IN54de805fa89303107f44bd86c8568bd2,dcde805fa89303107f44bd86c8568bd3"/>
+    <sys_hub_action_instance_v2 action="INSERT_OR_UPDATE">
+        <action_type display_value="DocIntel - Create a Document Task">dc85af9beb702110f2549bf12a5228d6</action_type>
+        <action_type_parent display_value="DocIntel - Create a Document Task">bea253dbeb302110f2549bf12a522840</action_type_parent>
+        <attributes/>
+        <comment/>
+        <compiled_snapshot>dc85af9beb702110f2549bf12a5228d6</compiled_snapshot>
+        <display_text/>
+        <flow display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">04de805fa89303107f44bd86c8568b5e</flow>
+        <generation_source/>
+        <order>1</order>
+        <parent_ui_id/>
+        <sys_class_name>sys_hub_action_instance_v2</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:21</sys_created_on>
+        <sys_id>54de805fa89303107f44bd86c8568bd2</sys_id>
+        <sys_mod_count>26</sys_mod_count>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:35:30</sys_updated_on>
+        <ui_id>6e1fa36a-f09d-4993-afc2-b4d3ade21307</ui_id>
+        <updation_source/>
+        <values>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</values>
+    </sys_hub_action_instance_v2>
+    <sys_hub_alias_mapping action="delete_multiple" query="source_id=54de805fa89303107f44bd86c8568bd2"/>
+    <sys_hub_action_instance_v2 action="INSERT_OR_UPDATE">
+        <action_type display_value="DocIntel - Process a Document Task">1ca82b5feb702110f2549bf12a522896</action_type>
+        <action_type_parent display_value="DocIntel - Process a Document Task">5fe85713eb702110f2549bf12a522824</action_type_parent>
+        <attributes/>
+        <comment/>
+        <compiled_snapshot>1ca82b5feb702110f2549bf12a522896</compiled_snapshot>
+        <display_text/>
+        <flow display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">04de805fa89303107f44bd86c8568b5e</flow>
+        <generation_source/>
+        <order>2</order>
+        <parent_ui_id/>
+        <sys_class_name>sys_hub_action_instance_v2</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:21</sys_created_on>
+        <sys_id>dcde805fa89303107f44bd86c8568bd3</sys_id>
+        <sys_mod_count>18</sys_mod_count>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:35:30</sys_updated_on>
+        <ui_id>62bbfafa-512d-49be-b197-e341f1b0c8cb</ui_id>
+        <updation_source/>
+        <values>H4sIAAAAAAAA/41TXW+bMBT9K5WfIQJC0iRvU6NIkbZVWrq+dBW62NeJNWOobdKyKP9914CyaO2kPXJ8ru/5ME8nBtyr2myN82A47jq3FWzF5jPkWTZPsMzTLE0Tmc3yZSnTDGZZtshmLGIq8PgCOWD2Dx5y4hmokJge3M+CZiJ2BN0G5HSaYyphOodYJksR58vlNAbJs7jMxRQEZuk0uZ2Mg+czjQrlGg3d43gDIfygtLBo2OrpOWINWNrm0bLV6a+j/5WroURN1Adae7Ndf2TAd00ALEqk6zmO0Odx8tsVXlsRxKQRwzePRiCpkKAdRqwCI8DXtmMrb1sCLIK4N7q7MA7K+MFlBW9O/aKl0yy62rtirnOFUEXQxq5OijEoYqxr3lZo/M3DwJFr8LCjjdy39hJirTi6ISiBElrt766xgXDfhKcyjHgo9XsBvNZtZb4OgbHLXVd9tY7EYROiCOZGp3J3qF8vuW2U6VMbD3XNQV9RESw/bBTq0OhotOhLihh4b1XZ+iD8xFr18L6qAfyoLNQYkioqaBpl9kVj66PqlZCxarLX9DGRun4lB07tzWT4dyZUI0w2hK97+BGsCul8oWtoOGz8btRLi/2fNeM8XywSGSe3EuKc5zJe5FzEKEBKmS/zkgt2jkKwdxqc+xMmmShe2hDF8BYpXGVUr4BDA6XSync/2iSZClHzIqgq6NVZUlnbvowx9mIoMSzhVjX+E9k44pjw+fk30s9jHBUEAAA=</values>
+    </sys_hub_action_instance_v2>
+    <sys_hub_alias_mapping action="delete_multiple" query="source_id=dcde805fa89303107f44bd86c8568bd3"/>
+    <sys_hub_sub_flow_instance_v2 action="delete_multiple" query="flow=04de805fa89303107f44bd86c8568b5e"/>
+    <sys_hub_flow_logic_instance_v2 action="delete_multiple" query="flow=04de805fa89303107f44bd86c8568b5e"/>
+    <sys_hub_pill_compound action="delete_multiple" query="attached_to=04de805fa89303107f44bd86c8568b5e"/>
+    <sys_hub_flow_variable action="delete_multiple" query="model=04de805fa89303107f44bd86c8568b5e"/>
+    <sys_documentation action="INSERT_OR_UPDATE">
+        <element>table_name</element>
+        <help/>
+        <hint/>
+        <label>Table Name</label>
+        <language>en</language>
+        <name>var__m_sys_hub_flow_input_04de805fa89303107f44bd86c8568b5e</name>
+        <plural/>
+        <sys_class_name>sys_documentation</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:20</sys_created_on>
+        <sys_id>58de805fa89303107f44bd86c8568bbc</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:01:20</sys_updated_on>
+        <url/>
+        <url_target/>
+    </sys_documentation>
+    <sys_documentation action="INSERT_OR_UPDATE">
+        <element>current</element>
+        <help/>
+        <hint/>
+        <label>Record</label>
+        <language>en</language>
+        <name>var__m_sys_hub_flow_input_04de805fa89303107f44bd86c8568b5e</name>
+        <plural/>
+        <sys_class_name>sys_documentation</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:20</sys_created_on>
+        <sys_id>94de805fa89303107f44bd86c8568bb6</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:01:20</sys_updated_on>
+        <url/>
+        <url_target/>
+    </sys_documentation>
+    <sys_choice action="delete_multiple" query="name=var__m_sys_hub_flow_input_04de805fa89303107f44bd86c8568b5e"/>
+    <sys_choice action="delete_multiple" query="name=var__m_sys_hub_flow_output_04de805fa89303107f44bd86c8568b5e"/>
+    <sys_hub_flow_snapshot action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <acls/>
+        <active>true</active>
+        <allow_high_security_roles>false</allow_high_security_roles>
+        <annotation/>
+        <attributes>browserActivatedIn=chrome,integrationActivatedIn=standalone,labelCacheCleanUpExecuted=true,timeFromCreateToActivate=31170232000,viewActivatedIn=naturalLanguage</attributes>
+        <authored_on_release_version>29000</authored_on_release_version>
+        <callable_by_client_api>false</callable_by_client_api>
+        <category/>
+        <copied_from>e0b9ab9feb702110f2549bf12a5228e6</copied_from>
+        <copied_from_name/>
+        <description>DocDataExtractor Flow Template for processing a task</description>
+        <flow_priority/>
+        <internal_name>docintel_task_processing_flow__campusmatch_item_image_extraction__campusmatch_item__process_task</internal_name>
+        <label_cache>[{"name":"6e1fa36a-f09d-4993-afc2-b4d3ade21307.task_id","label":"1 - DocIntel - Create a Document Task➛Task ID","reference_display":"Task ID","type":"string","base_type":"string","attributes":{"uiType":"string","uiTypeLabel":"String","element_mapping_provider":"com.glide.flow_design.action.data.FlowDesignVariableMapper","pwd2droppable":"true","uiUniqueId":"a7335496-1038-4dd2-8efb-a38349d0513f"}},{"name":"Created_1.current.sys_id","label":"Trigger - Record Created➛Incident Record➛Sys ID","reference":"","reference_display":"Sys ID","type":"GUID","base_type":"GUID","parent_table_name":"incident","column_name":"sys_id"},{"name":"Created_1.table_name","label":"Trigger - Record Created➛Incident Table","reference":"incident","reference_display":"Incident","type":"table_name","base_type":"table_name","attributes":{"test_input_hidden":"true"}},{"name":"Created_1.current.image","label":"Trigger - Record Created➛Incident Record➛Image","reference":"","reference_display":"Image","type":"user_image","base_type":"user_image","parent_table_name":"x_snc_campusmatch_campusmatch_item","column_name":"image","usedInstances":{"6e1fa36a-f09d-4993-afc2-b4d3ade21307":[null]}}]</label_cache>
+        <master>true</master>
+        <name>DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task</name>
+        <natlang/>
+        <outputs/>
+        <parent_flow display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">04de805fa89303107f44bd86c8568b5e</parent_flow>
+        <remote_trigger_id/>
+        <run_as>user</run_as>
+        <run_with_roles/>
+        <sc_callable>false</sc_callable>
+        <status>published</status>
+        <sys_class_name>sys_hub_flow_snapshot</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:45:59</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>1a0914d3a81703107f44bd86c8568b9e</sys_id>
+        <sys_mod_count>8</sys_mod_count>
+        <sys_name/>
+        <sys_overrides/>
+        <sys_package/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:34:24</sys_updated_on>
+        <type>flow</type>
+        <version>2</version>
+    </sys_hub_flow_snapshot>
+    <sys_translated_text action="delete_multiple" query="documentkey=1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_variable_value action="delete_multiple" query="document_key=1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_hub_flow_stage action="delete_multiple" query="flow=1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_flow_cat_variable_model action="delete_multiple" query="id=1a0914d3a81703107f44bd86c8568b9e^sys_idNOT IN960914d3a81703107f44bd86c8568b9f"/>
+    <sys_flow_cat_variable_model action="INSERT_OR_UPDATE">
+        <id>1a0914d3a81703107f44bd86c8568b9e</id>
+        <name>DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task</name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:45:59</sys_created_on>
+        <sys_id>960914d3a81703107f44bd86c8568b9f</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_scope/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:45:59</sys_updated_on>
+    </sys_flow_cat_variable_model>
+    <sys_flow_cat_variable action="delete_multiple" query="flow_catalog_model=960914d3a81703107f44bd86c8568b9f"/>
+    <sys_hub_flow_input action="delete_multiple" query="model=1a0914d3a81703107f44bd86c8568b9e^sys_idNOT IN960914d3a81703107f44bd86c8568ba0,9a0914d3a81703107f44bd86c8568bb0"/>
+    <sys_hub_flow_input action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <array>false</array>
+        <array_denormalized>false</array_denormalized>
+        <attributes>element_mapping_provider=com.glide.flow_design.action.data.FlowDesignVariableMapper,uiType=document_id</attributes>
+        <audit>false</audit>
+        <calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation>
+        <choice/>
+        <choice_field/>
+        <choice_table/>
+        <column_label/>
+        <comments/>
+        <create_roles/>
+        <default_value/>
+        <defaultsort/>
+        <delete_roles/>
+        <dependent>table_name</dependent>
+        <dependent_on_field>table_name</dependent_on_field>
+        <display>false</display>
+        <dynamic_creation>false</dynamic_creation>
+        <dynamic_creation_script/>
+        <dynamic_default_value/>
+        <dynamic_ref_qual/>
+        <element>current</element>
+        <element_reference>false</element_reference>
+        <foreign_database/>
+        <formula/>
+        <function_definition/>
+        <function_field>false</function_field>
+        <help/>
+        <hint/>
+        <internal_type display_value="">document_id</internal_type>
+        <label>Record</label>
+        <mandatory>true</mandatory>
+        <max_length>200</max_length>
+        <model display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">1a0914d3a81703107f44bd86c8568b9e</model>
+        <model_id>1a0914d3a81703107f44bd86c8568b9e</model_id>
+        <model_table>sys_hub_flow_snapshot</model_table>
+        <name>var__m_sys_hub_flow_input_1a0914d3a81703107f44bd86c8568b9e</name>
+        <next_element/>
+        <order>100</order>
+        <primary>false</primary>
+        <read_only>false</read_only>
+        <read_only_option/>
+        <read_roles/>
+        <reference/>
+        <reference_cascade_rule/>
+        <reference_floats>false</reference_floats>
+        <reference_key/>
+        <reference_qual/>
+        <reference_qual_condition/>
+        <reference_type/>
+        <sizeclass/>
+        <spell_check>false</spell_check>
+        <staged>false</staged>
+        <sys_class_name>sys_hub_flow_input</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:45:59</sys_created_on>
+        <sys_id>960914d3a81703107f44bd86c8568ba0</sys_id>
+        <sys_mod_count>15</sys_mod_count>
+        <sys_name/>
+        <sys_package/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:34:24</sys_updated_on>
+        <table_reference>false</table_reference>
+        <text_index>false</text_index>
+        <unique>false</unique>
+        <use_dependent_field>true</use_dependent_field>
+        <use_dynamic_default>false</use_dynamic_default>
+        <use_reference_qualifier>simple</use_reference_qualifier>
+        <virtual>false</virtual>
+        <virtual_type>script</virtual_type>
+        <widget/>
+        <write_roles/>
+        <xml_view>false</xml_view>
+    </sys_hub_flow_input>
+    <sys_hub_action_input_action_instance action="delete_multiple" query="action_input=960914d3a81703107f44bd86c8568ba0"/>
+    <sys_hub_flow_input action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <array>false</array>
+        <array_denormalized>false</array_denormalized>
+        <attributes>element_mapping_provider=com.glide.flow_design.action.data.FlowDesignVariableMapper,test_input_hidden=true,uiType=table_name</attributes>
+        <audit>false</audit>
+        <calculation><![CDATA[(function calculatedFieldValue(current) {
+
+	// Add your code here
+	return '';  // return the calculated value
+
+})(current);]]></calculation>
+        <choice/>
+        <choice_field/>
+        <choice_table/>
+        <column_label/>
+        <comments/>
+        <create_roles/>
+        <default_value/>
+        <defaultsort/>
+        <delete_roles/>
+        <dependent/>
+        <dependent_on_field/>
+        <display>false</display>
+        <dynamic_creation>false</dynamic_creation>
+        <dynamic_creation_script/>
+        <dynamic_default_value/>
+        <dynamic_ref_qual/>
+        <element>table_name</element>
+        <element_reference>false</element_reference>
+        <foreign_database/>
+        <formula/>
+        <function_definition/>
+        <function_field>false</function_field>
+        <help/>
+        <hint/>
+        <internal_type display_value="">table_name</internal_type>
+        <label>Table Name</label>
+        <mandatory>false</mandatory>
+        <max_length>200</max_length>
+        <model display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">1a0914d3a81703107f44bd86c8568b9e</model>
+        <model_id>1a0914d3a81703107f44bd86c8568b9e</model_id>
+        <model_table>sys_hub_flow_snapshot</model_table>
+        <name>var__m_sys_hub_flow_input_1a0914d3a81703107f44bd86c8568b9e</name>
+        <next_element/>
+        <order>101</order>
+        <primary>false</primary>
+        <read_only>false</read_only>
+        <read_only_option/>
+        <read_roles/>
+        <reference/>
+        <reference_cascade_rule/>
+        <reference_floats>false</reference_floats>
+        <reference_key/>
+        <reference_qual/>
+        <reference_qual_condition/>
+        <reference_type/>
+        <sizeclass/>
+        <spell_check>false</spell_check>
+        <staged>false</staged>
+        <sys_class_name>sys_hub_flow_input</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:46:00</sys_created_on>
+        <sys_id>9a0914d3a81703107f44bd86c8568bb0</sys_id>
+        <sys_mod_count>15</sys_mod_count>
+        <sys_name/>
+        <sys_package/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:34:24</sys_updated_on>
+        <table_reference>false</table_reference>
+        <text_index>false</text_index>
+        <unique>false</unique>
+        <use_dependent_field>false</use_dependent_field>
+        <use_dynamic_default>false</use_dynamic_default>
+        <use_reference_qualifier>simple</use_reference_qualifier>
+        <virtual>false</virtual>
+        <virtual_type>script</virtual_type>
+        <widget/>
+        <write_roles/>
+        <xml_view>false</xml_view>
+    </sys_hub_flow_input>
+    <sys_hub_action_input_action_instance action="delete_multiple" query="action_input=9a0914d3a81703107f44bd86c8568bb0"/>
+    <sys_hub_flow_output action="delete_multiple" query="model=1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_hub_alias_mapping action="delete_multiple" query="source_id=1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_hub_trigger_instance_v2 action="delete_multiple" query="flow=1a0914d3a81703107f44bd86c8568b9e^sys_idNOT INa60914d3a81703107f44bd86c8568bc2"/>
+    <sys_hub_trigger_instance_v2 action="INSERT_OR_UPDATE">
+        <comment/>
+        <display_text/>
+        <flow display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">1a0914d3a81703107f44bd86c8568b9e</flow>
+        <generation_source/>
+        <name>Created</name>
+        <published_version/>
+        <remote_sys_id/>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:46:00</sys_created_on>
+        <sys_id>a60914d3a81703107f44bd86c8568bc2</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_scope/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 07:00:18</sys_updated_on>
+        <trigger_definition display_value="Created">798916a0c31322002841b63b12d3ae7c</trigger_definition>
+        <trigger_inputs>H4sIAAAAAAAA/+VYW2/bNhT+K5qeNiAFdLEtK29dkmIGumZz3O0hywSKIm1hEuVKlBKv8H/foW6RdbOdOIvSvgQRSZPf+c53LuTtV5mH7nJJwhmLOGKY3GyimSOfy4puOBM61oltK5qqKlQbj0ybqhoaa9p0pMhnsods4sHSBbI9At8u4yRkyFts1gSGuRi2GPLFnI+Yg3gQbuRzHsbkTKZh4C+Iv/YQh8UUeREMBqFDQvlcPZPTn+V7wM8T5MXi+8GKGLYw8tdx5COOVzv/u5z4sNhxI9h280f+mxnDrkMYh5k1CmFfLs74KuOV6zkhYfL57R2AF0ZjipGpEQXrqq5pigKGqvZEt1XN0RFR2oyuAeUttj9aRR44YQ5xSoMbtIQEOdfM25QrVsAqbJhS+BC5/8LuU0WsowSwY5LNlZ9Wbnw2jFeBi8n1mrsBy0YynNlk4MU++5ThF7QRimKPF7TBSBzBfmQtIAsQOSJ6swru58WBH1yWWpdPegFGXvmFOKjLjjmJBOHU9YB6K+MmCuIwRT+/urieX1p/vl9c/HI1t+ZXN4v57GJxdSlvU7usL7HYMUOYY7Eyc7alrz+4xBMOZLFvA5ozOcKhu+bvMXeTQl7bs1OI/SJgjpvy2RA8LqaiKtaKOCreLrjsiwJFKeWFK6cWseD6aEl++CtWFN2BLfimKf2/r34/QPWTCUIOQR2qt2mH9S3QeAsRVWv69J+PHBIAI0V5pRDIc9dTI8APHOJdVpWR6dFy2Trmgq17xHhk8cBCjmNVeBRLAdO+kMhs276g/sOYwVFW6clmFKSEl8x/dCMw9Bai/4Z8iTN3vYNUSAuSU2ywnH7MT5jHTApAAfBHwnEIHHOpiCA6E6LPTKe/FbpOuc3lmKDQsnwr2kTWKratHYItw5ya6qRL6QbeITSNM9j6VpbvmuOWj9bi2F7A260QC/EI5hXR089R9etXN4pctqx4qYuqVAINpsozIZakwi8ZgGjYlPUifwp3d8/JsU1lJzWJ1rJrn1D35VxVpdQmVFMMQaqq6BBtiqGMEXV0RcFab8R1Aua1EHyR3Htc5o3S4PcOiO062wV4ERHeMYpPdsMl30fb3pUJ/mKA0GqFSj+qUpUKzYYvDxfqiXs85CSisDiHFqwXr1XUC+4hlT2/TtkI/7MMg5g59RQsjpBcJj2ukH7MHfHTkBNwL+4Tly4ahKSfvd0VQ+esgvZVCtWjrIuUgljLBSAb3FeMdKraJhkRBWqQDuXHHpumjZFGqTExiKZ2hlQroDdRhPbEbNIW9F1Zv1XBSZvwjyhFrw/wWQUpV2NrOcrmvvXCc78izAIjQ8sTpaVRf5ae65Bi7nnJoHFU8niBrSWEA7IBnZp4rBoGNiBxQjagI2IjdaSNkWlM9Ol4n519wHiL7f/LA4GoEwJIR6b4nE0N671smJKOCOeikj27oWJwd0m3QBnaSl8g/CulmSsIpU8Bezd7XCfdECil6XPTILuEg7CfuLs6hEYhcemt8tgJ/sRE2gFfNRpUOP9nGN85X1zvOpw76EeX4415lfa2lmmSXfe0vMM8xUl732jIaDo2qd5eCKnZnx27rRl8g3xg+k06E3lbI3poMkpac1rZmNZb2yf4vaamfGt9T1P+/ZLyrItAEbKdD1NPAftdNFpp33zCbkuAJ1ZAq/XtMpBgQoIzJZdKOXjiSPZG4isCvvHg6gjnSwLMYAvbkVacuGdoslpG9Rvm9CgbTsxo9kDQaMJgWMrvcIOkrIHz9VqnWu7ofSNsoXdfZ0QcA43HescTgVl/MGyDtAfx4HukozNn0paIe3uC4/at79naFVR8vKuJA5ugb9jqF3vubEEx0P7l7j+/G4B5DygAAA==</trigger_inputs>
+        <trigger_outputs/>
+        <trigger_type>record_create</trigger_type>
+        <updation_source/>
+    </sys_hub_trigger_instance_v2>
+    <sys_hub_action_instance_v2 action="delete_multiple" query="flow=1a0914d3a81703107f44bd86c8568b9e^sys_idNOT INa20914d3a81703107f44bd86c8568bc0,620914d3a81703107f44bd86c8568bc1"/>
+    <sys_hub_action_instance_v2 action="INSERT_OR_UPDATE">
+        <action_type display_value="DocIntel - Create a Document Task">dc85af9beb702110f2549bf12a5228d6</action_type>
+        <action_type_parent display_value="DocIntel - Create a Document Task">bea253dbeb302110f2549bf12a522840</action_type_parent>
+        <attributes/>
+        <comment/>
+        <compiled_snapshot>dc85af9beb702110f2549bf12a5228d6</compiled_snapshot>
+        <display_text/>
+        <flow display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">1a0914d3a81703107f44bd86c8568b9e</flow>
+        <generation_source/>
+        <order>1</order>
+        <parent_ui_id/>
+        <sys_class_name>sys_hub_action_instance_v2</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:46:00</sys_created_on>
+        <sys_id>a20914d3a81703107f44bd86c8568bc0</sys_id>
+        <sys_mod_count>8</sys_mod_count>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:34:24</sys_updated_on>
+        <ui_id>6e1fa36a-f09d-4993-afc2-b4d3ade21307</ui_id>
+        <updation_source/>
+        <values>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</values>
+    </sys_hub_action_instance_v2>
+    <sys_hub_alias_mapping action="delete_multiple" query="source_id=a20914d3a81703107f44bd86c8568bc0"/>
+    <sys_hub_action_instance_v2 action="INSERT_OR_UPDATE">
+        <action_type display_value="DocIntel - Process a Document Task">1ca82b5feb702110f2549bf12a522896</action_type>
+        <action_type_parent display_value="DocIntel - Process a Document Task">5fe85713eb702110f2549bf12a522824</action_type_parent>
+        <attributes/>
+        <comment/>
+        <compiled_snapshot>1ca82b5feb702110f2549bf12a522896</compiled_snapshot>
+        <display_text/>
+        <flow display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">1a0914d3a81703107f44bd86c8568b9e</flow>
+        <generation_source/>
+        <order>2</order>
+        <parent_ui_id/>
+        <sys_class_name>sys_hub_action_instance_v2</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:46:00</sys_created_on>
+        <sys_id>620914d3a81703107f44bd86c8568bc1</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:46:00</sys_updated_on>
+        <ui_id>62bbfafa-512d-49be-b197-e341f1b0c8cb</ui_id>
+        <updation_source/>
+        <values>H4sIAAAAAAAA/41TXW+bMBT9K5WfIQJC0iRvU6NIkbZVWrq+dBW62NeJNWOobdKyKP9914CyaO2kPXJ8ru/5ME8nBtyr2myN82A47jq3FWzF5jPkWTZPsMzTLE0Tmc3yZSnTDGZZtshmLGIq8PgCOWD2Dx5y4hmokJge3M+CZiJ2BN0G5HSaYyphOodYJksR58vlNAbJs7jMxRQEZuk0uZ2Mg+czjQrlGg3d43gDIfygtLBo2OrpOWINWNrm0bLV6a+j/5WroURN1Adae7Ndf2TAd00ALEqk6zmO0Odx8tsVXlsRxKQRwzePRiCpkKAdRqwCI8DXtmMrb1sCLIK4N7q7MA7K+MFlBW9O/aKl0yy62rtirnOFUEXQxq5OijEoYqxr3lZo/M3DwJFr8LCjjdy39hJirTi6ISiBElrt766xgXDfhKcyjHgo9XsBvNZtZb4OgbHLXVd9tY7EYROiCOZGp3J3qF8vuW2U6VMbD3XNQV9RESw/bBTq0OhotOhLihh4b1XZ+iD8xFr18L6qAfyoLNQYkioqaBpl9kVj66PqlZCxarLX9DGRun4lB07tzWT4dyZUI0w2hK97+BGsCul8oWtoOGz8btRLi/2fNeM8XywSGSe3EuKc5zJe5FzEKEBKmS/zkgt2jkKwdxqc+xMmmShe2hDF8BYpXGVUr4BDA6XSync/2iSZClHzIqgq6NVZUlnbvowx9mIoMSzhVjX+E9k44pjw+fk30s9jHBUEAAA=</values>
+    </sys_hub_action_instance_v2>
+    <sys_hub_alias_mapping action="delete_multiple" query="source_id=620914d3a81703107f44bd86c8568bc1"/>
+    <sys_hub_sub_flow_instance_v2 action="delete_multiple" query="flow=1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_hub_flow_logic_instance_v2 action="delete_multiple" query="flow=1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_hub_pill_compound action="delete_multiple" query="attached_to=1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_hub_flow_variable action="delete_multiple" query="model=1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_documentation action="INSERT_OR_UPDATE">
+        <element>current</element>
+        <help/>
+        <hint/>
+        <label>Record</label>
+        <language>en</language>
+        <name>var__m_sys_hub_flow_input_1a0914d3a81703107f44bd86c8568b9e</name>
+        <plural/>
+        <sys_class_name>sys_documentation</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:46:00</sys_created_on>
+        <sys_id>1a0914d3a81703107f44bd86c8568bac</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:46:00</sys_updated_on>
+        <url/>
+        <url_target/>
+    </sys_documentation>
+    <sys_documentation action="INSERT_OR_UPDATE">
+        <element>table_name</element>
+        <help/>
+        <hint/>
+        <label>Table Name</label>
+        <language>en</language>
+        <name>var__m_sys_hub_flow_input_1a0914d3a81703107f44bd86c8568b9e</name>
+        <plural/>
+        <sys_class_name>sys_documentation</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:46:00</sys_created_on>
+        <sys_id>560914d3a81703107f44bd86c8568bb6</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:46:00</sys_updated_on>
+        <url/>
+        <url_target/>
+    </sys_documentation>
+    <sys_choice action="delete_multiple" query="name=var__m_sys_hub_flow_input_1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_choice action="delete_multiple" query="name=var__m_sys_hub_flow_output_1a0914d3a81703107f44bd86c8568b9e"/>
+    <sys_hub_flow action="UPDATE">
+        <sys_id>04de805fa89303107f44bd86c8568b5e</sys_id>
+        <latest_snapshot>1a0914d3a81703107f44bd86c8568b9e</latest_snapshot>
+        <compiler_build>glide-australia-02-11-2026__patch3-hotfix1-06-18-2026_06-19-2026_0938.zip</compiler_build>
+        <version_record/>
+    </sys_hub_flow>
+    <sys_flow_trigger_plan action="delete_multiple" query="plan_id=04de805fa89303107f44bd86c8568b5e^sys_idNOT IN260914d3a81703107f44bd86c8568bde"/>
+    <sys_flow_trigger_plan action="INSERT_OR_UPDATE">
+        <binding_strategy>com.snc.process_flow.engine.binding.OncePerRecord</binding_strategy>
+        <plan>{"@class":"com.snc.process_flow.engine.serialization.plan_data.ChunkingPlanData","chunk_data":{"table":"sys_flow_trigger_plan","id":"260914d3a81703107f44bd86c8568bde","name":"plan","plan_signature":null},"plan_data":"CHUNKING_PLAN"}</plan>
+        <plan_id>04de805fa89303107f44bd86c8568b5e</plan_id>
+        <snapshot>cc840a9b599303107f44205ad11fe4d3</snapshot>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:46:00</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>260914d3a81703107f44bd86c8568bde</sys_id>
+        <sys_mod_count>8</sys_mod_count>
+        <sys_overrides/>
+        <sys_scope/>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:34:24</sys_updated_on>
+        <trigger display_value="">0c44029b599303107f44205ad11fe493</trigger>
+    </sys_flow_trigger_plan>
+    <sys_flow_subflow_plan action="delete_multiple" query="plan_id=04de805fa89303107f44bd86c8568b5e"/>
+</record_update>

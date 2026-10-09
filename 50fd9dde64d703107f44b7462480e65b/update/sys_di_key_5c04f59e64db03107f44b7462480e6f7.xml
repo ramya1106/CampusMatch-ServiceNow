@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_di_key">
+    <sys_di_key action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <additional_details/>
+        <description>Identify visible distinguishing characteristics that could help recognize this specific item. Mention features such as unusual pockets, patterns, stickers, keychains, scratches, damage, labels, attachments, or distinctive design elements. Do not repeat the brand or primary color. Keep the result short and factual.</description>
+        <display_name>Unique Features</display_name>
+        <group_index>0</group_index>
+        <key_config/>
+        <key_group/>
+        <mandatory>false</mandatory>
+        <metadata>{"hybridFieldType":"Field","key_prediction_type":"extraction"}</metadata>
+        <name>Unique Features</name>
+        <order>2</order>
+        <prediction_method/>
+        <stp_threshold/>
+        <synonym/>
+        <sys_class_name>sys_di_key</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-15 10:49:31</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_id>5c04f59e64db03107f44b7462480e6f7</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Unique Features</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_di_key_5c04f59e64db03107f44b7462480e6f7</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-15 10:49:31</sys_updated_on>
+        <target_field>unique_features</target_field>
+        <target_table>x_snc_campusmatch_campusmatch_item</target_table>
+        <task_definition display_value="CampusMatch Item Image Extraction">e982f9da64db03107f44b7462480e6ab</task_definition>
+        <total_used_positive_samples>0</total_used_positive_samples>
+        <type>Text</type>
+    </sys_di_key>
+</record_update>

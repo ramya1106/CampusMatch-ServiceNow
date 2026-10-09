@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_agent_access_role_configuration">
+    <sys_agent_access_role_configuration action="INSERT_OR_UPDATE">
+        <action>limit_to_roles</action>
+        <agent>570006d6645f03107f44b7462480e6d2</agent>
+        <agent_table>sn_nowassist_skill_config</agent_table>
+        <allow_all_session_roles>false</allow_all_session_roles>
+        <description/>
+        <name>CampusMatch Privacy Safe Public Title</name>
+        <role_list/>
+        <sys_class_name>sys_agent_access_role_configuration</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-15 11:42:12</sys_created_on>
+        <sys_id>881046d6645f03107f44b7462480e662</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch Privacy Safe Public Title</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_agent_access_role_configuration_881046d6645f03107f44b7462480e662</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-15 11:42:12</sys_updated_on>
+    </sys_agent_access_role_configuration>
+</record_update>

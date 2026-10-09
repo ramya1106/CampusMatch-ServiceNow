@@ -1,0 +1,2229 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function($scope) {
+
+    var c = this;
+
+
+    /*
+     * =========================================================
+     * ORIGINAL CAMPUS MAP SIZE
+     * =========================================================
+     *
+     * Original image:
+     * Width  = 645 px
+     * Height = 847 px
+     *
+     * Locations are stored as normalized 0-100 coordinates.
+     */
+
+    var ORIGINAL_WIDTH = 645;
+    var ORIGINAL_HEIGHT = 847;
+
+
+    /*
+     * =========================================================
+     * LOCATION STATE
+     * =========================================================
+     */
+
+    c.locationX = null;
+    c.locationY = null;
+    c.locationLabel = "";
+    c.locationSelected = false;
+
+    c.locationSource = "";
+    c.locationMessage = "";
+    c.locationError = false;
+    c.gettingLocation = false;
+
+
+    /*
+     * =========================================================
+     * GPS TO CAMPUS MAP CALIBRATION
+     * =========================================================
+     *
+     * Real campus calibration points.
+     */
+
+    var GPS_CALIBRATION = [
+
+        {
+            name: "C Block - near canteen",
+
+            lat: 14.4331609,
+            lon: 79.9947084,
+
+            x: 32.38,
+            y: 11.65
+        },
+
+        {
+            name: "Main Ground",
+
+            lat: 14.4323997,
+            lon: 79.9950727,
+
+            x: 66.94,
+            y: 51.49
+        },
+
+        {
+            name: "Girls Gate",
+
+            lat: 14.4322980,
+            lon: 79.9943918,
+
+            x: 18.49,
+            y: 66.71
+        },
+
+        {
+            name: "A Block Ground",
+
+            lat: 14.4317068,
+            lon: 79.9949341,
+
+            x: 61.86,
+            y: 89.72
+        },
+
+        {
+            name: "A Block",
+
+            lat: 14.4316115,
+            lon: 79.9944459,
+
+            x: 35.43,
+            y: 82.13
+        },
+
+        {
+            name: "B Block",
+
+            lat: 14.4327609,
+            lon: 79.9948301,
+
+            x: 48.64,
+            y: 48.74
+        }
+
+    ];
+
+
+    /*
+     * =========================================================
+     * SEND LOCATION TO PARENT REPORT WIDGET
+     * =========================================================
+     */
+
+    c.sendLocationToParent = function() {
+
+        $scope.$emit(
+            "campusmatch.location.selected",
+            {
+                x: c.locationX,
+                y: c.locationY,
+                zone: c.locationLabel
+            }
+        );
+    };
+
+
+    /*
+     * =========================================================
+     * CAMPUS ZONES
+     * Coordinates are percentages of the 645 x 847 image.
+     *
+     * Format:
+     * [x%, y%]
+     *
+     * x = left to right
+     * y = top to bottom
+     * =========================================================
+     */
+
+    var zones = [
+
+
+        /*
+         * =====================================================
+         * SMALL / SPECIFIC LOCATIONS
+         * =====================================================
+         */
+
+
+        {
+            name: "Canteen",
+            type: "facility",
+
+            polygon: [
+                [31.0, 12.0],
+                [35.0, 12.0],
+                [35.0, 22.5],
+                [31.0, 22.5]
+            ]
+        },
+
+
+        {
+            name: "Boys Gate",
+            type: "gate",
+
+            polygon: [
+                [12.5, 27.0],
+                [26.0, 27.0],
+                [26.0, 32.5],
+                [12.5, 32.5]
+            ]
+        },
+
+
+        {
+            name: "Girls Gate",
+            type: "gate",
+
+            polygon: [
+                [12.5, 62.0],
+                [26.0, 62.0],
+                [26.0, 67.5],
+                [12.5, 67.5]
+            ]
+        },
+
+
+        /*
+         * =====================================================
+         * PARKING AREAS
+         * =====================================================
+         */
+
+
+        {
+            name: "Parking 1 - C Block",
+            type: "parking",
+
+            polygon: [
+                [17.0, 6.0],
+                [29.0, 6.0],
+                [29.0, 26.0],
+                [17.0, 26.0]
+            ]
+        },
+
+
+        {
+            name: "Parking 2 - C Block Ground",
+            type: "parking",
+
+            polygon: [
+                [58.0, 25.0],
+                [80.0, 25.0],
+                [80.0, 31.0],
+                [58.0, 31.0]
+            ]
+        },
+
+
+        {
+            name: "Parking 3 - B Block / Main Ground",
+            type: "parking",
+
+            polygon: [
+                [52.0, 36.0],
+                [57.0, 36.0],
+                [57.0, 58.0],
+                [52.0, 58.0]
+            ]
+        },
+
+
+        {
+            name: "Parking 4 - Main Ground East",
+            type: "parking",
+
+            polygon: [
+                [82.0, 35.0],
+                [91.0, 35.0],
+                [91.0, 60.0],
+                [82.0, 60.0]
+            ]
+        },
+
+
+        {
+            name: "Parking 5 - Main Ground South",
+            type: "parking",
+
+            polygon: [
+                [58.0, 61.0],
+                [78.0, 61.0],
+                [78.0, 68.0],
+                [58.0, 68.0]
+            ]
+        },
+
+
+        {
+            name: "Parking 6 - A Block West",
+            type: "parking",
+
+            polygon: [
+                [16.0, 75.0],
+                [28.0, 75.0],
+                [28.0, 91.0],
+                [16.0, 91.0]
+            ]
+        },
+
+
+        {
+            name: "Parking 7 - A Block East",
+            type: "parking",
+
+            polygon: [
+                [52.0, 75.0],
+                [58.0, 75.0],
+                [58.0, 91.0],
+                [52.0, 91.0]
+            ]
+        },
+
+
+        /*
+         * =====================================================
+         * BUILDINGS
+         * =====================================================
+         */
+
+
+        {
+            name: "C Block",
+            type: "block",
+
+            polygon: [
+                [30.0, 6.0],
+                [51.0, 6.0],
+                [51.0, 26.0],
+                [30.0, 26.0]
+            ]
+        },
+
+
+        {
+            name: "B Block",
+            type: "block",
+
+            polygon: [
+                [25.0, 34.0],
+                [50.0, 34.0],
+                [50.0, 59.0],
+                [25.0, 59.0]
+            ]
+        },
+
+
+        {
+            name: "A Block",
+            type: "block",
+
+            polygon: [
+                [25.0, 69.0],
+                [51.0, 69.0],
+                [51.0, 97.0],
+                [25.0, 97.0]
+            ]
+        },
+
+
+        /*
+         * =====================================================
+         * GROUNDS
+         * =====================================================
+         */
+
+
+        {
+            name: "C Block Ground",
+            type: "ground",
+
+            polygon: [
+                [57.0, 3.0],
+                [87.0, 3.0],
+                [87.0, 27.0],
+                [57.0, 27.0]
+            ]
+        },
+
+
+        {
+            name: "Main Ground",
+            type: "ground",
+
+            polygon: [
+                [58.0, 31.0],
+                [82.0, 31.0],
+                [82.0, 60.0],
+                [58.0, 60.0]
+            ]
+        },
+
+
+        {
+            name: "A Block Ground",
+            type: "ground",
+
+            polygon: [
+                [59.0, 69.0],
+                [78.0, 69.0],
+                [78.0, 98.0],
+                [59.0, 98.0]
+            ]
+        },
+
+
+        /*
+         * =====================================================
+         * ROADS
+         * =====================================================
+         */
+
+
+        {
+            name: "Narayana College Rd",
+            type: "road",
+
+            polygon: [
+                [0.0, 0.0],
+                [14.0, 0.0],
+                [14.0, 100.0],
+                [0.0, 100.0]
+            ]
+        },
+
+
+        {
+            name: "Chennai - Guntur Hwy",
+            type: "road",
+
+            polygon: [
+                [88.0, 50.0],
+                [100.0, 46.0],
+                [100.0, 100.0],
+                [87.0, 100.0]
+            ]
+        },
+
+
+        /*
+         * =====================================================
+         * INTERNAL WALKWAY
+         * =====================================================
+         */
+
+
+        {
+            name: "Internal Walkway",
+            type: "walkway",
+
+            polygon: [
+                [14.0, 30.0],
+                [58.0, 30.0],
+                [58.0, 68.0],
+                [80.0, 68.0],
+                [80.0, 100.0],
+                [14.0, 100.0]
+            ]
+        }
+
+    ];
+
+
+    /*
+     * =========================================================
+     * POINT IN POLYGON
+     * =========================================================
+     */
+
+    function pointInPolygon(x, y, polygon) {
+
+        var inside = false;
+
+
+        for (
+            var i = 0, j = polygon.length - 1;
+            i < polygon.length;
+            j = i++
+        ) {
+
+            var xi = polygon[i][0];
+            var yi = polygon[i][1];
+
+            var xj = polygon[j][0];
+            var yj = polygon[j][1];
+
+
+            var intersect =
+                ((yi > y) !== (yj > y)) &&
+                (
+                    x <
+                    (xj - xi) *
+                    (y - yi) /
+                    (yj - yi) +
+                    xi
+                );
+
+
+            if (intersect) {
+
+                inside = !inside;
+
+            }
+        }
+
+
+        return inside;
+    }
+
+
+    /*
+     * =========================================================
+     * FIND CAMPUS LOCATION
+     * =========================================================
+     */
+
+    function getCampusZone(x, y) {
+
+        for (
+            var i = 0;
+            i < zones.length;
+            i++
+        ) {
+
+            if (
+                pointInPolygon(
+                    x,
+                    y,
+                    zones[i].polygon
+                )
+            ) {
+
+                return zones[i].name;
+
+            }
+        }
+
+
+        return "Campus Area";
+    }
+
+
+    /*
+     * =========================================================
+     * APPLY LOCATION
+     * =========================================================
+     */
+
+    function applyCampusLocation(
+        x,
+        y,
+        source
+    ) {
+
+        x = Math.max(
+            0,
+            Math.min(
+                100,
+                x
+            )
+        );
+
+
+        y = Math.max(
+            0,
+            Math.min(
+                100,
+                y
+            )
+        );
+
+
+        x =
+            Math.round(
+                x * 100
+            ) / 100;
+
+
+        y =
+            Math.round(
+                y * 100
+            ) / 100;
+
+
+        var zone =
+            getCampusZone(
+                x,
+                y
+            );
+
+
+        c.locationX = x;
+
+        c.locationY = y;
+
+        c.locationLabel = zone;
+
+        c.locationSelected = true;
+
+        c.locationSource =
+            source || "Campus Map";
+
+
+        /*
+         * OLD RECORD PRODUCER
+         */
+
+        if (
+            $scope.page &&
+            $scope.page.g_form
+        ) {
+
+            $scope.page.g_form.setValue(
+                "location_x",
+                x.toString()
+            );
+
+
+            $scope.page.g_form.setValue(
+                "location_y",
+                y.toString()
+            );
+
+
+            $scope.page.g_form.setValue(
+                "location_zone",
+                zone
+            );
+        }
+
+
+        /*
+         * NEW REPORT ITEM WIDGET
+         */
+
+        c.sendLocationToParent();
+
+
+        console.log(
+            "========== CampusMatch Location =========="
+        );
+
+        console.log(
+            "Source:",
+            c.locationSource
+        );
+
+        console.log(
+            "Normalized X:",
+            x
+        );
+
+        console.log(
+            "Normalized Y:",
+            y
+        );
+
+        console.log(
+            "Campus Zone:",
+            zone
+        );
+
+        console.log(
+            "=========================================="
+        );
+    }
+
+
+    /*
+     * =========================================================
+     * CHECK CALIBRATION
+     * =========================================================
+     */
+
+    function isCalibrationReady() {
+
+        if (
+            !GPS_CALIBRATION ||
+            GPS_CALIBRATION.length < 3
+        ) {
+
+            return false;
+        }
+
+
+        for (
+            var i = 0;
+            i < GPS_CALIBRATION.length;
+            i++
+        ) {
+
+            if (
+                GPS_CALIBRATION[i].lat === null ||
+                GPS_CALIBRATION[i].lon === null ||
+                GPS_CALIBRATION[i].x === null ||
+                GPS_CALIBRATION[i].y === null
+            ) {
+
+                return false;
+            }
+        }
+
+
+        return true;
+    }
+
+
+    /*
+     * =========================================================
+     * GPS DISTANCE IN METRES
+     * =========================================================
+     */
+
+    function gpsDistanceMeters(
+        lat1,
+        lon1,
+        lat2,
+        lon2
+    ) {
+
+        var R = 6371000;
+
+
+        var phi1 =
+            lat1 *
+            Math.PI /
+            180;
+
+
+        var phi2 =
+            lat2 *
+            Math.PI /
+            180;
+
+
+        var deltaPhi =
+            (lat2 - lat1) *
+            Math.PI /
+            180;
+
+
+        var deltaLambda =
+            (lon2 - lon1) *
+            Math.PI /
+            180;
+
+
+        var a =
+            Math.sin(
+                deltaPhi / 2
+            ) *
+            Math.sin(
+                deltaPhi / 2
+            ) +
+
+            Math.cos(
+                phi1
+            ) *
+            Math.cos(
+                phi2
+            ) *
+
+            Math.sin(
+                deltaLambda / 2
+            ) *
+            Math.sin(
+                deltaLambda / 2
+            );
+
+
+        var cValue =
+            2 *
+            Math.atan2(
+                Math.sqrt(a),
+                Math.sqrt(1 - a)
+            );
+
+
+        return R * cValue;
+    }
+
+
+    /*
+     * =========================================================
+     * GPS TO CAMPUS X/Y
+     * =========================================================
+     *
+     * Uses the nearest 3 calibration points.
+     *
+     * This is better for our custom schematic campus map
+     * because the map is not a perfectly scaled satellite map.
+     */
+
+    function convertGpsToCampus(
+        latitude,
+        longitude
+    ) {
+
+        if (!isCalibrationReady()) {
+
+            return null;
+        }
+
+
+        var points = [];
+
+
+        for (
+            var i = 0;
+            i < GPS_CALIBRATION.length;
+            i++
+        ) {
+
+            var calibrationPoint =
+                GPS_CALIBRATION[i];
+
+
+            var distance =
+                gpsDistanceMeters(
+                    latitude,
+                    longitude,
+                    calibrationPoint.lat,
+                    calibrationPoint.lon
+                );
+
+
+            points.push({
+
+                name:
+                    calibrationPoint.name,
+
+                distance:
+                    distance,
+
+                x:
+                    calibrationPoint.x,
+
+                y:
+                    calibrationPoint.y
+
+            });
+        }
+
+
+        /*
+         * Nearest point first.
+         */
+
+        points.sort(
+            function(a, b) {
+
+                return (
+                    a.distance -
+                    b.distance
+                );
+
+            }
+        );
+
+
+        /*
+         * If user is extremely close to a calibration point,
+         * use that exact map point.
+         */
+
+        if (
+            points[0].distance <= 8
+        ) {
+
+            return {
+
+                x:
+                    points[0].x,
+
+                y:
+                    points[0].y,
+
+                nearest:
+                    points[0].name,
+
+                distance:
+                    Math.round(
+                        points[0].distance
+                    )
+
+            };
+        }
+
+
+        /*
+         * Use the 3 nearest calibration points.
+         */
+
+        var nearest =
+            points.slice(
+                0,
+                3
+            );
+
+
+        var totalWeight = 0;
+
+        var weightedX = 0;
+
+        var weightedY = 0;
+
+
+        for (
+            var j = 0;
+            j < nearest.length;
+            j++
+        ) {
+
+            var safeDistance =
+                Math.max(
+                    nearest[j].distance,
+                    1
+                );
+
+
+            /*
+             * Inverse-distance weighting.
+             *
+             * Closer calibration points influence
+             * the result more strongly.
+             */
+
+            var weight =
+                1 /
+                (
+                    safeDistance *
+                    safeDistance
+                );
+
+
+            weightedX +=
+                nearest[j].x *
+                weight;
+
+
+            weightedY +=
+                nearest[j].y *
+                weight;
+
+
+            totalWeight +=
+                weight;
+        }
+
+
+        if (
+            totalWeight === 0
+        ) {
+
+            return null;
+        }
+
+
+        var campusX =
+            weightedX /
+            totalWeight;
+
+
+        var campusY =
+            weightedY /
+            totalWeight;
+
+
+        return {
+
+            x:
+                Math.round(
+                    campusX * 100
+                ) / 100,
+
+            y:
+                Math.round(
+                    campusY * 100
+                ) / 100,
+
+            nearest:
+                points[0].name,
+
+            distance:
+                Math.round(
+                    points[0].distance
+                )
+
+        };
+    }
+
+
+    /*
+     * =========================================================
+     * USE CURRENT LOCATION
+     * =========================================================
+     */
+
+    c.useCurrentLocation = function(event) {
+
+        if (event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+        }
+
+
+        c.locationMessage = "";
+        c.locationError = false;
+
+
+        if (!navigator.geolocation) {
+
+            c.locationError = true;
+
+            c.locationMessage =
+                "Current location is not supported on this device.";
+
+            return;
+        }
+
+
+        c.gettingLocation = true;
+
+        c.locationMessage =
+            "Detecting your current location...";
+
+
+        navigator.geolocation.getCurrentPosition(
+
+            function(position) {
+
+                $scope.$apply(function() {
+
+                    c.gettingLocation = false;
+
+
+                    var latitude =
+                        position.coords.latitude;
+
+
+                    var longitude =
+                        position.coords.longitude;
+
+
+                    var accuracy =
+                        position.coords.accuracy;
+
+
+                    console.log(
+                        "========== CampusMatch GPS =========="
+                    );
+
+                    console.log(
+                        "Latitude:",
+                        latitude
+                    );
+
+                    console.log(
+                        "Longitude:",
+                        longitude
+                    );
+
+                    console.log(
+                        "Accuracy:",
+                        accuracy,
+                        "metres"
+                    );
+
+                    console.log(
+                        "====================================="
+                    );
+
+
+                    /*
+                     * =================================================
+                     * GPS ACCURACY CHECK
+                     * =================================================
+                     *
+                     * 0-50 m:
+                     * Good
+                     *
+                     * Above 50 m:
+                     * Ask user to retry or use map.
+                     */
+
+                    if (accuracy > 50) {
+
+                        c.locationError = true;
+
+                        c.locationMessage =
+                            "Location accuracy is too low (" +
+                            Math.round(
+                                accuracy
+                            ) +
+                            " m). Please try again or select the location on the campus map.";
+
+                        return;
+                    }
+
+
+                    /*
+                     * =================================================
+                     * CHECK CALIBRATION
+                     * =================================================
+                     */
+
+                    if (!isCalibrationReady()) {
+
+                        c.locationError = true;
+
+                        c.locationMessage =
+                            "Campus GPS calibration is not ready.";
+
+                        return;
+                    }
+
+
+                    /*
+                     * =================================================
+                     * CONVERT GPS TO CAMPUS X/Y
+                     * =================================================
+                     */
+
+                    var campusPoint =
+                        convertGpsToCampus(
+                            latitude,
+                            longitude
+                        );
+
+
+                    if (!campusPoint) {
+
+                        c.locationError = true;
+
+                        c.locationMessage =
+                            "Campus location could not be calculated.";
+
+                        return;
+                    }
+
+
+                    /*
+                     * =================================================
+                     * CAMPUS BOUNDARY CHECK
+                     * =================================================
+                     */
+
+                    if (
+                        campusPoint.x < 0 ||
+                        campusPoint.x > 100 ||
+                        campusPoint.y < 0 ||
+                        campusPoint.y > 100
+                    ) {
+
+                        c.locationError = true;
+
+                        c.locationMessage =
+                            "Your current location appears to be outside the campus. Please select the location on the campus map.";
+
+                        return;
+                    }
+
+
+                    /*
+                     * =================================================
+                     * APPLY CURRENT LOCATION
+                     * =================================================
+                     */
+
+                    applyCampusLocation(
+                        campusPoint.x,
+                        campusPoint.y,
+                        "Current Location"
+                    );
+
+
+                    c.locationError = false;
+
+                    c.locationMessage =
+                        "Current location detected successfully.";
+
+
+                    console.log(
+                        "Nearest Calibration Point:",
+                        campusPoint.nearest
+                    );
+
+
+                    console.log(
+                        "Distance to Nearest Calibration Point:",
+                        campusPoint.distance,
+                        "metres"
+                    );
+
+                });
+
+            },
+
+
+            function(error) {
+
+                $scope.$apply(function() {
+
+                    c.gettingLocation = false;
+
+                    c.locationError = true;
+
+
+                    if (error.code === 1) {
+
+                        c.locationMessage =
+                            "Location permission was denied. Please allow location access or select the location on the campus map.";
+
+                    }
+
+                    else if (error.code === 2) {
+
+                        c.locationMessage =
+                            "Your current location could not be detected.";
+
+                    }
+
+                    else if (error.code === 3) {
+
+                        c.locationMessage =
+                            "Location detection timed out. Please try again.";
+
+                    }
+
+                    else {
+
+                        c.locationMessage =
+                            "Unable to detect your current location.";
+
+                    }
+
+                });
+
+            },
+
+
+            {
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 0
+            }
+
+        );
+
+    };
+
+
+    /*
+     * =========================================================
+     * MAP CLICK
+     * =========================================================
+     */
+
+    c.selectLocation = function(event) {
+
+        var map =
+            document.getElementById(
+                "campusMap"
+            );
+
+
+        if (!map) {
+
+            console.log(
+                "Campus map element not found."
+            );
+
+            return;
+        }
+
+
+        var rect =
+            map.getBoundingClientRect();
+
+
+        var px =
+            event.clientX -
+            rect.left;
+
+
+        var py =
+            event.clientY -
+            rect.top;
+
+
+        var x =
+            (px / rect.width) *
+            100;
+
+
+        var y =
+            (py / rect.height) *
+            100;
+
+
+        applyCampusLocation(
+            x,
+            y,
+            "Selected on Campus Map"
+        );
+
+
+        c.locationError = false;
+
+        c.locationMessage =
+            "Location selected from campus map.";
+
+
+        console.log(
+            "Original Map:",
+            ORIGINAL_WIDTH +
+            " x " +
+            ORIGINAL_HEIGHT
+        );
+
+
+        console.log(
+            "Displayed Map:",
+            rect.width +
+            " x " +
+            rect.height
+        );
+
+
+        console.log(
+            "Clicked Pixel X:",
+            px
+        );
+
+
+        console.log(
+            "Clicked Pixel Y:",
+            py
+        );
+    };
+
+
+    /*
+     * =========================================================
+     * CLEAR LOCATION
+     * =========================================================
+     */
+
+    c.clearLocation = function(event) {
+
+        if (event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+        }
+
+
+        c.locationX = null;
+
+        c.locationY = null;
+
+        c.locationLabel = "";
+
+        c.locationSelected = false;
+
+        c.locationSource = "";
+
+        c.locationMessage = "";
+
+        c.locationError = false;
+
+        c.gettingLocation = false;
+
+
+        if (
+            $scope.page &&
+            $scope.page.g_form
+        ) {
+
+            $scope.page.g_form.setValue(
+                "location_x",
+                ""
+            );
+
+
+            $scope.page.g_form.setValue(
+                "location_y",
+                ""
+            );
+
+
+            $scope.page.g_form.setValue(
+                "location_zone",
+                ""
+            );
+        }
+
+
+        $scope.$emit(
+            "campusmatch.location.cleared"
+        );
+
+
+        console.log(
+            "CampusMatch location cleared."
+        );
+    };
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* ==========================================================
+   CAMPUSMATCH LOCATION PICKER
+   FULL WIDTH INSIDE REPORT ITEM
+   WEBSITE + NOW MOBILE SAFE
+========================================================== */
+
+.cm-location-picker {
+    display: block;
+
+    width: 100% !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+}
+
+
+.cm-location-picker,
+.cm-location-picker *,
+.cm-location-picker *::before,
+.cm-location-picker *::after {
+    box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   LOCATION ACTIONS
+========================================================== */
+
+.cm-location-actions {
+    width: 100%;
+
+    margin:
+        0
+        0
+        16px;
+
+    padding: 0;
+
+    text-align: center;
+}
+
+
+/* ==========================================================
+   CURRENT LOCATION BUTTON
+========================================================== */
+
+.cm-current-location-btn {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    width: 100%;
+    max-width: 320px;
+
+    min-height: 46px;
+
+    margin: 0;
+
+    padding:
+        11px
+        18px;
+
+    border-radius: 12px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    line-height: 1.25;
+
+    white-space: normal;
+
+    text-align: center;
+}
+
+
+.cm-current-location-btn .glyphicon {
+    margin: 0;
+
+    font-size: 15px;
+}
+
+
+/* ==========================================================
+   OR DIVIDER
+========================================================== */
+
+.cm-location-divider {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    width: 100%;
+
+    margin:
+        15px
+        0
+        9px;
+
+    color: #7a8a8d;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.7px;
+
+    text-transform: uppercase;
+}
+
+
+.cm-location-divider::before,
+.cm-location-divider::after {
+    content: "";
+
+    flex: 1;
+
+    height: 1px;
+
+    background: #dce4e2;
+}
+
+
+.cm-location-divider span {
+    flex-shrink: 0;
+}
+
+
+/* ==========================================================
+   CAMPUS MAP LABEL
+========================================================== */
+
+.cm-location-map-label {
+    width: 100%;
+
+    margin:
+        0
+        0
+        10px;
+
+    padding: 0;
+
+    color: #3b555b;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    text-align: center;
+}
+
+
+/* ==========================================================
+   LOCATION STATUS MESSAGE
+========================================================== */
+
+.cm-location-message {
+    width: 100%;
+
+    margin:
+        0
+        0
+        14px;
+
+    padding:
+        11px
+        13px;
+
+    border-radius: 11px;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+    text-align: left;
+
+    word-break: break-word;
+}
+
+
+/* SUCCESS / NORMAL STATE */
+
+.cm-location-success {
+    color: #245d4e;
+
+    background: #eef8f4;
+
+    border: 1px solid #c9e4da;
+}
+
+
+/* ERROR STATE */
+
+.cm-location-error {
+    color: #8a4038;
+
+    background: #fff4f2;
+
+    border: 1px solid #efcec8;
+}
+
+
+/* ==========================================================
+   CAMPUS MAP
+========================================================== */
+
+.cm-map {
+    position: relative;
+
+    display: block;
+
+    width: 100% !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+
+    /* Original image ratio = 645 / 847 */
+    aspect-ratio: 645 / 847;
+
+    overflow: hidden;
+
+    border-radius: 18px;
+
+    cursor: crosshair;
+
+    background: #f5f7fa;
+
+    box-shadow:
+        0 6px 22px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ==========================================================
+   MAP IMAGE
+========================================================== */
+
+.cm-map-image {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    padding: 0;
+
+    object-fit: fill;
+
+    user-select: none;
+    pointer-events: none;
+}
+
+
+/* ==========================================================
+   SELECTED LOCATION MARKER
+========================================================== */
+
+.cm-marker {
+    position: absolute;
+
+    transform:
+        translate(-50%, -100%);
+
+    font-size: 34px;
+
+    color: #ef3f52;
+
+    pointer-events: none;
+
+    z-index: 20;
+
+    line-height: 1;
+
+    text-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+
+/* ==========================================================
+   SELECTED LOCATION CARD
+========================================================== */
+
+.cm-selected {
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin:
+        14px
+        0
+        0 !important;
+
+    padding:
+        14px
+        18px;
+
+    background: #ffffff;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.07);
+}
+
+
+/* ==========================================================
+   SELECTED LOCATION ICON
+========================================================== */
+
+.cm-selected-icon {
+    font-size: 24px;
+
+    color: #ef3f52;
+
+    flex-shrink: 0;
+}
+
+
+/* ==========================================================
+   SELECTED LOCATION INFO
+========================================================== */
+
+.cm-selected-info {
+    min-width: 0;
+
+    flex: 1;
+}
+
+
+.cm-selected-info small {
+    display: block;
+
+    margin:
+        0
+        0
+        3px;
+
+    font-size: 12px;
+
+    color: #777;
+}
+
+
+.cm-selected-info strong {
+    display: block;
+
+    margin: 0;
+
+    color: #222;
+
+    font-size: 15px;
+
+    line-height: 1.4;
+
+    word-break: break-word;
+}
+
+
+/* ==========================================================
+   LOCATION SOURCE
+   CURRENT LOCATION / SELECTED ON CAMPUS MAP
+========================================================== */
+
+.cm-location-source {
+    display: block;
+
+    margin:
+        4px
+        0
+        0;
+
+    color: #718387;
+
+    font-size: 11px;
+
+    font-weight: 500;
+
+    line-height: 1.3;
+}
+
+
+/* ==========================================================
+   CHANGE LOCATION BUTTON
+========================================================== */
+
+.cm-change-btn {
+    flex-shrink: 0;
+
+    font-size: 14px;
+
+    font-weight: 500;
+
+    text-decoration: none;
+}
+
+
+/* ==========================================================
+   COORDINATE INFO
+========================================================== */
+
+.cm-coordinate-info {
+    width: 100%;
+
+    margin:
+        8px
+        0
+        0;
+
+    padding: 0;
+
+    text-align: center;
+
+    color: #777;
+
+    font-size: 11px;
+}
+
+
+/* ==========================================================
+   TABLET / NOW MOBILE
+========================================================== */
+
+@media (max-width: 760px) {
+
+    .cm-location-picker {
+        width: 100% !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+
+    .cm-current-location-btn {
+        max-width: none;
+
+        min-height: 45px;
+
+        border-radius: 11px;
+
+        font-size: 13px;
+    }
+
+
+    .cm-location-message {
+        font-size: 11px;
+
+        padding:
+            10px
+            12px;
+    }
+
+
+    .cm-location-map-label {
+        font-size: 12px;
+    }
+
+
+    .cm-map {
+        width: 100% !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+
+        border-radius: 15px;
+    }
+
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 480px) {
+
+    .cm-location-picker {
+        width: 100% !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+
+    .cm-location-actions {
+        margin-bottom: 13px;
+    }
+
+
+    .cm-current-location-btn {
+        width: 100%;
+        max-width: none;
+
+        min-height: 44px;
+
+        padding:
+            10px
+            14px;
+
+        border-radius: 10px;
+
+        font-size: 12px;
+    }
+
+
+    .cm-current-location-btn .glyphicon {
+        font-size: 14px;
+    }
+
+
+    .cm-location-divider {
+        gap: 9px;
+
+        margin:
+            13px
+            0
+            8px;
+
+        font-size: 10px;
+    }
+
+
+    .cm-location-map-label {
+        margin-bottom: 8px;
+
+        font-size: 11px;
+    }
+
+
+    .cm-location-message {
+        margin-bottom: 11px;
+
+        padding:
+            9px
+            10px;
+
+        border-radius: 9px;
+
+        font-size: 10px;
+
+        line-height: 1.45;
+    }
+
+
+    .cm-map {
+        width: 100% !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+
+        border-radius: 12px;
+    }
+
+
+    .cm-marker {
+        font-size: 30px;
+    }
+
+
+    .cm-selected {
+        gap: 10px;
+
+        padding:
+            12px
+            14px;
+    }
+
+
+    .cm-selected-icon {
+        font-size: 21px;
+    }
+
+
+    .cm-selected-info small {
+        font-size: 10px;
+    }
+
+
+    .cm-selected-info strong {
+        font-size: 13px;
+    }
+
+
+    .cm-location-source {
+        margin-top: 3px;
+
+        font-size: 9px;
+    }
+
+
+    .cm-change-btn {
+        font-size: 12px;
+    }
+
+
+    .cm-coordinate-info {
+        font-size: 10px;
+    }
+
+}
+
+
+/* ==========================================================
+   EXTRA SMALL MOBILE
+========================================================== */
+
+@media (max-width: 360px) {
+
+    .cm-current-location-btn {
+        font-size: 11px;
+    }
+
+
+    .cm-location-message {
+        font-size: 9px;
+    }
+
+
+    .cm-selected {
+        align-items: flex-start;
+
+        flex-wrap: wrap;
+    }
+
+
+    .cm-change-btn {
+        width: 100%;
+
+        margin-left: 31px;
+    }
+
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_location_picker</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>CampusMatch Location Picker</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+    /* populate the 'data' object */
+    /* e.g., data.table = $sp.getValue('table'); */
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-16 07:03:35</sys_created_on>
+        <sys_id>28e98e228d5303107f4432c7efccb412</sys_id>
+        <sys_mod_count>14</sys_mod_count>
+        <sys_name>CampusMatch Location Picker</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_28e98e228d5303107f4432c7efccb412</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-28 08:32:44</sys_updated_on>
+        <template><![CDATA[<div class="cm-location-picker">
+
+    <!-- =====================================================
+         LIVE LOCATION OPTION
+    ====================================================== -->
+
+    <div class="cm-location-actions">
+
+        <button
+            type="button"
+            class="btn btn-primary cm-current-location-btn"
+            ng-click="c.useCurrentLocation($event)"
+            ng-disabled="c.gettingLocation">
+
+            <span
+                class="glyphicon glyphicon-screenshot"
+                ng-if="!c.gettingLocation">
+            </span>
+
+            <span ng-if="!c.gettingLocation">
+                Use Current Location
+            </span>
+
+            <span ng-if="c.gettingLocation">
+                Detecting Location...
+            </span>
+
+        </button>
+
+        <div class="cm-location-divider">
+            <span>OR</span>
+        </div>
+
+        <div class="cm-location-map-label">
+            Select on Campus Map
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         LOCATION MESSAGE
+    ====================================================== -->
+
+    <div
+        class="cm-location-message"
+        ng-if="c.locationMessage"
+        ng-class="{
+            'cm-location-error': c.locationError,
+            'cm-location-success': !c.locationError
+        }">
+
+        {{c.locationMessage}}
+
+    </div>
+
+
+    <!-- =====================================================
+         CAMPUS MAP
+    ====================================================== -->
+
+    <div
+        class="cm-map"
+        id="campusMap"
+        ng-click="c.selectLocation($event)">
+
+        <img
+            src="x_snc_campusmatch.CampusMatch_Map.jpeg"
+            class="cm-map-image"
+            alt="CampusMatch Campus Map"
+        />
+
+
+        <!-- Selected location marker -->
+
+        <div
+            class="cm-marker"
+            ng-if="c.locationSelected"
+            ng-style="{
+                left: c.locationX + '%',
+                top: c.locationY + '%'
+            }">
+
+            <span class="glyphicon glyphicon-map-marker"></span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SELECTED LOCATION
+    ====================================================== -->
+
+    <div
+        class="cm-selected"
+        ng-if="c.locationSelected">
+
+        <span
+            class="glyphicon glyphicon-map-marker cm-selected-icon">
+        </span>
+
+        <div class="cm-selected-info">
+
+            <small>
+                Selected Location
+            </small>
+
+            <strong>
+                {{c.locationLabel}}
+            </strong>
+
+            <span
+                class="cm-location-source"
+                ng-if="c.locationSource">
+
+                {{c.locationSource}}
+
+            </span>
+
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-link cm-change-btn"
+            ng-click="c.clearLocation($event)">
+
+            Change
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         COORDINATES
+    ====================================================== -->
+
+    <div
+        class="cm-coordinate-info"
+        ng-if="c.locationSelected">
+
+        X: {{c.locationX}}
+        &nbsp;&nbsp;&nbsp;
+        Y: {{c.locationY}}
+
+    </div>
+
+</div>]]></template>
+    </sp_widget>
+    <sys_es_latest_script action="INSERT_OR_UPDATE">
+        <id>28e98e228d5303107f4432c7efccb412</id>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-16 07:03:35</sys_created_on>
+        <sys_id>64e906628d5303107f4432c7efccb45c</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-16 07:03:35</sys_updated_on>
+        <table>sp_widget</table>
+        <use_es_latest>true</use_es_latest>
+    </sys_es_latest_script>
+</record_update>

@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sysauto_script">
+    <sysauto_script action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <advanced>true</advanced>
+        <business_calendar/>
+        <condition/>
+        <conditional>false</conditional>
+        <entered_run_end/>
+        <entered_run_start/>
+        <entered_time>1970-01-01 00:00:00</entered_time>
+        <max_drift/>
+        <name>CampusMatch - Retry Pending PI Matches</name>
+        <offset/>
+        <offset_type>0</offset_type>
+        <repeat_every/>
+        <run_as display_value="System Administrator">6816f79cc0a8016401c5a33be04be441</run_as>
+        <run_as_tz/>
+        <run_dayofmonth>1</run_dayofmonth>
+        <run_dayofweek>1</run_dayofweek>
+        <run_daysofweek/>
+        <run_end/>
+        <run_month>1</run_month>
+        <run_period>1970-01-01 00:00:30</run_period>
+        <run_start>2026-09-23 17:49:48</run_start>
+        <run_time>1970-01-01 00:00:00</run_time>
+        <run_type>periodically</run_type>
+        <run_weekinmonth>1</run_weekinmonth>
+        <script><![CDATA[(function() {
+
+    /* ======================================================
+       CAMPUSMATCH PI RETRY JOB
+
+       Runs every 30 seconds.
+
+       FOUND REPORT FLOW:
+
+       1. CampusMatch requests an on-demand PI refresh
+          for Description, Image Attribute and Unique
+          Feature Similarity.
+
+       2. The refresh runs asynchronously.
+
+       3. If matching happens before PI is ready,
+          the Match remains pi_pending = true.
+
+       4. This job retries those pending Match records.
+
+       5. Once PI returns the required similarity scores,
+          recomputeMatch() completes the Match.
+
+       The normal 15-minute PI update schedule remains
+       available as a fallback.
+
+       TEMPORARY MEASUREMENT:
+       Measures the execution time of recomputeMatch().
+    ====================================================== */
+
+
+    var MATCH_TABLE =
+        'x_snc_campusmatch_campusmatch_match';
+
+
+    var pending =
+        new GlideRecord(
+            MATCH_TABLE
+        );
+
+
+    pending.addQuery(
+        'pi_pending',
+        true
+    );
+
+
+    /*
+     * Protection against processing
+     * too many records in one execution.
+     */
+    pending.setLimit(
+        200
+    );
+
+
+    pending.orderBy(
+        'sys_created_on'
+    );
+
+
+    pending.query();
+
+
+    var attempted =
+        0;
+
+
+    var completed =
+        0;
+
+
+    var stillPending =
+        0;
+
+
+    var orchestrator =
+        new CampusMatchMatchOrchestrator();
+
+
+    while (
+        pending.next()
+    ) {
+
+        attempted++;
+
+
+        try {
+
+            /* ==========================================
+               TEMPORARY PI RETRY TIMING - START
+            ========================================== */
+
+            var retryStartMs =
+                new Date().getTime();
+
+
+            gs.info(
+                'CampusMatch PI Retry START | ' +
+                'Match=' +
+                pending.getDisplayValue(
+                    'number'
+                ) +
+                ' | Epoch=' +
+                retryStartMs
+            );
+
+
+            /* ==========================================
+               ACTUAL MATCH RECOMPUTATION
+            ========================================== */
+
+            var success =
+                orchestrator.recomputeMatch(
+                    pending.getUniqueValue()
+                );
+
+
+            /* ==========================================
+               TEMPORARY PI RETRY TIMING - END
+            ========================================== */
+
+            var retryEndMs =
+                new Date().getTime();
+
+
+            var retryElapsedSeconds =
+                (retryEndMs - retryStartMs) / 1000;
+
+
+            gs.info(
+                'CampusMatch PI Retry END | ' +
+                'Match=' +
+                pending.getDisplayValue(
+                    'number'
+                ) +
+                ' | Epoch=' +
+                retryEndMs +
+                ' | Processing=' +
+                retryElapsedSeconds +
+                ' seconds' +
+                ' | Success=' +
+                success
+            );
+
+
+            /* ==========================================
+               RESULT COUNTING
+            ========================================== */
+
+            if (
+                success
+            ) {
+
+                completed++;
+
+            }
+            else {
+
+                stillPending++;
+
+            }
+
+        }
+        catch (ex) {
+
+            stillPending++;
+
+
+            gs.error(
+                'CampusMatch PI Retry Job: ' +
+                'Error while processing Match ' +
+                pending.getDisplayValue(
+                    'number'
+                ) +
+                '. Error: ' +
+                ex.message
+            );
+
+        }
+
+    }
+
+
+    /* ==============================================
+       JOB SUMMARY
+    ============================================== */
+
+    if (
+        attempted > 0
+    ) {
+
+        gs.info(
+            'CampusMatch PI Retry Job completed. ' +
+            'Attempted = ' +
+            attempted +
+            ', Completed = ' +
+            completed +
+            ', Still Pending = ' +
+            stillPending
+        );
+
+    }
+
+
+})();]]></script>
+        <sys_class_name>sysauto_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-23 17:51:34</sys_created_on>
+        <sys_id>a6e0208d412f03107f44b631ebeb5ef2</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>CampusMatch - Retry Pending PI Matches</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sysauto_script_a6e0208d412f03107f44b631ebeb5ef2</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-10-02 19:18:12</sys_updated_on>
+        <time_zone/>
+        <upgrade_safe>false</upgrade_safe>
+    </sysauto_script>
+</record_update>

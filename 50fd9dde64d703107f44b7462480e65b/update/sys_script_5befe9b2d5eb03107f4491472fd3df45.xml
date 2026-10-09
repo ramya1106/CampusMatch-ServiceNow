@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="INSERT_OR_UPDATE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>true</action_insert>
+        <action_query>false</action_query>
+        <action_update>true</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_snc_campusmatch_campusmatch_match</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>CampusMatch - Admin Match Notifications</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous) {
+
+    function normalize(value) {
+
+        return (
+            value || ''
+        )
+        .toString()
+        .toLowerCase()
+        .trim();
+
+    }
+
+
+    var service =
+        new CampusMatchNotificationService();
+
+
+    var matchId =
+        current.getUniqueValue();
+
+
+    var score =
+        parseFloat(
+            current.getValue(
+                'overall_score'
+            )
+        );
+
+
+    if (isNaN(score)) {
+        return;
+    }
+
+
+    var status =
+        normalize(
+            current.getValue(
+                'status'
+            )
+        );
+
+
+    if (
+        status === 'no_match' ||
+        status === 'rejected' ||
+        status === 'resolved' ||
+        status === 'withdrawn'
+    ) {
+        return;
+    }
+
+
+    /* =========================================
+       POTENTIAL MATCH
+       Score 65 to below 80
+    ========================================= */
+
+    if (
+        score >= 65 &&
+        score < 80
+    ) {
+
+        var reviewed = false;
+
+
+        if (
+            current.isValidField('reviewed_by') &&
+            current.getValue('reviewed_by')
+        ) {
+
+            reviewed = true;
+
+        }
+
+
+        if (
+            current.isValidField('reviewed_on') &&
+            current.getValue('reviewed_on')
+        ) {
+
+            reviewed = true;
+
+        }
+
+
+        if (!reviewed) {
+
+            service.notifyAdmins(
+                'Potential match requires review',
+                'A Potential Match needs staff approval before ownership verification can continue.',
+                '?id=campusmatch_admin_review&match_id=' +
+                    matchId,
+                'match',
+                current.getTableName(),
+                matchId,
+                'potential_review:' +
+                    matchId,
+                'CampusMatch - Potential Match Review'
+            );
+
+        }
+
+    }
+
+
+    /* =========================================
+       MULTIPLE STRONG MATCHES
+       Score >= 80
+    ========================================= */
+
+    if (
+        score >= 80
+    ) {
+
+        var foundId =
+            current.getValue(
+                'found_item'
+            );
+
+
+        if (
+            !foundId &&
+            current.isValidField(
+                'u_found_item'
+            )
+        ) {
+
+            foundId =
+                current.getValue(
+                    'u_found_item'
+                );
+
+        }
+
+
+        if (!foundId) {
+            return;
+        }
+
+
+        var strongCount = 0;
+
+
+        var match =
+            new GlideRecord(
+                current.getTableName()
+            );
+
+
+        if (
+            match.isValidField(
+                'found_item'
+            )
+        ) {
+
+            match.addQuery(
+                'found_item',
+                foundId
+            );
+
+        }
+        else {
+
+            match.addQuery(
+                'u_found_item',
+                foundId
+            );
+
+        }
+
+
+        match.addQuery(
+            'overall_score',
+            '>=',
+            80
+        );
+
+
+        match.query();
+
+
+        while (
+            match.next()
+        ) {
+
+            var candidateStatus =
+                normalize(
+                    match.getValue(
+                        'status'
+                    )
+                );
+
+
+            if (
+                candidateStatus === 'no_match' ||
+                candidateStatus === 'rejected' ||
+                candidateStatus === 'resolved' ||
+                candidateStatus === 'withdrawn'
+            ) {
+
+                continue;
+
+            }
+
+
+            strongCount++;
+
+        }
+
+
+        if (
+            strongCount >= 2
+        ) {
+
+            service.notifyAdmins(
+                'Multiple strong matches detected',
+                strongCount +
+                    ' Strong Match candidates currently exist for the same Found item.',
+                '?id=campusmatch_admin_review&match_id=' +
+                    matchId,
+                'match',
+                current.getTableName(),
+                matchId,
+                'multi_strong:' +
+                    foundId +
+                    ':' +
+                    matchId,
+                'CampusMatch - Multiple Strong Matches'
+            );
+
+        }
+
+    }
+
+})(
+    current,
+    previous
+);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-29 10:06:55</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>5befe9b2d5eb03107f4491472fd3df45</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>CampusMatch - Admin Match Notifications</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_5befe9b2d5eb03107f4491472fd3df45</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-29 10:09:03</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="delete_multiple" query="documentkey=5befe9b2d5eb03107f4491472fd3df45"/>
+</record_update>

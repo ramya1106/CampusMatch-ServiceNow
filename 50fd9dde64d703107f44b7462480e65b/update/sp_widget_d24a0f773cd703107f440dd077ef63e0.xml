@@ -1,0 +1,1986 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller = function() {
+
+    var c = this;
+
+    c.typeFilter = 'all';
+    c.mapDots = [];
+    c.zoneGlows = [];
+    c.zones = [];
+
+
+    /* =====================================================
+       FILTER TYPE
+    ===================================================== */
+
+    c.setType = function(type) {
+
+        c.typeFilter = type;
+        c.rebuild();
+
+    };
+
+
+    c.filteredPoints = function() {
+
+        var points =
+            c.data.points || [];
+
+
+        if (c.typeFilter === 'all') {
+            return points;
+        }
+
+
+        return points.filter(
+            function(point) {
+
+                return (
+                    point.type === c.typeFilter
+                );
+
+            }
+        );
+
+    };
+
+
+    c.filteredCount = function() {
+
+        return c.filteredPoints().length;
+
+    };
+
+
+    /* =====================================================
+       BUILD DOTS + HEAT SHADES
+    ===================================================== */
+
+    c.buildMapVisuals = function(points) {
+
+        var zoneGroups = {};
+        var finalDots = [];
+        var finalGlows = [];
+
+
+        /* -----------------------------
+           Group reports by zone
+        ----------------------------- */
+
+        points.forEach(
+            function(point, index) {
+
+                var zoneName =
+                    point.zone ||
+                    'Unknown Zone';
+
+
+                if (!zoneGroups[zoneName]) {
+
+                    zoneGroups[zoneName] = {
+                        key: zoneName,
+                        items: [],
+                        totalX: 0,
+                        totalY: 0,
+                        lost: 0,
+                        found: 0
+                    };
+
+                }
+
+
+                var group =
+                    zoneGroups[zoneName];
+
+
+                var x =
+                    parseFloat(point.x);
+
+                var y =
+                    parseFloat(point.y);
+
+
+                group.items.push({
+                    key:
+                        point.sys_id ||
+                        ('dot_' + index),
+                    x: x,
+                    y: y,
+                    type: point.type,
+                    zone: zoneName,
+                    displayX: x,
+                    displayY: y,
+                    offsetX: 0,
+                    offsetY: 0
+                });
+
+
+                group.totalX += x;
+                group.totalY += y;
+
+                if (point.type === 'lost') {
+                    group.lost++;
+                }
+
+                if (point.type === 'found') {
+                    group.found++;
+                }
+
+            }
+        );
+
+
+        /* -----------------------------
+           Process each zone
+        ----------------------------- */
+
+        Object.keys(zoneGroups).forEach(
+            function(zoneName) {
+
+                var group =
+                    zoneGroups[zoneName];
+
+                var total =
+                    group.items.length;
+
+                var centerX =
+                    group.totalX / total;
+
+                var centerY =
+                    group.totalY / total;
+
+
+                /* =========================
+                   HEAT SHADE MODE
+                ========================= */
+
+                var mode = 'mixed';
+
+                if (c.typeFilter === 'lost') {
+                    mode = 'lost';
+                } else if (c.typeFilter === 'found') {
+                    mode = 'found';
+                } else if (group.lost > 0 && group.found === 0) {
+                    mode = 'lost';
+                } else if (group.found > 0 && group.lost === 0) {
+                    mode = 'found';
+                }
+
+
+                /* =========================
+                   HEAT SHADE SIZE / STRENGTH
+                ========================= */
+
+                var glowSize =
+                    Math.min(
+                        90 + (total * 14),
+                        190
+                    );
+
+                var glowOpacity =
+                    Math.min(
+                        0.42 + (total * 0.02),
+                        0.72
+                    );
+
+
+                finalGlows.push({
+                    key:
+                        'glow_' + zoneName,
+                    x: centerX,
+                    y: centerY,
+                    size: glowSize,
+                    opacity: glowOpacity,
+                    mode: mode
+                });
+
+
+                /* =========================
+                   DOT LAYOUT
+                ========================= */
+
+                if (total === 1) {
+
+                    group.items[0].displayX =
+                        group.items[0].x;
+
+                    group.items[0].displayY =
+                        group.items[0].y;
+
+                    finalDots.push(
+                        group.items[0]
+                    );
+
+                    return;
+
+                }
+
+
+                group.items.forEach(
+                    function(dot, index) {
+
+                        var ring;
+                        var position;
+                        var itemsInRing;
+                        var radius;
+
+                        if (index < 6) {
+
+                            ring = 1;
+                            position = index;
+                            itemsInRing = Math.min(total, 6);
+                            radius = 18;
+
+                        } else if (index < 14) {
+
+                            ring = 2;
+                            position = index - 6;
+                            itemsInRing = Math.min(total - 6, 8);
+                            radius = 32;
+
+                        } else {
+
+                            ring = 3;
+                            position = index - 14;
+                            itemsInRing = Math.min(total - 14, 10);
+                            radius = 46;
+
+                        }
+
+
+                        var angle =
+                            (360 / itemsInRing) *
+                            position;
+
+                        if (ring === 2) {
+                            angle += 22.5;
+                        }
+
+                        if (ring === 3) {
+                            angle += 18;
+                        }
+
+
+                        var radians =
+                            angle * Math.PI / 180;
+
+
+                        dot.displayX = centerX;
+                        dot.displayY = centerY;
+
+                        dot.offsetX =
+                            Math.cos(radians) * radius;
+
+                        dot.offsetY =
+                            Math.sin(radians) * radius;
+
+
+                        finalDots.push(dot);
+
+                    }
+                );
+
+            }
+        );
+
+
+        c.mapDots = finalDots;
+        c.zoneGlows = finalGlows;
+
+    };
+
+
+    /* =====================================================
+       ZONE RANKING
+    ===================================================== */
+
+    c.buildZones = function(points) {
+
+        var zoneMap = {};
+
+
+        points.forEach(
+            function(point) {
+
+                var zoneName =
+                    point.zone ||
+                    'Unknown Zone';
+
+
+                if (!zoneMap[zoneName]) {
+
+                    zoneMap[zoneName] = {
+                        name: zoneName,
+                        total: 0,
+                        lost: 0,
+                        found: 0
+                    };
+
+                }
+
+
+                var zone =
+                    zoneMap[zoneName];
+
+                zone.total++;
+
+                if (point.type === 'lost') {
+                    zone.lost++;
+                }
+
+                if (point.type === 'found') {
+                    zone.found++;
+                }
+
+            }
+        );
+
+
+        var zones =
+            Object.keys(zoneMap)
+                .map(function(key) {
+                    return zoneMap[key];
+                });
+
+
+        zones.sort(
+            function(a, b) {
+                return b.total - a.total;
+            }
+        );
+
+
+        c.zones = zones;
+
+    };
+
+
+    /* =====================================================
+       STYLES
+    ===================================================== */
+
+    c.dotStyle = function(dot) {
+
+        return {
+            left:
+                (
+                    dot.displayX !== undefined
+                        ? dot.displayX
+                        : dot.x
+                ) + '%',
+
+            top:
+                (
+                    dot.displayY !== undefined
+                        ? dot.displayY
+                        : dot.y
+                ) + '%',
+
+            marginLeft:
+                dot.offsetX + 'px',
+
+            marginTop:
+                dot.offsetY + 'px'
+        };
+
+    };
+
+
+    c.glowStyle = function(glow) {
+
+        return {
+            left: glow.x + '%',
+            top: glow.y + '%',
+            width: glow.size + 'px',
+            height: glow.size + 'px',
+            opacity: glow.opacity
+        };
+
+    };
+
+
+    /* =====================================================
+       REBUILD
+    ===================================================== */
+
+    c.rebuild = function() {
+
+        var points =
+            c.filteredPoints();
+
+        c.buildMapVisuals(points);
+        c.buildZones(points);
+
+    };
+
+
+    c.rebuild();
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>/* =========================================================
+   CAMPUSMATCH CAMPUS HOTSPOTS
+   FINAL ALIGNED VERSION
+========================================================= */
+
+
+/* =========================================================
+   FULL WIDTH SECTION BACKGROUND
+========================================================= */
+
+.cm-hotspot-section {
+  position: relative;
+
+  display: block;
+
+  width:
+    100vw !important;
+
+  max-width:
+    100vw !important;
+
+  margin-left:
+    calc(50% - 50vw) !important;
+
+  margin-right:
+    calc(50% - 50vw) !important;
+
+  margin-top:
+    0 !important;
+
+  margin-bottom:
+    0 !important;
+
+  min-height:
+    auto !important;
+
+  padding:
+    36px
+    20px
+    60px;
+
+  box-sizing:
+    border-box !important;
+
+  /* MATCH FIRST TWO SECTIONS */
+  background:
+    #F7F8F2 !important;
+
+  font-family:
+    "DM Sans",
+    "Segoe UI",
+    sans-serif;
+
+  color: #102E34;
+
+  overflow-x: hidden;
+}
+
+
+.cm-hotspot-section,
+.cm-hotspot-section *,
+.cm-hotspot-section *::before,
+.cm-hotspot-section *::after {
+  box-sizing:
+    border-box;
+}
+
+
+/* =========================================================
+   ALIGN EVERYTHING TO ADMIN DASHBOARD WIDTH
+========================================================= */
+
+.cm-hotspot-header,
+.cm-hotspot-filters,
+.cm-hotspot-legend,
+.cm-hotspot-layout,
+.cm-hotspot-access {
+  width: 100%;
+
+  max-width: 1250px;
+
+  margin-left:
+    auto;
+
+  margin-right:
+    auto;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.cm-hotspot-header {
+  margin-bottom: 24px;
+
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: space-between;
+
+  gap: 24px;
+}
+
+
+.cm-hotspot-eyebrow {
+  display: inline-block;
+
+  margin-bottom: 4px;
+
+  color: #249D78;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 1.3px;
+
+  text-transform: uppercase;
+}
+
+
+.cm-hotspot-header h2 {
+  margin:
+    4px
+    0
+    8px;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    "Segoe UI",
+    sans-serif;
+
+  font-size: 27px;
+  font-weight: 800;
+
+  letter-spacing: -0.6px;
+}
+
+
+.cm-hotspot-header p {
+  max-width: 560px;
+
+  margin: 0;
+
+  color: #506267;
+
+  font-size: 11px;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   TOTAL CARD
+========================================================= */
+
+.cm-hotspot-total {
+  min-width: 125px;
+
+  padding:
+    15px
+    20px;
+
+  text-align: center;
+
+  border:
+    1px solid
+    #D2DED8;
+
+  border-radius: 18px;
+
+  background: #EDF5E9;
+
+  box-shadow:
+    0 5px 16px
+    rgba(16, 78, 69, 0.05);
+}
+
+
+.cm-hotspot-total strong {
+  display: block;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 24px;
+  font-weight: 800;
+}
+
+
+.cm-hotspot-total span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #506267;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.4px;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+.cm-hotspot-filters {
+  margin-bottom: 14px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  flex-wrap: wrap;
+}
+
+
+.cm-hotspot-filters button {
+  padding:
+    8px
+    16px;
+
+  border:
+    1px solid
+    #D2DED8;
+
+  border-radius: 999px;
+
+  background: #FFFFFF;
+
+  color: #506267;
+
+  font-family:
+    "DM Sans",
+    sans-serif;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.cm-hotspot-filters button:hover {
+  border-color: #168C70;
+
+  background: #EDF5E9;
+
+  color: #15564B;
+
+  transform:
+    translateY(-1px);
+}
+
+
+.cm-hotspot-filters button.active {
+  border-color: #104E45;
+
+  background: #104E45;
+
+  color: #FFFFFF;
+
+  box-shadow:
+    0 4px 12px
+    rgba(16, 78, 69, 0.16);
+}
+
+
+/* =========================================================
+   LEGEND
+========================================================= */
+
+.cm-hotspot-legend {
+  margin-bottom: 20px;
+
+  display: flex;
+
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 16px;
+}
+
+
+.cm-legend-item {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  color: #506267;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.cm-legend-dot {
+  width: 10px;
+  height: 10px;
+
+  display: inline-block;
+
+  border-radius: 50%;
+
+  border:
+    2px solid
+    #FFFFFF;
+
+  box-shadow:
+    0 2px 5px
+    rgba(16, 78, 69, 0.14);
+}
+
+
+/* LOST */
+
+.cm-legend-lost {
+  background: #D95F59;
+}
+
+
+/* FOUND */
+
+.cm-legend-found {
+  background: #249D78;
+}
+
+
+.cm-legend-note {
+  color: #506267;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   MAIN MAP + RANKING LAYOUT
+========================================================= */
+
+.cm-hotspot-layout {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.65fr)
+    minmax(300px, 0.72fr);
+
+  gap: 18px;
+
+  align-items: start;
+}
+
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.cm-map-card,
+.cm-zone-card {
+  border:
+    1px solid
+    #D2DED8;
+
+  border-radius: 20px;
+
+  background: #FFFFFF;
+
+  box-shadow:
+    0 8px 26px
+    rgba(16, 78, 69, 0.06);
+}
+
+
+/* =========================================================
+   MAP CARD
+========================================================= */
+
+.cm-map-card {
+  min-width: 0;
+
+  padding: 15px;
+}
+
+
+/* =========================================================
+   MAP TITLE
+========================================================= */
+
+.cm-map-title {
+  margin-bottom: 12px;
+
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 14px;
+}
+
+
+.cm-map-title strong {
+  display: block;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+
+.cm-map-title span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #506267;
+
+  font-size: 8px;
+
+  line-height: 1.5;
+}
+
+
+.cm-map-report-count {
+  padding:
+    6px
+    10px;
+
+  border-radius: 999px;
+
+  background: #EDF5E9;
+
+  color: #15564B;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   CAMPUS MAP
+========================================================= */
+
+.cm-campus-map {
+  position: relative;
+
+  width: 100%;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    #D2DED8;
+
+  border-radius: 17px;
+
+  background: #EDF5E9;
+}
+
+
+.cm-campus-map-image {
+  display: block;
+
+  width: 100%;
+
+  height: auto;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   HEATMAP SHADES
+========================================================= */
+
+.cm-zone-glow {
+  position: absolute;
+
+  transform:
+    translate(-50%, -50%);
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter:
+    blur(22px);
+
+  z-index: 1;
+}
+
+
+/* LOST */
+
+.cm-zone-glow-lost {
+  background:
+    radial-gradient(
+      circle,
+      rgba(217, 95, 89, 0.62) 0%,
+      rgba(217, 95, 89, 0.42) 32%,
+      rgba(217, 95, 89, 0.20) 62%,
+      rgba(217, 95, 89, 0) 100%
+    );
+}
+
+
+/* FOUND */
+
+.cm-zone-glow-found {
+  background:
+    radial-gradient(
+      circle,
+      rgba(36, 157, 120, 0.62) 0%,
+      rgba(36, 157, 120, 0.42) 32%,
+      rgba(36, 157, 120, 0.20) 62%,
+      rgba(36, 157, 120, 0) 100%
+    );
+}
+
+
+/* MIXED */
+
+.cm-zone-glow-mixed {
+  background:
+    radial-gradient(
+      circle,
+      rgba(36, 157, 120, 0.52) 0%,
+      rgba(217, 95, 89, 0.38) 38%,
+      rgba(36, 157, 120, 0.18) 68%,
+      rgba(36, 157, 120, 0) 100%
+    );
+}
+
+
+/* =========================================================
+   REPORT DOTS
+========================================================= */
+
+.cm-report-dot {
+  position: absolute;
+
+  width: 13px;
+  height: 13px;
+
+  border-radius: 50%;
+
+  transform:
+    translate(-50%, -50%);
+
+  border:
+    2px solid
+    #FFFFFF;
+
+  box-sizing: border-box;
+
+  box-shadow:
+    0 2px 7px
+    rgba(16, 78, 69, 0.24);
+
+  pointer-events: none;
+
+  z-index: 5;
+}
+
+
+/* LOST */
+
+.cm-report-dot-lost {
+  background: #D95F59;
+}
+
+
+/* FOUND */
+
+.cm-report-dot-found {
+  background: #249D78;
+}
+
+
+/* =========================================================
+   ZONE / RANKING CARD
+========================================================= */
+
+.cm-zone-card {
+  min-width: 0;
+
+  padding: 18px;
+}
+
+
+/* =========================================================
+   ZONE HEADING
+========================================================= */
+
+.cm-zone-heading {
+  margin-bottom: 15px;
+}
+
+
+.cm-zone-heading &gt; span {
+  display: block;
+
+  color: #249D78;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 1px;
+
+  text-transform: uppercase;
+}
+
+
+.cm-zone-heading h3 {
+  margin:
+    5px
+    0
+    0;
+
+  color: #104E45;
+
+  font-family:
+    "Plus Jakarta Sans",
+    sans-serif;
+
+  font-size: 18px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   ZONE ROW
+========================================================= */
+
+.cm-zone-row {
+  padding:
+    12px
+    0;
+
+  display: grid;
+
+  grid-template-columns:
+    30px
+    1fr
+    auto;
+
+  align-items: center;
+
+  gap: 11px;
+
+  border-bottom:
+    1px solid
+    #D2DED8;
+
+  transition:
+    transform 0.18s ease;
+}
+
+
+.cm-zone-row:last-child {
+  border-bottom: 0;
+}
+
+
+.cm-zone-row:hover {
+  transform:
+    translateX(2px);
+}
+
+
+/* =========================================================
+   ZONE RANK
+========================================================= */
+
+.cm-zone-rank {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border:
+    1px solid
+    #D2DED8;
+
+  border-radius: 9px;
+
+  background: #EDF5E9;
+
+  color: #104E45;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   ZONE INFO
+========================================================= */
+
+.cm-zone-info {
+  min-width: 0;
+}
+
+
+.cm-zone-info strong {
+  display: block;
+
+  color: #102E34;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  word-break: break-word;
+}
+
+
+.cm-zone-info &gt; span {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #506267;
+
+  font-size: 8px;
+}
+
+
+.cm-zone-lost {
+  color: #D95F59;
+
+  font-weight: 800;
+}
+
+
+.cm-zone-found {
+  color: #168C70;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   ZONE COUNT
+========================================================= */
+
+.cm-zone-count {
+  min-width: 30px;
+
+  padding:
+    5px
+    8px;
+
+  text-align: center;
+
+  border-radius: 9px;
+
+  background: #EDF5E9;
+
+  color: #104E45;
+
+  font-size: 12px;
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.cm-zone-empty {
+  padding:
+    26px
+    10px;
+
+  color: #506267;
+
+  font-size: 10px;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   ACCESS MESSAGE
+========================================================= */
+
+.cm-hotspot-access {
+  padding: 30px;
+
+  text-align: center;
+
+  border:
+    1px solid
+    #D2DED8;
+
+  border-radius: 20px;
+
+  background: #FFFFFF;
+
+  color: #102E34;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  box-shadow:
+    0 5px 18px
+    rgba(16, 78, 69, 0.04);
+}
+
+
+/* =========================================================
+   LAPTOP / TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+
+  .cm-hotspot-section {
+    padding:
+      30px
+      18px
+      55px;
+  }
+
+
+  .cm-hotspot-layout {
+    grid-template-columns:
+      minmax(0, 1.5fr)
+      minmax(250px, 0.72fr);
+
+    gap: 15px;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL TABLET
+========================================================= */
+
+@media (max-width: 850px) {
+
+  .cm-hotspot-layout {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .cm-zone-card {
+    width: 100%;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 560px) {
+
+  .cm-hotspot-section {
+    padding:
+      24px
+      14px
+      50px;
+  }
+
+
+  .cm-hotspot-header {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+    gap: 14px;
+  }
+
+
+  .cm-hotspot-header h2 {
+    font-size: 22px;
+  }
+
+
+  .cm-hotspot-header p {
+    font-size: 10px;
+  }
+
+
+  .cm-hotspot-total {
+    width: 100%;
+
+    box-sizing: border-box;
+  }
+
+
+  .cm-hotspot-filters {
+    gap: 6px;
+  }
+
+
+  .cm-hotspot-filters button {
+    flex: 1;
+
+    min-width: 80px;
+
+    text-align: center;
+  }
+
+
+  .cm-hotspot-legend {
+    gap: 11px;
+  }
+
+
+  .cm-map-card {
+    padding: 10px;
+
+    border-radius: 17px;
+  }
+
+
+  .cm-campus-map {
+    border-radius: 13px;
+  }
+
+
+  .cm-map-title {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+
+  .cm-report-dot {
+    width: 11px;
+
+    height: 11px;
+
+    border-width: 1.5px;
+  }
+
+
+  .cm-zone-glow {
+    filter:
+      blur(16px);
+  }
+
+
+  .cm-zone-card {
+    padding: 15px;
+
+    border-radius: 17px;
+  }
+
+
+  .cm-zone-heading h3 {
+    font-size: 16px;
+  }
+
+}
+
+
+/* =========================================================
+   EXTRA SMALL MOBILE
+========================================================= */
+
+@media (max-width: 390px) {
+
+  .cm-hotspot-section {
+    padding:
+      20px
+      10px
+      45px;
+  }
+
+
+  .cm-hotspot-header h2 {
+    font-size: 20px;
+  }
+
+
+  .cm-hotspot-total {
+    padding:
+      13px
+      16px;
+  }
+
+
+  .cm-hotspot-filters button {
+    padding:
+      8px
+      10px;
+
+    min-width: 70px;
+  }
+
+
+  .cm-map-card {
+    padding: 8px;
+  }
+
+
+  .cm-zone-card {
+    padding: 13px;
+  }
+
+
+  .cm-zone-row {
+    grid-template-columns:
+      28px
+      minmax(0, 1fr)
+      auto;
+
+    gap: 8px;
+  }
+
+}
+
+
+/* =========================================================
+   LAPTOP / DESKTOP READABILITY POLISH
+   Text only - layout, map size, spacing and mobile remain unchanged.
+========================================================= */
+
+@media (min-width: 1001px) {
+
+  .cm-hotspot-eyebrow {
+    font-size: 10px;
+  }
+
+  .cm-hotspot-header p {
+    font-size: 12px;
+    line-height: 1.65;
+  }
+
+  .cm-hotspot-total span {
+    font-size: 9px;
+  }
+
+  .cm-hotspot-filters button {
+    font-size: 10px;
+  }
+
+  .cm-legend-item,
+  .cm-legend-note {
+    font-size: 12px;
+  }
+
+  .cm-map-title strong {
+    font-size: 14px;
+  }
+
+  .cm-map-title span {
+    font-size: 9px;
+  }
+
+  .cm-map-report-count {
+    font-size: 11px;
+  }
+
+  .cm-zone-heading &gt; span {
+    font-size: 9px;
+  }
+
+  .cm-zone-heading h3 {
+    font-size: 19px;
+  }
+
+  .cm-zone-rank {
+    font-size: 10px;
+  }
+
+  .cm-zone-info strong {
+    font-size: 11px;
+  }
+
+  .cm-zone-info &gt; span {
+    font-size: 9px;
+  }
+
+  .cm-zone-count {
+    font-size: 13px;
+  }
+
+  .cm-zone-empty {
+    font-size: 11px;
+  }
+
+  .cm-hotspot-access {
+    font-size: 12px;
+  }
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>campusmatch_hotspots</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {
+  
+}]]></link>
+        <name>CampusMatch Campus Hotspots</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+
+    /* ======================================================
+       TABLE
+    ====================================================== */
+
+    var ITEM_TABLE =
+        'x_snc_campusmatch_campusmatch_item';
+
+
+    /* ======================================================
+       TASK 14 - CAMPUSMATCH STAFF SECURITY
+    ====================================================== */
+
+    var access =
+        new CampusMatchAccess();
+
+
+    data.isStaff =
+        access.isStaff();
+
+
+    /*
+     * Keep data.allowed because your existing HTML
+     * may already be using it.
+     */
+    data.allowed =
+        data.isStaff;
+
+
+    /* ======================================================
+       DEFAULT DATA
+    ====================================================== */
+
+    data.points = [];
+
+    data.totalLocated = 0;
+
+
+    /*
+     * IMPORTANT:
+     * Normal students must not receive hotspot coordinates.
+     */
+    if (!data.allowed) {
+
+        return;
+
+    }
+
+
+    /* ======================================================
+       LOAD ITEMS WITH LOCATION COORDINATES
+    ====================================================== */
+
+    var item =
+        new GlideRecord(
+            ITEM_TABLE
+        );
+
+
+    item.addNotNullQuery(
+        'location_x'
+    );
+
+
+    item.addNotNullQuery(
+        'location_y'
+    );
+
+
+    item.query();
+
+
+    while (item.next()) {
+
+        /* =========================================
+           REPORT TYPE
+        ========================================= */
+
+        var type =
+            (
+                item.getValue(
+                    'report_type'
+                ) || ''
+            )
+            .toString()
+            .toLowerCase()
+            .trim();
+
+
+        /*
+         * Ignore incomplete/testing records.
+         *
+         * Only proper Lost or Found reports
+         * should appear in analytics.
+         */
+
+        if (
+            type !== 'lost' &&
+            type !== 'found'
+        ) {
+
+            continue;
+
+        }
+
+
+        /* =========================================
+           COORDINATES
+        ========================================= */
+
+        var x =
+            parseFloat(
+                item.getValue(
+                    'location_x'
+                )
+            );
+
+
+        var y =
+            parseFloat(
+                item.getValue(
+                    'location_y'
+                )
+            );
+
+
+        if (
+            isNaN(x) ||
+            isNaN(y)
+        ) {
+
+            continue;
+
+        }
+
+
+        /*
+         * Coordinates must stay inside
+         * normalized campus-map range.
+         */
+
+        if (
+            x < 0 ||
+            x > 100 ||
+            y < 0 ||
+            y > 100
+        ) {
+
+            continue;
+
+        }
+
+
+        /* =========================================
+           ADD POINT
+        ========================================= */
+
+        data.points.push({
+
+            sys_id:
+                item.getUniqueValue(),
+
+            x:
+                x,
+
+            y:
+                y,
+
+            type:
+                type,
+
+            zone:
+                item.getDisplayValue(
+                    'location_zone'
+                ) || 'Unknown Zone',
+
+            category:
+                item.getDisplayValue(
+                    'category'
+                ) || 'Other',
+
+            status:
+                item.getDisplayValue(
+                    'status'
+                ) || '—'
+
+        });
+
+
+        data.totalLocated++;
+
+    }
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-20 08:57:59</sys_created_on>
+        <sys_id>d24a0f773cd703107f440dd077ef63e0</sys_id>
+        <sys_mod_count>24</sys_mod_count>
+        <sys_name>CampusMatch Campus Hotspots</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_widget_d24a0f773cd703107f440dd077ef63e0</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-28 14:21:51</sys_updated_on>
+        <template><![CDATA[<section class="cm-hotspot-section">
+
+  <!-- ACCESS -->
+  <div
+    class="cm-hotspot-access"
+    ng-if="!data.isStaff">
+
+    Staff access required.
+
+  </div>
+
+
+  <div ng-if="data.isStaff">
+
+    <!-- HEADER -->
+    <div class="cm-hotspot-header">
+
+      <div>
+        <span class="cm-hotspot-eyebrow">
+          CAMPUS INTELLIGENCE
+        </span>
+
+        <h2>
+          Lost &amp; Found Hotspots
+        </h2>
+
+        <p>
+          See where CampusMatch reports are concentrated across campus.
+        </p>
+      </div>
+
+
+      <div class="cm-hotspot-total">
+        <strong>{{data.totalLocated}}</strong>
+        <span>Located Reports</span>
+      </div>
+
+    </div>
+
+
+    <!-- FILTERS -->
+    <div class="cm-hotspot-filters">
+
+      <button
+        type="button"
+        ng-class="{'active': c.typeFilter === 'all'}"
+        ng-click="c.setType('all')">
+        All Reports
+      </button>
+
+      <button
+        type="button"
+        ng-class="{'active': c.typeFilter === 'lost'}"
+        ng-click="c.setType('lost')">
+        Lost
+      </button>
+
+      <button
+        type="button"
+        ng-class="{'active': c.typeFilter === 'found'}"
+        ng-click="c.setType('found')">
+        Found
+      </button>
+
+    </div>
+
+
+    <!-- LEGEND -->
+    <div class="cm-hotspot-legend">
+
+      <div class="cm-legend-item">
+        <span class="cm-legend-dot cm-legend-lost"></span>
+        <span>Lost</span>
+      </div>
+
+      <div class="cm-legend-item">
+        <span class="cm-legend-dot cm-legend-found"></span>
+        <span>Found</span>
+      </div>
+
+      <div class="cm-legend-note">
+        1 dot = 1 report
+      </div>
+
+    </div>
+
+
+    <!-- MAIN LAYOUT -->
+    <div class="cm-hotspot-layout">
+
+      <!-- MAP CARD -->
+      <div class="cm-map-card">
+
+        <div class="cm-map-title">
+
+          <strong>
+            Campus Activity Map
+          </strong>
+
+          <div class="cm-map-report-count">
+            {{c.filteredCount()}} reports
+          </div>
+
+        </div>
+
+
+        <div class="cm-campus-map">
+
+          <img
+            class="cm-campus-map-image"
+            src="x_snc_campusmatch.CampusMatch_Map.jpeg"
+            alt="Campus Map">
+
+
+          <!-- HEATMAP SHADES -->
+          <div
+            class="cm-zone-glow"
+            ng-repeat="glow in c.zoneGlows track by glow.key"
+            ng-class="{
+              'cm-zone-glow-lost': glow.mode === 'lost',
+              'cm-zone-glow-found': glow.mode === 'found',
+              'cm-zone-glow-mixed': glow.mode === 'mixed'
+            }"
+            ng-style="c.glowStyle(glow)">
+          </div>
+
+
+          <!-- REPORT DOTS -->
+          <div
+            class="cm-report-dot"
+            ng-repeat="dot in c.mapDots track by dot.key"
+            ng-class="{
+              'cm-report-dot-lost': dot.type === 'lost',
+              'cm-report-dot-found': dot.type === 'found'
+            }"
+            ng-style="c.dotStyle(dot)"
+            title="{{dot.type | uppercase}} - {{dot.zone}}">
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ZONE CARD -->
+      <div class="cm-zone-card">
+
+        <div class="cm-zone-heading">
+
+          <span>
+            HOTSPOT RANKING
+          </span>
+
+          <h3>
+            Most Active Zones
+          </h3>
+
+        </div>
+
+
+        <div
+          class="cm-zone-row"
+          ng-repeat="zone in c.zones | limitTo:6 track by zone.name">
+
+          <div class="cm-zone-rank">
+            {{$index + 1}}
+          </div>
+
+          <div class="cm-zone-info">
+
+            <strong>
+              {{zone.name}}
+            </strong>
+
+            <span>
+
+              <span class="cm-zone-lost">
+                {{zone.lost}} Lost
+              </span>
+
+              ·
+
+              <span class="cm-zone-found">
+                {{zone.found}} Found
+              </span>
+
+            </span>
+
+          </div>
+
+          <div class="cm-zone-count">
+            {{zone.total}}
+          </div>
+
+        </div>
+
+
+        <div
+          class="cm-zone-empty"
+          ng-if="!c.zones.length">
+
+          No location data available for this filter.
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>]]></template>
+    </sp_widget>
+</record_update>
