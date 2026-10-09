@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_sg_input">
+    <sys_sg_input action="DELETE">
+        <active>true</active>
+        <autofill_variable/>
+        <category/>
+        <description>Select the category of the lost item.</description>
+        <label>Category</label>
+        <mandatory>true</mandatory>
+        <name>Category</name>
+        <order>100</order>
+        <page display_value="Report Lost - Item Details">a167617d94a303107f4415a9274538ec</page>
+        <parameter_screen display_value="Report Lost Item">e167a1f994a303107f4415a9274538da</parameter_screen>
+        <parameter_section/>
+        <placeholder>Choose a category</placeholder>
+        <readonly>false</readonly>
+        <sys_class_name>sys_sg_input</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-26 07:03:23</sys_created_on>
+        <sys_id>c3b96db194e303107f4415a927453865</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>Category</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_sg_input_c3b96db194e303107f4415a927453865</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-26 07:17:30</sys_updated_on>
+        <type display_value="Choice">8dfb205517021010f2b43b9fadb9592e</type>
+    </sys_sg_input>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</application>
+        <file_path/>
+        <instance_id>b9d14dc7c38fcf94a03197af0501313f</instance_id>
+        <instance_name>ltm-hck-2876-0009</instance_name>
+        <name>sys_sg_input_c3b96db194e303107f4415a927453865</name>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_sg_input"><sys_sg_input action="INSERT_OR_UPDATE"><active>true</active><autofill_variable/><category/><description>Select the category of the lost item.</description><label>Category</label><mandatory>true</mandatory><name>Category</name><order>100</order><page display_value="Report Lost - Item Details">a167617d94a303107f4415a9274538ec</page><parameter_screen display_value="Report Lost Item">e167a1f994a303107f4415a9274538da</parameter_screen><parameter_section/><placeholder>Choose a category</placeholder><readonly>false</readonly><sys_class_name>sys_sg_input</sys_class_name><sys_created_by>admin</sys_created_by><sys_created_on>2026-09-26 07:03:23</sys_created_on><sys_id>c3b96db194e303107f4415a927453865</sys_id><sys_mod_count>2</sys_mod_count><sys_name>Category</sys_name><sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package><sys_policy/><sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope><sys_update_name>sys_sg_input_c3b96db194e303107f4415a927453865</sys_update_name><sys_updated_by>admin</sys_updated_by><sys_updated_on>2026-09-26 07:17:30</sys_updated_on><type display_value="Choice">8dfb205517021010f2b43b9fadb9592e</type></sys_sg_input></record_update>]]></payload>
+        <payload_hash>-1444348357</payload_hash>
+        <record_name>Category</record_name>
+        <reverted_from/>
+        <source>90fd9dde64d703107f44b7462480e6dd</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-26 07:17:30</sys_created_on>
+        <sys_id>71fce9f994a303107f4415a927453873</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>1a0dc9384be0000001</sys_recorded_at>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-26 07:17:30</sys_updated_on>
+        <type>Input</type>
+        <update_guid>b1fce9f977a3031042fa9c25ae4f9c72</update_guid>
+        <update_guid_history>b1fce9f977a3031042fa9c25ae4f9c72:-1444348357,61aca939d4e303104581175f6a79fcae:1216411595,17b96db161e30310e188182cf0b09269:-1444348357</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete/>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-26 13:15:11</sys_created_on>
+        <sys_db_object display_value="" name="sys_sg_input">sys_sg_input</sys_db_object>
+        <sys_id>2bff2d76a65246e88f5bf15f0d0f34c1</sys_id>
+        <sys_metadata>c3b96db194e303107f4415a927453865</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>Category</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_parent/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_scope_delete display_value="">82a3c746b444401c8863da139baae804</sys_scope_delete>
+        <sys_update_name>sys_sg_input_c3b96db194e303107f4415a927453865</sys_update_name>
+        <sys_update_version display_value="sys_sg_input_c3b96db194e303107f4415a927453865">71fce9f994a303107f4415a927453873</sys_update_version>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-26 13:15:11</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

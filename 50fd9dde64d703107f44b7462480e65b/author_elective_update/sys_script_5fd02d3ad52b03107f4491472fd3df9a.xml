@@ -1,0 +1,755 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script">
+    <sys_script action="DELETE">
+        <abort_action>false</abort_action>
+        <access>package_private</access>
+        <action_delete>false</action_delete>
+        <action_insert>false</action_insert>
+        <action_query>false</action_query>
+        <action_update>false</action_update>
+        <active>true</active>
+        <add_message>false</add_message>
+        <advanced>true</advanced>
+        <change_fields>false</change_fields>
+        <client_callable>false</client_callable>
+        <collection>x_snc_campusmatch_campusmatch_claim</collection>
+        <condition/>
+        <description/>
+        <execute_function>false</execute_function>
+        <filter_condition/>
+        <is_rest>false</is_rest>
+        <message/>
+        <name>CampusMatch - Portal Claim Notifications</name>
+        <order>100</order>
+        <priority>100</priority>
+        <rest_method/>
+        <rest_method_text/>
+        <rest_service/>
+        <rest_service_text/>
+        <rest_variables/>
+        <role_conditions/>
+        <script><![CDATA[(function executeRule(current, previous) {
+
+    var service =
+        new CampusMatchNotificationService();
+
+
+    function normalize(value) {
+
+        return (
+            value || ''
+        )
+        .toString()
+        .toLowerCase()
+        .trim();
+
+    }
+
+
+    function changed(fieldName) {
+
+        return (
+            current.isValidField(fieldName) &&
+            current[fieldName].changes()
+        );
+
+    }
+
+
+    var claimantId = '';
+
+
+    if (
+        current.isValidField('claimant')
+    ) {
+
+        claimantId =
+            current.getValue('claimant') || '';
+
+    }
+
+
+    if (
+        !claimantId &&
+        current.isValidField('u_claimant')
+    ) {
+
+        claimantId =
+            current.getValue('u_claimant') || '';
+
+    }
+
+
+    var matchId = '';
+
+
+    if (
+        current.isValidField('match')
+    ) {
+
+        matchId =
+            current.getValue('match') || '';
+
+    }
+
+
+    if (
+        !matchId &&
+        current.isValidField('u_match')
+    ) {
+
+        matchId =
+            current.getValue('u_match') || '';
+
+    }
+
+
+    if (
+        !claimantId &&
+        matchId
+    ) {
+
+        var match =
+            new GlideRecord(
+                'x_snc_campusmatch_campusmatch_match'
+            );
+
+
+        if (
+            match.get(matchId)
+        ) {
+
+            var lostId =
+                match.getValue('lost_item') ||
+                match.getValue('u_lost_item');
+
+
+            if (lostId) {
+
+                var lost =
+                    new GlideRecord(
+                        'x_snc_campusmatch_campusmatch_item'
+                    );
+
+
+                if (
+                    lost.get(lostId)
+                ) {
+
+                    claimantId =
+                        lost.getValue('reporter') || '';
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    if (!claimantId) {
+        return;
+    }
+
+
+    var claimId =
+        current.getUniqueValue();
+
+
+    var matchTarget =
+        matchId
+            ?
+            (
+                '?id=campusmatch_match&match_id=' +
+                matchId
+            )
+            :
+            '?id=campusmatch_dashboard';
+
+
+    /* OWNERSHIP VERIFICATION RESULT */
+
+    if (
+        changed('u_verification_result')
+    ) {
+
+        var result =
+            normalize(
+                current.getValue(
+                    'u_verification_result'
+                )
+            );
+
+
+        if (
+            result === 'pass'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Ownership verification passed',
+                'Your ownership answers passed automated verification.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'verification_pass:' + claimId,
+                'CampusMatch - Ownership Verification Pass'
+            );
+
+        }
+
+
+        if (
+            result === 'review'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Ownership claim under review',
+                'Your ownership claim needs staff review.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'verification_review:' + claimId,
+                'CampusMatch - Claim Under Review'
+            );
+
+
+            service.notifyAdmins(
+                'Ownership claim requires review',
+                'A CampusMatch ownership claim requires a staff decision.',
+                '?id=campusmatch_admin_review&claim_id=' +
+                    claimId,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'admin_claim_review:' + claimId,
+                'CampusMatch - Claim Under Review'
+            );
+
+        }
+
+
+        if (
+            result === 'fail'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Ownership verification failed',
+                'Your ownership answers did not pass automated verification.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'verification_fail:' + claimId,
+                'CampusMatch - Ownership Verification Fail'
+            );
+
+        }
+
+    }
+
+
+    /* CLAIM STATUS */
+
+    if (
+        changed('claim_status')
+    ) {
+
+        var status =
+            normalize(
+                current.getValue(
+                    'claim_status'
+                )
+            );
+
+
+        if (
+            status === 'approved'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Item ready for collection',
+                'Your claim was approved. Follow the collection instructions in CampusMatch.',
+                matchTarget,
+                'collection',
+                current.getTableName(),
+                claimId,
+                'claim_approved:' + claimId,
+                'CampusMatch - Item Ready for Collection'
+            );
+
+        }
+
+
+        if (
+            status === 'rejected'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Claim rejected',
+                'Your ownership claim was not approved.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'claim_rejected:' + claimId,
+                'CampusMatch - Claim Rejected'
+            );
+
+        }
+
+
+        if (
+            status === 'withdrawn'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Claim withdrawn',
+                'Your ownership claim has been withdrawn.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'claim_withdrawn:' + claimId,
+                'CampusMatch - Claim Withdrawn'
+            );
+
+        }
+
+    }
+
+
+    /* COLLECTION COMPLETED */
+
+    if (
+        changed('handover_completed') &&
+        current.getValue('handover_completed') == '1'
+    ) {
+
+        service.createForUser(
+            claimantId,
+            'student',
+            'Collection completed',
+            'Your item handover has been successfully completed.',
+            '?id=campusmatch_dashboard',
+            'collection',
+            current.getTableName(),
+            claimId,
+            'collection_complete:' + claimId,
+            'CampusMatch - Collection Completed'
+        );
+
+    }
+
+})(
+    current,
+    previous
+);]]></script>
+        <sys_class_name>sys_script</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-29 09:02:41</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>5fd02d3ad52b03107f4491472fd3df9a</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch - Portal Claim Notifications</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_script_5fd02d3ad52b03107f4491472fd3df9a</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-29 09:02:41</sys_updated_on>
+        <template/>
+        <when>after</when>
+    </sys_script>
+    <sys_translated_text action="DELETE" query="documentkey=5fd02d3ad52b03107f4491472fd3df9a"/>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</application>
+        <file_path/>
+        <instance_id>b9d14dc7c38fcf94a03197af0501313f</instance_id>
+        <instance_name>ltm-hck-2876-0009</instance_name>
+        <name>sys_script_5fd02d3ad52b03107f4491472fd3df9a</name>
+        <payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update sys_domain="global" table="sys_script"&gt;&lt;sys_script action="INSERT_OR_UPDATE"&gt;&lt;abort_action&gt;false&lt;/abort_action&gt;&lt;access&gt;package_private&lt;/access&gt;&lt;action_delete&gt;false&lt;/action_delete&gt;&lt;action_insert&gt;false&lt;/action_insert&gt;&lt;action_query&gt;false&lt;/action_query&gt;&lt;action_update&gt;false&lt;/action_update&gt;&lt;active&gt;true&lt;/active&gt;&lt;add_message&gt;false&lt;/add_message&gt;&lt;advanced&gt;true&lt;/advanced&gt;&lt;change_fields&gt;false&lt;/change_fields&gt;&lt;client_callable&gt;false&lt;/client_callable&gt;&lt;collection&gt;x_snc_campusmatch_campusmatch_claim&lt;/collection&gt;&lt;condition/&gt;&lt;description/&gt;&lt;execute_function&gt;false&lt;/execute_function&gt;&lt;filter_condition/&gt;&lt;is_rest&gt;false&lt;/is_rest&gt;&lt;message/&gt;&lt;name&gt;CampusMatch - Portal Claim Notifications&lt;/name&gt;&lt;order&gt;100&lt;/order&gt;&lt;priority&gt;100&lt;/priority&gt;&lt;rest_method/&gt;&lt;rest_method_text/&gt;&lt;rest_service/&gt;&lt;rest_service_text/&gt;&lt;rest_variables/&gt;&lt;role_conditions/&gt;&lt;script&gt;&lt;![CDATA[(function executeRule(current, previous) {
+
+    var service =
+        new CampusMatchNotificationService();
+
+
+    function normalize(value) {
+
+        return (
+            value || ''
+        )
+        .toString()
+        .toLowerCase()
+        .trim();
+
+    }
+
+
+    function changed(fieldName) {
+
+        return (
+            current.isValidField(fieldName) &amp;&amp;
+            current[fieldName].changes()
+        );
+
+    }
+
+
+    var claimantId = '';
+
+
+    if (
+        current.isValidField('claimant')
+    ) {
+
+        claimantId =
+            current.getValue('claimant') || '';
+
+    }
+
+
+    if (
+        !claimantId &amp;&amp;
+        current.isValidField('u_claimant')
+    ) {
+
+        claimantId =
+            current.getValue('u_claimant') || '';
+
+    }
+
+
+    var matchId = '';
+
+
+    if (
+        current.isValidField('match')
+    ) {
+
+        matchId =
+            current.getValue('match') || '';
+
+    }
+
+
+    if (
+        !matchId &amp;&amp;
+        current.isValidField('u_match')
+    ) {
+
+        matchId =
+            current.getValue('u_match') || '';
+
+    }
+
+
+    if (
+        !claimantId &amp;&amp;
+        matchId
+    ) {
+
+        var match =
+            new GlideRecord(
+                'x_snc_campusmatch_campusmatch_match'
+            );
+
+
+        if (
+            match.get(matchId)
+        ) {
+
+            var lostId =
+                match.getValue('lost_item') ||
+                match.getValue('u_lost_item');
+
+
+            if (lostId) {
+
+                var lost =
+                    new GlideRecord(
+                        'x_snc_campusmatch_campusmatch_item'
+                    );
+
+
+                if (
+                    lost.get(lostId)
+                ) {
+
+                    claimantId =
+                        lost.getValue('reporter') || '';
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    if (!claimantId) {
+        return;
+    }
+
+
+    var claimId =
+        current.getUniqueValue();
+
+
+    var matchTarget =
+        matchId
+            ?
+            (
+                '?id=campusmatch_match&amp;match_id=' +
+                matchId
+            )
+            :
+            '?id=campusmatch_dashboard';
+
+
+    /* OWNERSHIP VERIFICATION RESULT */
+
+    if (
+        changed('u_verification_result')
+    ) {
+
+        var result =
+            normalize(
+                current.getValue(
+                    'u_verification_result'
+                )
+            );
+
+
+        if (
+            result === 'pass'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Ownership verification passed',
+                'Your ownership answers passed automated verification.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'verification_pass:' + claimId,
+                'CampusMatch - Ownership Verification Pass'
+            );
+
+        }
+
+
+        if (
+            result === 'review'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Ownership claim under review',
+                'Your ownership claim needs staff review.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'verification_review:' + claimId,
+                'CampusMatch - Claim Under Review'
+            );
+
+
+            service.notifyAdmins(
+                'Ownership claim requires review',
+                'A CampusMatch ownership claim requires a staff decision.',
+                '?id=campusmatch_admin_review&amp;claim_id=' +
+                    claimId,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'admin_claim_review:' + claimId,
+                'CampusMatch - Claim Under Review'
+            );
+
+        }
+
+
+        if (
+            result === 'fail'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Ownership verification failed',
+                'Your ownership answers did not pass automated verification.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'verification_fail:' + claimId,
+                'CampusMatch - Ownership Verification Fail'
+            );
+
+        }
+
+    }
+
+
+    /* CLAIM STATUS */
+
+    if (
+        changed('claim_status')
+    ) {
+
+        var status =
+            normalize(
+                current.getValue(
+                    'claim_status'
+                )
+            );
+
+
+        if (
+            status === 'approved'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Item ready for collection',
+                'Your claim was approved. Follow the collection instructions in CampusMatch.',
+                matchTarget,
+                'collection',
+                current.getTableName(),
+                claimId,
+                'claim_approved:' + claimId,
+                'CampusMatch - Item Ready for Collection'
+            );
+
+        }
+
+
+        if (
+            status === 'rejected'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Claim rejected',
+                'Your ownership claim was not approved.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'claim_rejected:' + claimId,
+                'CampusMatch - Claim Rejected'
+            );
+
+        }
+
+
+        if (
+            status === 'withdrawn'
+        ) {
+
+            service.createForUser(
+                claimantId,
+                'student',
+                'Claim withdrawn',
+                'Your ownership claim has been withdrawn.',
+                matchTarget,
+                'claim',
+                current.getTableName(),
+                claimId,
+                'claim_withdrawn:' + claimId,
+                'CampusMatch - Claim Withdrawn'
+            );
+
+        }
+
+    }
+
+
+    /* COLLECTION COMPLETED */
+
+    if (
+        changed('handover_completed') &amp;&amp;
+        current.getValue('handover_completed') == '1'
+    ) {
+
+        service.createForUser(
+            claimantId,
+            'student',
+            'Collection completed',
+            'Your item handover has been successfully completed.',
+            '?id=campusmatch_dashboard',
+            'collection',
+            current.getTableName(),
+            claimId,
+            'collection_complete:' + claimId,
+            'CampusMatch - Collection Completed'
+        );
+
+    }
+
+})(
+    current,
+    previous
+);]]&gt;&lt;/script&gt;&lt;sys_class_name&gt;sys_script&lt;/sys_class_name&gt;&lt;sys_created_by&gt;admin&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2026-09-29 09:02:41&lt;/sys_created_on&gt;&lt;sys_domain&gt;global&lt;/sys_domain&gt;&lt;sys_domain_path&gt;/&lt;/sys_domain_path&gt;&lt;sys_id&gt;5fd02d3ad52b03107f4491472fd3df9a&lt;/sys_id&gt;&lt;sys_mod_count&gt;0&lt;/sys_mod_count&gt;&lt;sys_name&gt;CampusMatch - Portal Claim Notifications&lt;/sys_name&gt;&lt;sys_overrides/&gt;&lt;sys_package display_value="CampusMatch" source="x_snc_campusmatch"&gt;50fd9dde64d703107f44b7462480e65b&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="CampusMatch"&gt;50fd9dde64d703107f44b7462480e65b&lt;/sys_scope&gt;&lt;sys_update_name&gt;sys_script_5fd02d3ad52b03107f4491472fd3df9a&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;admin&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2026-09-29 09:02:41&lt;/sys_updated_on&gt;&lt;template/&gt;&lt;when&gt;after&lt;/when&gt;&lt;/sys_script&gt;&lt;sys_translated_text action="delete_multiple" query="documentkey=5fd02d3ad52b03107f4491472fd3df9a"/&gt;&lt;/record_update&gt;</payload>
+        <payload_hash>817731651</payload_hash>
+        <record_name>CampusMatch - Portal Claim Notifications</record_name>
+        <reverted_from/>
+        <source>800261f194a303107f4415a927453870</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-29 09:02:41</sys_created_on>
+        <sys_id>33c1e1fad52b03107f4491472fd3df0a</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>1a0ec66e6520000001</sys_recorded_at>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-29 09:02:41</sys_updated_on>
+        <type>Business Rule</type>
+        <update_guid>73c1e1fa682b0310ea19c184e24d0c09</update_guid>
+        <update_guid_history>73c1e1fa682b0310ea19c184e24d0c09:817731651</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete/>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-29 09:33:06</sys_created_on>
+        <sys_db_object display_value="" name="sys_script">sys_script</sys_db_object>
+        <sys_id>1b24f7fd736e4f9ea050098fea7b13d1</sys_id>
+        <sys_metadata>5fd02d3ad52b03107f4491472fd3df9a</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch - Portal Claim Notifications</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_parent display_value="CampusMatch Claim">070412de64df03107f44b7462480e64f</sys_parent>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_scope_delete display_value="">82a3c746b444401c8863da139baae804</sys_scope_delete>
+        <sys_update_name>sys_script_5fd02d3ad52b03107f4491472fd3df9a</sys_update_name>
+        <sys_update_version display_value="sys_script_5fd02d3ad52b03107f4491472fd3df9a">33c1e1fad52b03107f4491472fd3df0a</sys_update_version>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-29 09:33:06</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

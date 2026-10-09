@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element attributes="enforce_dot_walk_cross_scope_access=true" db_object_id="594839d6641f03107f44b7462480e67f" label="CampusMatch Match" max_length="40" name="x_snc_campusmatch_campusmatch_match" type="collection">
+        <element label="PI Pending" max_length="40" name="pi_pending" type="boolean"/>
+        <element choice="3" label="Decision Reason" max_length="40" name="decision_reason" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Claim Withdrawn" sequence="3" value="claim_withdrawn"/>
+                <element inactive_on_update="false" label="Competing Candidate" sequence="1" value="competing_candidate"/>
+                <element inactive_on_update="false" label="User Marked Not Mine" sequence="4" value="user_rejected"/>
+                <element inactive_on_update="false" label="Selected Candidate" sequence="0" value="selected_candidate"/>
+                <element inactive_on_update="false" label="Staff Rejected" sequence="2" value="staff_rejected"/>
+            </choice>
+        </element>
+        <element attributes="ignore_filter_on_new=true" default="javascript:global.getNextObjNumberPadded();" label="Number" max_length="40" name="number" type="string"/>
+        <element choice="3" label="Match Level" max_length="40" name="match_level" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Strong" sequence="2" value="strong"/>
+                <element inactive_on_update="false" label="Low" sequence="0" value="low"/>
+                <element inactive_on_update="false" label="Potential" sequence="1" value="potential"/>
+            </choice>
+        </element>
+        <element label="Category Score" max_length="38" name="category_score" type="decimal"/>
+        <element label="Unique Attribute Score" max_length="38" name="unique_attribute_score" type="decimal"/>
+        <element label="Description Similarity" max_length="38" name="description_similarity" type="decimal"/>
+        <element label="Reviewed On" max_length="40" name="reviewed_on" type="glide_date_time"/>
+        <element label="Found Item" mandatory="true" max_length="32" name="found_item" reference="x_snc_campusmatch_campusmatch_item" type="reference"/>
+        <element label="Overall Score" max_length="38" name="overall_score" type="decimal"/>
+        <element choice="3" label="Status" mandatory="true" max_length="40" name="status" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Potential Match" sequence="2" value="potential_match"/>
+                <element inactive_on_update="false" label="Under Review" sequence="5" value="under_review"/>
+                <element inactive_on_update="false" label="Strong Match" sequence="3" value="strong_match"/>
+                <element inactive_on_update="false" label="Withdrawn" sequence="7" value="withdrawn"/>
+                <element inactive_on_update="false" label="Active" sequence="4" value="active"/>
+                <element inactive_on_update="false" label="Not Evaluated" sequence="0" value="not_evaluated"/>
+                <element inactive_on_update="false" label="Confirmed" sequence="6" value="confirmed"/>
+                <element inactive_on_update="false" label="No Match" sequence="1" value="no_match"/>
+            </choice>
+        </element>
+        <element label="Time Score" max_length="38" name="time_score" type="decimal"/>
+        <element label="Reviewed By" max_length="32" name="reviewed_by" reference="sys_user" type="reference"/>
+        <element label="Image Similarity" max_length="38" name="image_similarity" type="decimal"/>
+        <element label="Lost Item" mandatory="true" max_length="32" name="lost_item" reference="x_snc_campusmatch_campusmatch_item" type="reference"/>
+        <element label="Location Score" max_length="38" name="location_score" type="decimal"/>
+        <index name="index">
+            <element name="found_item"/>
+        </index>
+        <index name="index2">
+            <element name="reviewed_by"/>
+        </index>
+        <index name="index3">
+            <element name="lost_item"/>
+        </index>
+    </element>
+</database>

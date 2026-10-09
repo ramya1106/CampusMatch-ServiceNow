@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element attributes="enforce_dot_walk_cross_scope_access=true" db_object_id="e1ab993ed5e703107f4491472fd3df82" label="CampusMatch Notification" max_length="40" name="x_snc_campusmatch_campusmatch_notification" type="collection">
+        <element label="Recipient" max_length="32" name="recipient" reference="sys_user" type="reference"/>
+        <element default="False" label="Read" max_length="40" name="read" type="boolean"/>
+        <element label="Email Subject" max_length="255" name="email_subject" type="string"/>
+        <element label="Source Sys ID" max_length="32" name="source_sys_id" type="string"/>
+        <element label="Source Table" max_length="160" name="source_table" type="string"/>
+        <element label="Dedupe Key" max_length="200" name="dedupe_key" type="string"/>
+        <element choice="3" label="Audience" max_length="40" name="audience" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="staff" sequence="1" value="staff"/>
+                <element inactive_on_update="false" label="student" sequence="0" value="student"/>
+            </choice>
+        </element>
+        <element label="Read On" max_length="40" name="read_on" type="glide_date_time"/>
+        <element label="Message" max_length="500" name="message" type="string"/>
+        <element choice="3" label="Notification Type" max_length="40" name="notification_type" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Match" sequence="1" value="match"/>
+                <element inactive_on_update="false" label="Collection" sequence="3" value="collection"/>
+                <element inactive_on_update="false" label="Claim" sequence="2" value="claim"/>
+                <element inactive_on_update="false" label="General" sequence="0" value="general"/>
+                <element inactive_on_update="false" label="Deadline" sequence="4" value="deadline"/>
+            </choice>
+        </element>
+        <element label="Title" max_length="160" name="title" type="string"/>
+        <element label="Target URL" max_length="500" name="target_url" type="string"/>
+        <index name="index">
+            <element name="recipient"/>
+        </index>
+    </element>
+</database>

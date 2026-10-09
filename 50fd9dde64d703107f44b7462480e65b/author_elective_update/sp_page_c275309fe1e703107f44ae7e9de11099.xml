@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_page">
+    <sp_page action="DELETE">
+        <category>custom</category>
+        <css/>
+        <draft>false</draft>
+        <dynamic_title_structure/>
+        <human_readable_url_structure/>
+        <id>campusmatch_deadlines</id>
+        <internal>false</internal>
+        <omit_watcher>false</omit_watcher>
+        <public>false</public>
+        <roles/>
+        <seo_script/>
+        <short_description>View your CampusMatch collection deadlines</short_description>
+        <sys_class_name>sp_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-30 19:06:21</sys_created_on>
+        <sys_id>c275309fe1e703107f44ae7e9de11099</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>campusmatch_deadlines</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_page_c275309fe1e703107f44ae7e9de11099</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-30 19:06:21</sys_updated_on>
+        <title>CampusMatch Deadlines</title>
+        <use_seo_script>false</use_seo_script>
+    </sp_page>
+    <sys_translated_text action="DELETE" query="documentkey=c275309fe1e703107f44ae7e9de11099"/>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</application>
+        <file_path/>
+        <instance_id>b9d14dc7c38fcf94a03197af0501313f</instance_id>
+        <instance_name>ltm-hck-2876-0009</instance_name>
+        <name>sp_page_c275309fe1e703107f44ae7e9de11099</name>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_page"><sp_page action="INSERT_OR_UPDATE"><category>custom</category><css/><draft>false</draft><dynamic_title_structure/><human_readable_url_structure/><id>campusmatch_deadlines</id><internal>false</internal><omit_watcher>false</omit_watcher><public>false</public><roles/><seo_script/><short_description>View your CampusMatch collection deadlines</short_description><sys_class_name>sp_page</sys_class_name><sys_created_by>admin</sys_created_by><sys_created_on>2026-09-30 19:06:21</sys_created_on><sys_id>c275309fe1e703107f44ae7e9de11099</sys_id><sys_mod_count>0</sys_mod_count><sys_name>campusmatch_deadlines</sys_name><sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package><sys_policy/><sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope><sys_update_name>sp_page_c275309fe1e703107f44ae7e9de11099</sys_update_name><sys_updated_by>admin</sys_updated_by><sys_updated_on>2026-09-30 19:06:21</sys_updated_on><title>CampusMatch Deadlines</title><use_seo_script>false</use_seo_script></sp_page><sys_translated_text action="delete_multiple" query="documentkey=c275309fe1e703107f44ae7e9de11099"/></record_update>]]></payload>
+        <payload_hash>-1532925740</payload_hash>
+        <record_name>campusmatch_deadlines</record_name>
+        <reverted_from/>
+        <source>800261f194a303107f4415a927453870</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-30 19:06:21</sys_created_on>
+        <sys_id>a495b09fe1e703107f44ae7e9de110f1</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>1a0f3b5eea80000001</sys_recorded_at>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-30 19:06:21</sys_updated_on>
+        <type>Page</type>
+        <update_guid>a495b09f54e703100dae2ebf7835caf0</update_guid>
+        <update_guid_history>a495b09f54e703100dae2ebf7835caf0:-1532925740</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete display_value="campusmatch_deadlines">af1840afe5ab03107f440b8398d33add</sys_audit_delete>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-10-01 10:26:18</sys_created_on>
+        <sys_db_object display_value="" name="sp_page">sp_page</sys_db_object>
+        <sys_id>50edf2cbf8144a74aa138323629ddf01</sys_id>
+        <sys_metadata>c275309fe1e703107f44ae7e9de11099</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>campusmatch_deadlines</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_parent/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_scope_delete display_value="">82a3c746b444401c8863da139baae804</sys_scope_delete>
+        <sys_update_name>sp_page_c275309fe1e703107f44ae7e9de11099</sys_update_name>
+        <sys_update_version display_value="sp_page_c275309fe1e703107f44ae7e9de11099">a495b09fe1e703107f44ae7e9de110f1</sys_update_version>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-10-01 10:26:18</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_di_integration_setup">
+    <sys_di_integration_setup action="DELETE">
+        <condition/>
+        <create_flow>true</create_flow>
+        <flow display_value="DocIntel Extract Values Flow - CampusMatch Item Image Extraction - CampusMatch Item - Extract Values">7c5fc09fa89303107f44bd86c8568be7</flow>
+        <flow_conditions>statusCHANGESTODone^source_table=x_snc_campusmatch_campusmatch_item^task_definition=e982f9da64db03107f44b7462480e6ab</flow_conditions>
+        <mluc_id/>
+        <name>CampusMatch Item - Extract Values</name>
+        <sys_class_name>sys_di_integration_setup</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:03:33</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_id>285f409fa89303107f44bd86c8568bc9</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>CampusMatch Item - Extract Values</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_di_integration_setup_285f409fa89303107f44bd86c8568bc9</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:03:36</sys_updated_on>
+        <target_table>x_snc_campusmatch_campusmatch_item</target_table>
+        <task_definition display_value="CampusMatch Item Image Extraction">e982f9da64db03107f44b7462480e6ab</task_definition>
+        <trigger>x_snc_campusmatch_campusmatch_item</trigger>
+        <type>extract_values</type>
+    </sys_di_integration_setup>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</application>
+        <file_path/>
+        <instance_id>b9d14dc7c38fcf94a03197af0501313f</instance_id>
+        <instance_name>ltm-hck-2876-0009</instance_name>
+        <name>sys_di_integration_setup_285f409fa89303107f44bd86c8568bc9</name>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_di_integration_setup"><sys_di_integration_setup action="INSERT_OR_UPDATE"><condition/><create_flow>true</create_flow><flow display_value="DocIntel Extract Values Flow - CampusMatch Item Image Extraction - CampusMatch Item - Extract Values">7c5fc09fa89303107f44bd86c8568be7</flow><flow_conditions>statusCHANGESTODone^source_table=x_snc_campusmatch_campusmatch_item^task_definition=e982f9da64db03107f44b7462480e6ab</flow_conditions><mluc_id/><name>CampusMatch Item - Extract Values</name><sys_class_name>sys_di_integration_setup</sys_class_name><sys_created_by>admin</sys_created_by><sys_created_on>2026-09-18 06:03:33</sys_created_on><sys_domain>global</sys_domain><sys_id>285f409fa89303107f44bd86c8568bc9</sys_id><sys_mod_count>1</sys_mod_count><sys_name>CampusMatch Item - Extract Values</sys_name><sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package><sys_policy/><sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope><sys_update_name>sys_di_integration_setup_285f409fa89303107f44bd86c8568bc9</sys_update_name><sys_updated_by>admin</sys_updated_by><sys_updated_on>2026-09-18 06:03:36</sys_updated_on><target_table>x_snc_campusmatch_campusmatch_item</target_table><task_definition display_value="CampusMatch Item Image Extraction">e982f9da64db03107f44b7462480e6ab</task_definition><trigger>x_snc_campusmatch_campusmatch_item</trigger><type>extract_values</type></sys_di_integration_setup></record_update>]]></payload>
+        <payload_hash>-528466454</payload_hash>
+        <record_name>CampusMatch Item - Extract Values</record_name>
+        <reverted_from/>
+        <source>90fd9dde64d703107f44b7462480e6dd</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:03:36</sys_created_on>
+        <sys_id>955f049fa89303107f44bd86c8568b84</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>1a0b31cfba60000001</sys_recorded_at>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:03:36</sys_updated_on>
+        <type>Integration Setup</type>
+        <update_guid>955f049fd5930310b7f80b6eb09e1b83</update_guid>
+        <update_guid_history>955f049fd5930310b7f80b6eb09e1b83:-528466454</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete/>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 14:47:08</sys_created_on>
+        <sys_db_object display_value="" name="sys_di_integration_setup">sys_di_integration_setup</sys_db_object>
+        <sys_id>4e0b5ff94d284048ac3a4138fdb5ed10</sys_id>
+        <sys_metadata>285f409fa89303107f44bd86c8568bc9</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch Item - Extract Values</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_parent/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_scope_delete display_value="">82a3c746b444401c8863da139baae804</sys_scope_delete>
+        <sys_update_name>sys_di_integration_setup_285f409fa89303107f44bd86c8568bc9</sys_update_name>
+        <sys_update_version display_value="sys_di_integration_setup_285f409fa89303107f44bd86c8568bc9">955f049fa89303107f44bd86c8568b84</sys_update_version>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:47:08</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

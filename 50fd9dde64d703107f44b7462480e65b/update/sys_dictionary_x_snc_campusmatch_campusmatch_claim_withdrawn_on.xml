@@ -48,7 +48,6 @@
         <sys_class_name>sys_dictionary</sys_class_name>
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2026-09-25 15:03:46</sys_created_on>
-        <sys_id>1a1eca65b5eb03107f445195935820dd</sys_id>
         <sys_name>Withdrawn On</sys_name>
         <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
         <sys_policy/>

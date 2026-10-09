@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_security_acl_role">
+    <sys_security_acl_role action="DELETE">
+        <sys_class_name>sys_security_acl_role</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-15 11:42:10</sys_created_on>
+        <sys_id>2b0006d6645f03107f44b7462480e6e3</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>campusmatch_privacy_safe_public_title.570006d6645f03107f44b7462480e6d2.snc_internal</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_security_acl display_value="campusmatch_privacy_safe_public_title.570006d6645f03107f44b7462480e6d2">630006d6645f03107f44b7462480e6e1</sys_security_acl>
+        <sys_update_name>sys_security_acl_role_2b0006d6645f03107f44b7462480e6e3</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-15 11:42:10</sys_updated_on>
+        <sys_user_role display_value="snc_internal" name="snc_internal">7fcaa702933002009c8579b4f47ffbde</sys_user_role>
+    </sys_security_acl_role>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</application>
+        <file_path/>
+        <instance_id>b9d14dc7c38fcf94a03197af0501313f</instance_id>
+        <instance_name>ltm-hck-2876-0009</instance_name>
+        <name>sys_security_acl_role_2b0006d6645f03107f44b7462480e6e3</name>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_security_acl_role"><sys_security_acl_role action="INSERT_OR_UPDATE"><sys_class_name>sys_security_acl_role</sys_class_name><sys_created_by>admin</sys_created_by><sys_created_on>2026-09-15 11:42:10</sys_created_on><sys_id>2b0006d6645f03107f44b7462480e6e3</sys_id><sys_mod_count>0</sys_mod_count><sys_name>campusmatch_privacy_safe_public_title.570006d6645f03107f44b7462480e6d2.snc_internal</sys_name><sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package><sys_policy/><sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope><sys_security_acl display_value="campusmatch_privacy_safe_public_title.570006d6645f03107f44b7462480e6d2">630006d6645f03107f44b7462480e6e1</sys_security_acl><sys_update_name>sys_security_acl_role_2b0006d6645f03107f44b7462480e6e3</sys_update_name><sys_updated_by>admin</sys_updated_by><sys_updated_on>2026-09-15 11:42:10</sys_updated_on><sys_user_role display_value="snc_internal" name="snc_internal">7fcaa702933002009c8579b4f47ffbde</sys_user_role></sys_security_acl_role></record_update>]]></payload>
+        <payload_hash>-190030283</payload_hash>
+        <record_name>campusmatch_privacy_safe_public_title.570006d6645f03107f44b7462480e6d2.snc_internal</record_name>
+        <reverted_from/>
+        <source/>
+        <source_table>sys_upgrade_history</source_table>
+        <state>previous</state>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-15 11:42:55</sys_created_on>
+        <sys_id>26304ed6645f03107f44b7462480e66a</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>1a0a4e091990000001</sys_recorded_at>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-15 11:42:55</sys_updated_on>
+        <type>Access Roles</type>
+        <update_guid>e2304ed6b25f0310114b9cd64a421d6a</update_guid>
+        <update_guid_history>e2304ed6b25f0310114b9cd64a421d6a:-190030283</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete display_value="campusmatch_privacy_safe_public_title.570006d6645f03107f44b7462480e6d2.snc_inter">66304ed6645f03107f44b7462480e66b</sys_audit_delete>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-15 11:42:56</sys_created_on>
+        <sys_db_object display_value="" name="sys_security_acl_role">sys_security_acl_role</sys_db_object>
+        <sys_id>c5230311035b457799a8eba34e113ea9</sys_id>
+        <sys_metadata>2b0006d6645f03107f44b7462480e6e3</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>campusmatch_privacy_safe_public_title.570006d6645f03107f44b7462480e6d2.snc_internal</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_parent display_value="campusmatch_privacy_safe_public_title.570006d6645f03107f44b7462480e6d2">630006d6645f03107f44b7462480e6e1</sys_parent>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_scope_delete display_value="">82a3c746b444401c8863da139baae804</sys_scope_delete>
+        <sys_update_name>sys_security_acl_role_2b0006d6645f03107f44b7462480e6e3</sys_update_name>
+        <sys_update_version display_value="sys_security_acl_role_2b0006d6645f03107f44b7462480e6e3">26304ed6645f03107f44b7462480e66a</sys_update_version>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-15 11:42:56</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

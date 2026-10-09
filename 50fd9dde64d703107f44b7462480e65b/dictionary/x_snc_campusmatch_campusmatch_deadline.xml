@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element attributes="enforce_dot_walk_cross_scope_access=true" db_object_id="f1c0941fe1a303107f44ae7e9de110e4" label="CampusMatch Deadline" max_length="40" name="x_snc_campusmatch_campusmatch_deadline" type="collection">
+        <element attributes="ignore_filter_on_new=true" default="javascript:global.getNextObjNumberPadded();" label="Number" max_length="40" name="number" type="string"/>
+        <element label="Item" max_length="32" name="item" reference="x_snc_campusmatch_campusmatch_item" type="reference"/>
+        <element label="Expiry Processed" max_length="255" name="expiry_processed" type="boolean"/>
+        <element label="Due Date/Time" max_length="40" name="due_date_time" type="glide_date_time"/>
+        <element label="Reminder Sent" max_length="255" name="reminder_sent" type="boolean"/>
+        <element choice="3" label="Deadline Type" max_length="40" name="deadline_type" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Retention" sequence="1" value="retention"/>
+                <element inactive_on_update="false" label="Collection" sequence="0" value="collection"/>
+            </choice>
+        </element>
+        <element label="User" max_length="32" name="user" reference="sys_user" type="reference"/>
+        <element choice="3" default="active" label="Status" max_length="255" name="status" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Completed" sequence="1" value="completed"/>
+                <element inactive_on_update="false" label="Cancelled" sequence="2" value="cancelled"/>
+                <element inactive_on_update="false" label="Active" sequence="0" value="active"/>
+                <element inactive_on_update="false" label="Expired" sequence="3" value="expired"/>
+            </choice>
+        </element>
+        <element label="Start Date/Time" max_length="40" name="start_date_time" type="glide_date_time"/>
+        <element label="Claim" max_length="32" name="claim" reference="x_snc_campusmatch_campusmatch_claim" type="reference"/>
+        <index name="index">
+            <element name="claim"/>
+        </index>
+        <index name="index2">
+            <element name="item"/>
+        </index>
+        <index name="index3">
+            <element name="user"/>
+        </index>
+    </element>
+</database>

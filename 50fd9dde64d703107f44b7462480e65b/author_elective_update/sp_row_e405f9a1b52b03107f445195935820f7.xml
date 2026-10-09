@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_row">
+    <sp_row action="DELETE">
+        <aria_label/>
+        <class_name/>
+        <order>6</order>
+        <semantic_tag/>
+        <sp_column/>
+        <sp_container display_value="CampusMatch Staff Dashboard - Container 2">afe972ab55df03107f4447f82ce73255</sp_container>
+        <sys_class_name>sp_row</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-25 13:14:09</sys_created_on>
+        <sys_id>e405f9a1b52b03107f445195935820f7</sys_id>
+        <sys_mod_count>10</sys_mod_count>
+        <sys_name>6</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sp_row_e405f9a1b52b03107f445195935820f7</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-25 16:18:15</sys_updated_on>
+    </sp_row>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</application>
+        <file_path/>
+        <instance_id>b9d14dc7c38fcf94a03197af0501313f</instance_id>
+        <instance_name>ltm-hck-2876-0009</instance_name>
+        <name>sp_row_e405f9a1b52b03107f445195935820f7</name>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_row"><sp_row action="INSERT_OR_UPDATE"><aria_label/><class_name/><order>6</order><semantic_tag/><sp_column/><sp_container display_value="CampusMatch Staff Dashboard - Container 2">afe972ab55df03107f4447f82ce73255</sp_container><sys_class_name>sp_row</sys_class_name><sys_created_by>admin</sys_created_by><sys_created_on>2026-09-25 13:14:09</sys_created_on><sys_id>e405f9a1b52b03107f445195935820f7</sys_id><sys_mod_count>10</sys_mod_count><sys_name>6</sys_name><sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package><sys_policy/><sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope><sys_update_name>sp_row_e405f9a1b52b03107f445195935820f7</sys_update_name><sys_updated_by>admin</sys_updated_by><sys_updated_on>2026-09-25 16:18:15</sys_updated_on></sp_row></record_update>]]></payload>
+        <payload_hash>283556966</payload_hash>
+        <record_name>6</record_name>
+        <reverted_from/>
+        <source>90fd9dde64d703107f44b7462480e6dd</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-25 16:18:15</sys_created_on>
+        <sys_id>992fda69b56f03107f445195935820f4</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>1a0d95c3cd10000001</sys_recorded_at>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-25 16:18:15</sys_updated_on>
+        <type>Row</type>
+        <update_guid>dd2fda69dc6f03103a47b27ffa688ff3</update_guid>
+        <update_guid_history>dd2fda69dc6f03103a47b27ffa688ff3:283556966,a1ee1269a26f03107711894c360f169a:234027496,946edae50f6f0310c4ba1753e119bdc4:184498026,3aed1aa59b6f03106c011e8a7e1c27bf:234027496,8f9dda654d6f031043c63692161968ef:283556966,85d5026518ab0310d32c4bb5d1f5c95e:333086436,dca50a2503ab0310023013529c435159:382615906,5a95c62578ab0310f13ddfad3780c040:432145376,b285062516ab0310c7bfeb1fcaddff9e:382615906,26550ee180ab031078b055de1dd49fd2:333086436,ec05f9a11f2b0310232975668abf73f8:283556966</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete display_value="6">e03f1e69b56f03107f445195935820c6</sys_audit_delete>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-25 16:18:29</sys_created_on>
+        <sys_db_object display_value="" name="sp_row">sp_row</sys_db_object>
+        <sys_id>25f20091d8f14080a27b4ed2c133a124</sys_id>
+        <sys_metadata>e405f9a1b52b03107f445195935820f7</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>6</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_parent/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_scope_delete display_value="">82a3c746b444401c8863da139baae804</sys_scope_delete>
+        <sys_update_name>sp_row_e405f9a1b52b03107f445195935820f7</sys_update_name>
+        <sys_update_version display_value="sp_row_e405f9a1b52b03107f445195935820f7">992fda69b56f03107f445195935820f4</sys_update_version>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-25 16:18:29</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

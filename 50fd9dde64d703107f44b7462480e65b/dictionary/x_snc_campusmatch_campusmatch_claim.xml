@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element attributes="enforce_dot_walk_cross_scope_access=true" db_object_id="070412de64df03107f44b7462480e64f" label="CampusMatch Claim" max_length="40" name="x_snc_campusmatch_campusmatch_claim" type="collection">
+        <element label="Item" mandatory="true" max_length="32" name="item" reference="x_snc_campusmatch_campusmatch_item" type="reference"/>
+        <element label="Match" max_length="32" name="match" reference="x_snc_campusmatch_campusmatch_match" type="reference"/>
+        <element label="Withdrawal Reason" max_length="500" name="withdrawal_reason" type="string"/>
+        <element label="Handed Over On" max_length="40" name="handed_over_on" type="glide_date_time"/>
+        <element label="Handed Over By" max_length="32" name="handed_over_by" reference="sys_user" type="reference"/>
+        <element choice="3" label="Verification Status" max_length="40" name="verification_status" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Failed" sequence="2" value="failed"/>
+                <element inactive_on_update="false" label="Verified" sequence="1" value="verified"/>
+                <element inactive_on_update="false" label="Under Review" sequence="0" value="under_review"/>
+            </choice>
+        </element>
+        <element label="Withdrawn On" max_length="40" name="withdrawn_on" type="glide_date_time"/>
+        <element choice="3" default="Submitted" label="Claim Status" mandatory="true" max_length="40" name="claim_status" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Cancelled" sequence="4" value="Cancelled"/>
+                <element inactive_on_update="false" label="Under Review" sequence="1" value="Under Review"/>
+                <element inactive_on_update="false" label="Approved" sequence="2" value="Approved"/>
+                <element inactive_on_update="false" label="Withdrawn" sequence="5" value="withdrawn"/>
+                <element inactive_on_update="false" label="Submitted" sequence="0" value="Submitted"/>
+                <element inactive_on_update="false" label="Rejected" sequence="3" value="Rejected"/>
+                <element inactive_on_update="false" label="Collection Expired" sequence="6" value="collection_expired"/>
+            </choice>
+        </element>
+        <element label="Claim Date" mandatory="true" max_length="40" name="claim_date" type="glide_date_time"/>
+        <element label="Verified By" max_length="32" name="verified_by" reference="sys_user" type="reference"/>
+        <element label="Claimant" mandatory="true" max_length="32" name="claimant" reference="sys_user" type="reference"/>
+        <element label="Verification Notes" max_length="500" name="verification_notes" type="string"/>
+        <element label="Verification Similarity 1" max_length="20" name="verification_similarity_1" type="decimal"/>
+        <element label="Handover Completed" max_length="255" name="handover_completed" type="boolean"/>
+        <element choice="3" default="Pending" label="Verification Result" max_length="40" name="u_verification_result" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Pending" sequence="100" value="pending"/>
+                <element inactive_on_update="false" label="Pass" sequence="200" value="pass"/>
+                <element inactive_on_update="false" label="Review" sequence="300" value="review"/>
+                <element inactive_on_update="false" label="Fail" sequence="400" value="fail"/>
+            </choice>
+        </element>
+        <element label="Verification Similarity 2" max_length="20" name="verification_similarity_2" type="decimal"/>
+        <element label="Verified On" max_length="40" name="verified_on" type="glide_date_time"/>
+        <element label="Withdrawn By" max_length="32" name="withdrawn_by" reference="sys_user" type="reference"/>
+        <element label="Claimant Answer 2" max_length="255" name="u_claimant_answer_2" type="string"/>
+        <element label="Collection Token" max_length="64" name="collection_toke0" type="string"/>
+        <element default="javascript:global.getNextObjNumberPadded()" label="Number" max_length="40" name="number" type="string"/>
+        <element label="Verification Score" max_length="20" name="u_verification_score" type="decimal"/>
+        <element label="Claimant Answer 3" max_length="255" name="u_claimant_answer_3" type="string"/>
+        <element label="Claimant Answer 1" max_length="255" name="u_claimant_answer_1" type="string"/>
+        <element label="Verification Similarity 3" max_length="20" name="verification_similarity_3" type="decimal"/>
+        <index name="index">
+            <element name="match"/>
+        </index>
+        <index name="index2">
+            <element name="claimant"/>
+        </index>
+        <index name="index3">
+            <element name="verified_by"/>
+        </index>
+        <index name="index4">
+            <element name="item"/>
+        </index>
+        <index name="index5">
+            <element name="handed_over_by"/>
+        </index>
+        <index name="index6">
+            <element name="withdrawn_by"/>
+        </index>
+    </element>
+</database>

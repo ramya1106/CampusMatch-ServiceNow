@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element attributes="enforce_dot_walk_cross_scope_access=true" db_object_id="ea20e516641b03107f44b7462480e67d" label="CampusMatch Item" max_length="40" name="x_snc_campusmatch_campusmatch_item" type="collection">
+        <element label="Location Zone" max_length="100" name="location_zone" type="string"/>
+        <element label="Color" max_length="40" name="color" type="string"/>
+        <element choice="3" label="Report Type" mandatory="true" max_length="40" name="report_type" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Found" sequence="1" value="found"/>
+                <element inactive_on_update="false" label="Lost" sequence="0" value="lost"/>
+            </choice>
+        </element>
+        <element label="Verification Question 2" max_length="500" name="verification_question_2" type="string"/>
+        <element label="Title" mandatory="true" max_length="40" name="title" type="string"/>
+        <element label="Image" max_length="40" name="image" type="user_image"/>
+        <element label="Description" mandatory="true" max_length="500" name="description" type="string"/>
+        <element label="Reporter" mandatory="true" max_length="32" name="reporter" reference="sys_user" type="reference"/>
+        <element attributes="ignore_filter_on_new=true" default="javascript:global.getNextObjNumberPadded();" label="Number" mandatory="true" max_length="40" name="number" type="string"/>
+        <element label="AI Ready for Processing" max_length="255" name="ai_ready" type="boolean"/>
+        <element label="Private Detail 1" max_length="500" name="private_detail_1" type="string"/>
+        <element label="Private Detail 3" max_length="500" name="private_detail_3" type="string"/>
+        <element label="AI Attribute Text" max_length="500" name="ai_attribute_text" type="string"/>
+        <element label="Location X" max_length="38" name="location_x" type="decimal"/>
+        <element label="Location Y" max_length="38" name="location_y" type="decimal"/>
+        <element label="Received On" max_length="40" name="received_on" type="glide_date_time"/>
+        <element choice="3" label="Category" mandatory="true" max_length="40" name="category" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Documents" sequence="7" value="documents"/>
+                <element inactive_on_update="false" label="Clothing" sequence="3" value="clothing"/>
+                <element inactive_on_update="false" label="Keys" sequence="6" value="keys"/>
+                <element inactive_on_update="false" label="Books" sequence="2" value="books"/>
+                <element inactive_on_update="false" label="ID / Cards" sequence="5" value="id_cards"/>
+                <element inactive_on_update="false" label="Electronics" sequence="0" value="electronics"/>
+                <element inactive_on_update="false" label="Bags" sequence="1" value="bags"/>
+                <element inactive_on_update="false" label="Other" sequence="8" value="other"/>
+                <element inactive_on_update="false" label="Accessories" sequence="4" value="accessories"/>
+            </choice>
+        </element>
+        <element choice="3" label="Status" mandatory="true" max_length="40" name="status" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Claimed" sequence="3" value="claimed"/>
+                <element inactive_on_update="false" label="Cancelled" sequence="6" value="cancelled"/>
+                <element inactive_on_update="false" label="Matched" sequence="2" value="matched"/>
+                <element inactive_on_update="false" label="Unclaimed" sequence="5" value="unclaimed"/>
+                <element inactive_on_update="false" label="Active" sequence="1" value="active"/>
+                <element inactive_on_update="false" label="Resolved" sequence="4" value="resolved"/>
+                <element inactive_on_update="false" label="Draft" sequence="0" value="draft"/>
+            </choice>
+        </element>
+        <element label="Received By" max_length="32" name="received_by" reference="sys_user" type="reference"/>
+        <element label="Unique Features" max_length="500" name="unique_features" type="string"/>
+        <element label="Public Title" max_length="40" name="public_title" type="string"/>
+        <element choice="3" label="Match Status" max_length="40" name="match_status" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="Strong Match" sequence="3" value="strong_match"/>
+                <element inactive_on_update="false" label="Under Review" sequence="4" value="under_review"/>
+                <element inactive_on_update="false" label="No Match" sequence="1" value="no_match"/>
+                <element inactive_on_update="false" label="Not Evaluated" sequence="0" value="not_evaluated"/>
+                <element inactive_on_update="false" label="Potential Match" sequence="2" value="potential_match"/>
+                <element inactive_on_update="false" label="Confirmed" sequence="5" value="confirmed"/>
+            </choice>
+        </element>
+        <element label="AI Processed" max_length="40" name="ai_processed" type="boolean"/>
+        <element label="Reported Date/Time" mandatory="true" max_length="40" name="reported_date_time" type="glide_date_time"/>
+        <element label="Brand" max_length="40" name="brand" type="string"/>
+        <element label="Private Detail 2" max_length="500" name="private_detail_2" type="string"/>
+        <element default="False" label="Received at Security Desk" max_length="40" name="received_at_security_desk" type="boolean"/>
+        <element label="Verification Question 3" max_length="500" name="verification_question_3" type="string"/>
+        <element label="Verification Question 1" max_length="500" name="verification_question_1" type="string"/>
+        <index name="index">
+            <element name="reporter"/>
+        </index>
+        <index name="index2">
+            <element name="received_by"/>
+        </index>
+    </element>
+</database>

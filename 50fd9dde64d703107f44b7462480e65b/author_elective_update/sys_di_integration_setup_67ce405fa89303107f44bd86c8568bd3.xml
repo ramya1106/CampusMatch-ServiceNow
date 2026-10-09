@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_di_integration_setup">
+    <sys_di_integration_setup action="DELETE">
+        <condition table="x_snc_campusmatch_campusmatch_item">image!=empty<item endquery="false" field="image" goto="false" newquery="false" operator="!=" or="false" value="empty"/>
+        </condition>
+        <create_flow>true</create_flow>
+        <flow display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">04de805fa89303107f44bd86c8568b5e</flow>
+        <flow_conditions>image!=empty</flow_conditions>
+        <mluc_id/>
+        <name>CampusMatch Item - Process Task</name>
+        <sys_class_name>sys_di_integration_setup</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:17</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_id>67ce405fa89303107f44bd86c8568bd3</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>CampusMatch Item - Process Task</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_update_name>sys_di_integration_setup_67ce405fa89303107f44bd86c8568bd3</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:01:22</sys_updated_on>
+        <target_table>x_snc_campusmatch_campusmatch_item</target_table>
+        <task_definition display_value="CampusMatch Item Image Extraction">e982f9da64db03107f44b7462480e6ab</task_definition>
+        <trigger>x_snc_campusmatch_campusmatch_item</trigger>
+        <type>process_task</type>
+    </sys_di_integration_setup>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</application>
+        <file_path/>
+        <instance_id>b9d14dc7c38fcf94a03197af0501313f</instance_id>
+        <instance_name>ltm-hck-2876-0009</instance_name>
+        <name>sys_di_integration_setup_67ce405fa89303107f44bd86c8568bd3</name>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_di_integration_setup"><sys_di_integration_setup action="INSERT_OR_UPDATE"><condition table="x_snc_campusmatch_campusmatch_item">image!=empty<item endquery="false" field="image" goto="false" newquery="false" operator="!=" or="false" value="empty"/></condition><create_flow>true</create_flow><flow display_value="DocIntel Task Processing Flow - CampusMatch Item Image Extraction - CampusMatch Item - Process Task">04de805fa89303107f44bd86c8568b5e</flow><flow_conditions>image!=empty</flow_conditions><mluc_id/><name>CampusMatch Item - Process Task</name><sys_class_name>sys_di_integration_setup</sys_class_name><sys_created_by>admin</sys_created_by><sys_created_on>2026-09-18 06:01:17</sys_created_on><sys_domain>global</sys_domain><sys_id>67ce405fa89303107f44bd86c8568bd3</sys_id><sys_mod_count>1</sys_mod_count><sys_name>CampusMatch Item - Process Task</sys_name><sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package><sys_policy/><sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope><sys_update_name>sys_di_integration_setup_67ce405fa89303107f44bd86c8568bd3</sys_update_name><sys_updated_by>admin</sys_updated_by><sys_updated_on>2026-09-18 06:01:22</sys_updated_on><target_table>x_snc_campusmatch_campusmatch_item</target_table><task_definition display_value="CampusMatch Item Image Extraction">e982f9da64db03107f44b7462480e6ab</task_definition><trigger>x_snc_campusmatch_campusmatch_item</trigger><type>process_task</type></sys_di_integration_setup></record_update>]]></payload>
+        <payload_hash>1468693012</payload_hash>
+        <record_name>CampusMatch Item - Process Task</record_name>
+        <reverted_from/>
+        <source>90fd9dde64d703107f44b7462480e6dd</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 06:01:22</sys_created_on>
+        <sys_id>38dec05fa89303107f44bd86c8568b3d</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>1a0b31af1840000001</sys_recorded_at>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 06:01:22</sys_updated_on>
+        <type>Integration Setup</type>
+        <update_guid>38dec05f32930310173fba5e0ff4f73c</update_guid>
+        <update_guid_history>38dec05f32930310173fba5e0ff4f73c:1468693012</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete/>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2026-09-18 14:47:22</sys_created_on>
+        <sys_db_object display_value="" name="sys_di_integration_setup">sys_di_integration_setup</sys_db_object>
+        <sys_id>0051f2ca7cd84dcf8acc3c0d311b4809</sys_id>
+        <sys_metadata>67ce405fa89303107f44bd86c8568bd3</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>CampusMatch Item - Process Task</sys_name>
+        <sys_package display_value="CampusMatch" source="x_snc_campusmatch">50fd9dde64d703107f44b7462480e65b</sys_package>
+        <sys_parent/>
+        <sys_policy/>
+        <sys_scope display_value="CampusMatch">50fd9dde64d703107f44b7462480e65b</sys_scope>
+        <sys_scope_delete display_value="">82a3c746b444401c8863da139baae804</sys_scope_delete>
+        <sys_update_name>sys_di_integration_setup_67ce405fa89303107f44bd86c8568bd3</sys_update_name>
+        <sys_update_version display_value="sys_di_integration_setup_67ce405fa89303107f44bd86c8568bd3">38dec05fa89303107f44bd86c8568b3d</sys_update_version>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2026-09-18 14:47:22</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>
